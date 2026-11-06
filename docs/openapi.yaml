@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: 优选商城 API
+  title: SIQ优选商城 API
   version: 1.0.0
-  description: 优选商城前后端分离接口文档（/api/v1/）
+  description: SIQ优选商城前后端分离接口文档（/api/v1/）
 paths:
   /api/v1/auth/refresh/:
     post:

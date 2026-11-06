@@ -27,7 +27,7 @@ const router = createRouter({
 })
 
 router.afterEach((to) => {
-  document.title = to.meta.title ? `${to.meta.title} - 优选商城` : '优选商城'
+  document.title = to.meta.title ? `${to.meta.title} - SIQ优选商城` : 'SIQ优选商城'
 })
 
 export default router

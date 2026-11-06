@@ -243,3 +243,14 @@ P任务是准备与决策，不重复计入业务任务工时。负责人为角�
 - **范围结论**：I01可执行修复与自动验证通过；I01整体仍为“待Ubuntu补验与人工验收”，不登记“已验收”。I02–I11未开始。
 
 自动验证人：AI；日期：2026-11-06。人工验收人：____；日期：____；结论/整改复验：____。
+
+
+## 9. 中文品牌名统一登记（2026-11-06）
+
+- 中文品牌名统一为“SIQ优选商城”；远端仓库名继续使用`siq-mall-platform`，包名、`mall-api`等技术标识及数据库配置不变。
+- 修改`README.md`、`docs/01-architecture.md`、`docs/02-iteration-plan.md`、`backend/config/settings/base.py`、`frontend/index.html`、`frontend/src/router/index.js`和`frontend/src/layouts/DefaultLayout.vue`；`docs/openapi.yaml`已从后端配置重新生成。
+- GitHub仓库描述已同步为“SIQ优选商城：Vue 3 + Django 5 电商平台（迭代一基础框架）”，并通过`gh repo view`核对。
+- 自动验证：后端21项测试通过（0.64s，common覆盖率97.38%），Ruff、Black及OpenAPI校验通过；前端8项测试、ESLint、Prettier和构建通过。
+- 本次仅统一品牌文案，不改变I01待Ubuntu补验与人工验收的状态，未进入I02–I11。
+
+自动验证人：AI；日期：2026-11-06。人工验收人：____；日期：____；结论：____。

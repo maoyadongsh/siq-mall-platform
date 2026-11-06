@@ -1,7 +1,7 @@
 <template>
   <div class="mall-layout">
     <header class="mall-layout__header">
-      <div class="mall-layout__brand">优选商城</div>
+      <div class="mall-layout__brand">SIQ优选商城</div>
       <nav class="mall-layout__nav">
         <router-link class="mall-layout__link" to="/">首页</router-link>
       </nav>
@@ -11,7 +11,7 @@
       <router-view />
     </main>
 
-    <footer class="mall-layout__footer">优选商城 · 迭代一 基础框架</footer>
+    <footer class="mall-layout__footer">SIQ优选商城 · 迭代一 基础框架</footer>
   </div>
 </template>
 

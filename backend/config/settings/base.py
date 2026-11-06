@@ -186,8 +186,8 @@ SIMPLE_JWT = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "优选商城 API",
-    "DESCRIPTION": "优选商城前后端分离接口文档（/api/v1/）",
+    "TITLE": "SIQ优选商城 API",
+    "DESCRIPTION": "SIQ优选商城前后端分离接口文档（/api/v1/）",
     "VERSION": APP_VERSION,
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
