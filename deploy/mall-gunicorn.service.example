@@ -1,0 +1,28 @@
+# Ubuntu 24.04 / Gunicorn systemd 单元（不容器化）
+# 安装：cp mall-gunicorn.service /etc/systemd/system/ && systemctl daemon-reload && systemctl enable --now mall-gunicorn
+
+[Unit]
+Description=mall gunicorn daemon
+After=network.target mariadb.service redis-server.service
+Requires=mariadb.service
+
+[Service]
+Type=notify
+User=mall
+Group=mall
+WorkingDirectory=/opt/mall/backend
+EnvironmentFile=/etc/mall/backend.env
+ExecStart=/opt/mall/backend/.venv/bin/gunicorn config.wsgi:application \
+    --bind 127.0.0.1:8001 \
+    --workers 4 \
+    --threads 2 \
+    --timeout 60 \
+    --graceful-timeout 30 \
+    --access-logfile /var/log/mall/gunicorn-access.log \
+    --error-logfile /var/log/mall/gunicorn-error.log
+Restart=always
+RestartSec=3
+KillSignal=SIGQUIT
+
+[Install]
+WantedBy=multi-user.target

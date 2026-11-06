@@ -1,0 +1,222 @@
+openapi: 3.0.3
+info:
+  title: 优选商城 API
+  version: 1.0.0
+  description: 优选商城前后端分离接口文档（/api/v1/）
+paths:
+  /api/v1/auth/refresh/:
+    post:
+      operationId: api_v1_auth_refresh_create
+      description: POST /api/v1/auth/refresh/ —— 刷新 access，refresh 轮换并加入黑名单。
+      summary: 刷新 access token
+      tags:
+      - 鉴权
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/health/:
+    get:
+      operationId: api_v1_health_retrieve
+      description: |-
+        GET /api/v1/health/
+
+        返回服务自身状态与数据库/Redis 连通性；任一依赖异常时 HTTP 503 + status=degraded，
+        便于 systemd / Nginx / 监控探针直接按状态码判定。
+      summary: 健康检查
+      tags:
+      - 基础
+      security:
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+          description: ''
+components:
+  schemas:
+    Checks:
+      type: object
+      properties:
+        database:
+          $ref: '#/components/schemas/Dependency'
+        redis:
+          $ref: '#/components/schemas/Dependency'
+      required:
+      - database
+      - redis
+    Dependency:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/DependencyStatusEnum'
+        latency_ms:
+          type: number
+          format: double
+        detail:
+          type: string
+      required:
+      - detail
+      - latency_ms
+      - status
+    DependencyStatusEnum:
+      enum:
+      - ok
+      - fail
+      type: string
+      description: |-
+        * `ok` - ok
+        * `fail` - fail
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          nullable: true
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    HealthData:
+      type: object
+      properties:
+        service:
+          type: string
+        version:
+          type: string
+        environment:
+          type: string
+        status:
+          $ref: '#/components/schemas/HealthDataStatusEnum'
+        checks:
+          $ref: '#/components/schemas/Checks'
+        server_time:
+          type: string
+          format: date-time
+      required:
+      - checks
+      - environment
+      - server_time
+      - service
+      - status
+      - version
+    HealthDataStatusEnum:
+      enum:
+      - ok
+      - degraded
+      type: string
+      description: |-
+        * `ok` - ok
+        * `degraded` - degraded
+    HealthResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/HealthData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    RefreshData:
+      type: object
+      properties:
+        access:
+          type: string
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    RefreshResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/RefreshData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh

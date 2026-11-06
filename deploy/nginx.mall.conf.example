@@ -1,0 +1,76 @@
+# Ubuntu 24.04 / Nginx 站点配置（不容器化）
+# 安装：cp nginx.mall.conf /etc/nginx/sites-available/mall.conf
+#       ln -s /etc/nginx/sites-available/mall.conf /etc/nginx/sites-enabled/
+#       nginx -t && systemctl reload nginx
+
+upstream mall_api {
+    server 127.0.0.1:8001;
+}
+
+server {
+    listen 80;
+    server_name mall.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name mall.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/mall.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mall.example.com/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+
+    client_max_body_size 5m;
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript application/xml;
+    gzip_min_length 1024;
+
+    # 前端构建产物
+    root /opt/mall/frontend/dist;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://mall_api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Request-Id $request_id;
+        proxy_read_timeout 60s;
+    }
+
+    location /static/ {
+        alias /opt/mall/backend/staticfiles/;
+        expires 7d;
+    }
+
+    location /media/ {
+        alias /opt/mall/backend/media/;
+        expires 7d;
+    }
+
+    location = /api/v1/health/ {
+        proxy_pass http://mall_api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Request-Id $request_id;
+        access_log off;
+    }
+
+    location /admin/ {
+        proxy_pass http://mall_api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Request-Id $request_id;
+    }
+}
