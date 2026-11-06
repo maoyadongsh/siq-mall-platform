@@ -1,4 +1,4 @@
-# 优选商城（siq-mall-platform）
+# SIQ优选商城（siq-mall-platform）
 
 Vue 3 + Django 5.2/DRF + JWT + MariaDB + Redis 在线电商工程。
 当前交付：基础框架及开发前设计包；工作区存在未完成的认证草稿，尚无已验收业务模块。Windows 11 开发，Ubuntu 24.04 直接部署，不使用 Docker。
