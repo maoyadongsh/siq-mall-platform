@@ -74,3 +74,8 @@ def test_schema_describes_health_and_refresh():
     schema = SchemaGenerator(patterns=urlpatterns).get_schema(request=None, public=True)
     assert "503" in schema["paths"]["/health/"]["get"]["responses"]
     assert "requestBody" in schema["paths"]["/auth/refresh/"]["post"]
+
+
+def test_schema_and_docs_are_unavailable_when_debug_false(client):
+    assert client.get("/api/v1/schema/").status_code == 404
+    assert client.get("/api/v1/docs/").status_code == 404

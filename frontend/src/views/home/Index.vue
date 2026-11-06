@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import {
   ElAlert,
   ElButton,
@@ -24,6 +24,8 @@ import { fetchHealth } from '@/api/health'
 const loading = ref(false)
 const health = ref(null)
 const errorMessage = ref('')
+const isNarrow = ref(false)
+let narrowMediaQuery
 
 const statusText = computed(() => {
   if (errorMessage.value) return '不可用'
@@ -47,6 +49,10 @@ const checks = computed(() => {
   }))
 })
 
+function handleViewportChange(event) {
+  isNarrow.value = event.matches
+}
+
 async function loadHealth() {
   loading.value = true
   errorMessage.value = ''
@@ -60,7 +66,16 @@ async function loadHealth() {
   }
 }
 
-onMounted(loadHealth)
+onMounted(() => {
+  narrowMediaQuery = window.matchMedia('(max-width: 767px)')
+  isNarrow.value = narrowMediaQuery.matches
+  narrowMediaQuery.addEventListener('change', handleViewportChange)
+  loadHealth()
+})
+
+onBeforeUnmount(() => {
+  narrowMediaQuery?.removeEventListener('change', handleViewportChange)
+})
 </script>
 
 <template>
@@ -82,7 +97,7 @@ onMounted(loadHealth)
         class="home__alert"
       />
 
-      <el-descriptions v-else :column="2" border>
+      <el-descriptions v-else :column="isNarrow ? 1 : 2" border>
         <el-descriptions-item label="整体状态">
           <el-tag :type="statusType">{{ statusText }}</el-tag>
         </el-descriptions-item>
@@ -94,17 +109,22 @@ onMounted(loadHealth)
         </el-descriptions-item>
       </el-descriptions>
 
-      <el-table v-if="checks.length" :data="checks" class="home__table" size="small">
-        <el-table-column prop="name" label="依赖" width="160" />
-        <el-table-column label="状态" width="100">
+      <el-table
+        v-if="checks.length"
+        :data="checks"
+        :class="['home__table', { 'home__table--narrow': isNarrow }]"
+        size="small"
+      >
+        <el-table-column prop="name" label="依赖" :width="isNarrow ? 112 : 160" />
+        <el-table-column label="状态" :width="isNarrow ? 64 : 100">
           <template #default="{ row }">
             <el-tag :type="row.status === 'ok' ? 'success' : 'danger'" size="small">
               {{ row.status === 'ok' ? '正常' : '异常' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="latency" label="耗时(ms)" width="100" />
-        <el-table-column prop="detail" label="详情" show-overflow-tooltip />
+        <el-table-column prop="latency" label="耗时(ms)" :width="isNarrow ? 72 : 100" />
+        <el-table-column prop="detail" label="详情" min-width="120" show-overflow-tooltip />
       </el-table>
     </el-card>
   </div>
@@ -132,5 +152,15 @@ onMounted(loadHealth)
 
 .home__table {
   margin-top: var(--mall-spacing-md);
+}
+
+.home__table--narrow :deep(.cell) {
+  padding: 0 6px;
+}
+
+@media (max-width: 767px) {
+  .home__header :deep(.el-button) {
+    min-height: 44px;
+  }
 }
 </style>

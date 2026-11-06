@@ -45,6 +45,9 @@
 }
 
 .mall-layout__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--mall-text);
   text-decoration: none;
 }
@@ -63,5 +66,21 @@
   text-align: center;
   color: var(--mall-text-secondary);
   font-size: 12px;
+}
+
+@media (max-width: 767px) {
+  .mall-layout__header {
+    padding-right: max(var(--mall-spacing-md), env(safe-area-inset-right, 0px));
+    padding-left: max(var(--mall-spacing-md), env(safe-area-inset-left, 0px));
+  }
+
+  .mall-layout__main {
+    padding: var(--mall-spacing-md);
+  }
+
+  .mall-layout__footer {
+    padding: var(--mall-spacing-md);
+    padding-bottom: max(var(--mall-spacing-md), env(safe-area-inset-bottom, 0px));
+  }
 }
 </style>

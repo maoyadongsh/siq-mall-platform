@@ -1,16 +1,24 @@
-# 优选商城（mall-platform）
+# 优选商城（siq-mall-platform）
 
 Vue 3 + Django 5.2/DRF + JWT + MariaDB + Redis 在线电商工程。
-当前交付：基础框架及修订后的商业化设计，业务模块尚未开发。Windows 11 开发，Ubuntu 24.04 直接部署，不使用 Docker。
+当前交付：基础框架及开发前设计包；工作区存在未完成的认证草稿，尚无已验收业务模块。Windows 11 开发，Ubuntu 24.04 直接部署，不使用 Docker。
+
+开发前先读[设计交付总览](docs/07-predevelopment-handoff.md)与[AGENTS.md](AGENTS.md)。I01基础框架遗留修复与本次自动验证结果见[准备与验收登记](docs/11-readiness-and-acceptance.md)，历史测试报告不作为当前通过证据；I02–I11业务尚未开始。
 
 | 文档 | 用途 |
 | --- | --- |
 | [开发架构](docs/01-architecture.md) | 需求、架构、API、字段、体验、测试与运维标准 |
 | [迭代计划](docs/02-iteration-plan.md) | 11个可部署阶段、逐任务验收标准、登记模板 |
+| [移动H5与微信小程序设计](docs/06-mobile-wechat-design.md) | 三端范围、平台差异、账号与生命周期、真机验收要求（设计阶段） |
+| [设计交付总览](docs/07-predevelopment-handoff.md) | 开发前文件入口、范围决策与审核边界 |
+| [页面、交互与权限](docs/08-product-and-experience-spec.md) | 三端功能、设计token、买家/运营页面及权限矩阵 |
+| [规则与数据模型](docs/09-domain-and-data-spec.md) | 金额、状态机、事务、字段与唯一约束 |
+| [目标接口契约](docs/10-target-api-contract.md) | 未来业务接口、字段、错误、联调样例，尚未实现 |
+| [开发准备与验收台账](docs/11-readiness-and-acceptance.md) | 决策、准备任务、验收用例与逐任务登记 |
 | [审查与优化建议](docs/04-project-review.md) | 代码证据、优先级、商业化缺口 |
 | [本轮验证登记](docs/05-review-validation-2026-11-06.md) | 2026-11-06实际执行与待验收项 |
 | [历史验收记录](docs/03-iteration-01-acceptance.md) | 旧版记录，不能替代本轮验证 |
-| [OpenAPI](docs/openapi.yaml) | 基础接口生成契约 |
+| [OpenAPI](docs/openapi.yaml) | 按当前实际基础路由生成；认证目标契约见10，I02尚未接入 |
 
 ## Windows 11 启动
 
@@ -23,7 +31,7 @@ python -m venv .venv
 Copy-Item .env.example .env
 ```
 
-编辑 backend/.env 的数据库和 Redis 连接。不要覆盖已有 .env。MariaDB 为原生 Windows 服务；Redis 可使用 WSL2 原生安装。先在数据库客户端创建 mall_db 和专用用户，参考 deploy/init_db.sql，执行前替换示例密码。PowerShell 不支持 bash 风格的 `< script.sql` 输入重定向，可在 MariaDB 客户端执行 `source E:/mall-platform/deploy/init_db.sql`。
+编辑 backend/.env 的数据库和 Redis 连接。不要覆盖已有 .env。MariaDB 为原生 Windows 服务；Redis 可使用 WSL2 原生安装。先在数据库客户端创建 mall_db 和专用用户，参考 deploy/init_db.sql，执行前替换示例密码。PowerShell 不支持 bash 风格的 `< script.sql` 输入重定向，可在 MariaDB 客户端执行 `source E:/siq-mall-platform/deploy/init_db.sql`。
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py migrate
@@ -50,6 +58,7 @@ cd backend
 .\.venv\Scripts\python.exe -m black --check .
 .\.venv\Scripts\python.exe manage.py spectacular --validate --fail-on-warn --file ../docs/openapi.yaml
 cd ..\frontend
+npm run test
 npm run lint
 npm run build
 ```

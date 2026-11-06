@@ -32,8 +32,10 @@ service.interceptors.response.use(
     const { response, config = {} } = error
     const body = response?.data
 
-    // access 过期：用 refresh 换一次新 access 后重放原请求，只重试一次
-    if (response?.status === 401 && !config._retried) {
+    // 只自动重放幂等读请求；写请求由调用方确认结果后再试
+    const method = (config.method || 'get').toLowerCase()
+    const canReplay = ['get', 'head', 'options'].includes(method)
+    if (response?.status === 401 && !config._retried && canReplay) {
       const userStore = useUserStore()
       if (!userStore.refreshToken) {
         userStore.clear()
@@ -63,6 +65,7 @@ service.interceptors.response.use(
     if (!config.skipErrorMessage) {
       ElMessage.error(message)
     }
+    error.message = message
     return Promise.reject(error)
   },
 )
