@@ -49,6 +49,7 @@ def run_suite(work):
         "PYTHONUTF8": "1",
         "DJANGO_SETTINGS_MODULE": "siq_accept_settings",
         "SIQ_TEST_PASSWORD": password,
+        "SIQ_TEST_MEDIA_ROOT": str(work / "media"),
         "SIQ_TEST_PORT": str(db_port),
         "SIQ_BROWSER_URL": f"http://127.0.0.1:{web_port}",
         "VITE_PROXY_TARGET": f"http://127.0.0.1:{api_port}",
@@ -104,6 +105,7 @@ def run_suite(work):
                 "pytest",
                 "--ds=siq_accept_settings",
                 "users/tests/test_address_races.py",
+                "catalog/tests/test_stock_races.py",
                 "--no-cov",
             ]
         )

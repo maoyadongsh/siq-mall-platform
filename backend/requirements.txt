@@ -8,3 +8,4 @@ redis>=5.0,<7.0
 django-redis>=6.0,<7.0
 python-dotenv>=1.0,<2.0
 gunicorn>=23.0,<24.0
+Pillow>=12,<13

@@ -318,6 +318,27 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
           description: ''
+  /api/v1/ops/media/:
+    post:
+      operationId: api_v1_ops_media_create
+      tags:
+      - api
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MediaInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetResponse'
+          description: ''
   /api/v1/ops/products/:
     get:
       operationId: api_v1_ops_products_retrieve
@@ -354,6 +375,58 @@ paths:
       - BearerAuth: []
       responses:
         '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+          description: ''
+  /api/v1/ops/products/{id}/:
+    get:
+      operationId: ops_product_detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+          description: ''
+    patch:
+      operationId: api_v1_ops_products_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProductEditRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProductEditRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProductEditRequest'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
           content:
             application/json:
               schema:
@@ -445,6 +518,97 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+  /api/v1/ops/skus/{id}/:
+    patch:
+      operationId: api_v1_ops_skus_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVariantEditRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedVariantEditRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedVariantEditRequest'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VariantResponse'
+          description: ''
+  /api/v1/ops/skus/{id}/stock-adjustments/:
+    get:
+      operationId: api_v1_ops_skus_stock_adjustments_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryResponse'
+          description: ''
+    post:
+      operationId: api_v1_ops_skus_stock_adjustments_create
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdjustmentInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdjustmentInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdjustmentInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdjustmentResponse'
           description: ''
   /api/v1/products/:
     get:
@@ -857,6 +1021,151 @@ components:
       - message
       - request_id
       - timestamp
+    AdjustmentInputRequest:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        delta:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483647
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+      - delta
+      - expected_version
+      - reason
+    AdjustmentOutput:
+      type: object
+      properties:
+        id:
+          type: string
+        sku_id:
+          type: string
+        operator:
+          type: string
+          maxLength: 150
+        delta:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        before:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        after:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        reason:
+          type: string
+          maxLength: 200
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - after
+      - before
+      - created_at
+      - delta
+      - id
+      - operator
+      - reason
+      - sku_id
+    AdjustmentPage:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdjustmentOutput'
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    AdjustmentResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/AdjustmentOutput'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    AssetOutput:
+      type: object
+      properties:
+        asset_id:
+          type: string
+        url:
+          type: string
+        status:
+          type: string
+          default: ready
+        width:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        height:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+      required:
+      - asset_id
+      - height
+      - url
+      - width
+    AssetResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/AssetOutput'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     Checks:
       type: object
       properties:
@@ -1028,6 +1337,26 @@ components:
       - message
       - request_id
       - timestamp
+    HistoryResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/AdjustmentPage'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     LoginRequest:
       type: object
       properties:
@@ -1049,6 +1378,14 @@ components:
           allOf:
           - $ref: '#/components/schemas/ScopeEnum'
           default: current
+    MediaInputRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+      required:
+      - file
     PasswordChangeRequest:
       type: object
       properties:
@@ -1118,6 +1455,27 @@ components:
         expected_version:
           type: integer
           minimum: 1
+    PatchedProductEditRequest:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        category:
+          type: string
+          minLength: 1
+          maxLength: 50
+        description:
+          type: string
+          maxLength: 5000
+        cover_id:
+          type: integer
+          minimum: 1
+          nullable: true
     PatchedProfileUpdateRequest:
       type: object
       properties:
@@ -1125,6 +1483,24 @@ components:
           type: string
           minLength: 1
           maxLength: 50
+    PatchedVariantEditRequest:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        label:
+          type: string
+          minLength: 1
+          maxLength: 80
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 200
     PhoneBindRequest:
       type: object
       properties:
@@ -1189,8 +1565,13 @@ components:
         currency:
           type: string
           default: CNY
+        cover_url:
+          type: string
+          nullable: true
+          readOnly: true
       required:
       - category
+      - cover_url
       - id
       - skus
       - title
@@ -1491,6 +1872,11 @@ components:
           maximum: 9223372036854775807
           minimum: 0
           format: int64
+        version:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
       required:
       - available_stock
       - id
@@ -1528,6 +1914,26 @@ components:
       - nickname
       - roles
       - username
+    VariantResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/SkuOutput'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     VerificationRequest:
       type: object
       properties:

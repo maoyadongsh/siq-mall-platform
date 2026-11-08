@@ -29,7 +29,10 @@ async function load() {
     if (ticket === generation) pending.value = false
   }
 }
-function draftSaved() { creating.value = false; search() }
+function draftSaved() {
+  creating.value = false
+  search()
+}
 function search() {
   page.value = 1
   currentQuery.value = query.value
@@ -71,10 +74,7 @@ watch(
         {{ creating ? '收起' : '新建商品' }}
       </button>
     </header>
-    <DraftForm
-      v-if="creating && manage"
-      @saved="draftSaved"
-    />
+    <DraftForm v-if="creating && manage" @saved="draftSaved" />
     <form class="search" @submit.prevent="search">
       <input v-model="query" aria-label="商品名称" placeholder="搜索商品名称"><button>
         搜索
@@ -87,10 +87,18 @@ watch(
     </p>
     <div v-else class="cards">
       <article v-for="p in result.results" :key="p.id">
+        <img
+          v-if="p.cover_url"
+          class="product-cover"
+          :src="p.cover_url"
+          :alt="p.title"
+          loading="lazy"
+        >
         <small>{{ p.category }}</small>
         <h2>{{ p.title }}</h2>
         <p>¥{{ p.skus.reduce((a, b) => (Number(a.price) <= Number(b.price) ? a : b)).price }} 起</p>
         <template v-if="manage">
+          <router-link :to="'/ops/products/' + p.id + '/edit'">维护商品</router-link>
           <span>{{ { draft: '草稿', on_sale: '在售', off_sale: '已下架' }[p.status] }}</span>
           <button :disabled="actionPending" @click="change(p)">
             {{ p.status === 'on_sale' ? '下架' : '上架' }}

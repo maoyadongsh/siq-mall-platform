@@ -27,13 +27,51 @@ const assert = require('node:assert/strict')
     await page.getByLabel('规格名称').last().fill('暖白')
     await page.getByLabel('售价').last().fill('129')
     await page.getByRole('button', { name: '保存草稿' }).click()
+    await page.getByRole('link', { name: '维护商品' }).click()
+    const png = await page.evaluate(() => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 40
+      canvas.height = 30
+      canvas.getContext('2d').fillRect(0, 0, 40, 30)
+      return canvas.toDataURL('image/png').split(',')[1]
+    })
+    await page
+      .locator('input[type=file]')
+      .setInputFiles({ name: 'cup.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') })
+    await page.getByRole('button', { name: '保存商品信息' }).click()
+    await page.getByText('商品信息已保存', { exact: true }).waitFor()
+    const variant = page
+      .locator('.variant-editor')
+      .filter({ has: page.getByRole('heading', { name: '青绿' }) })
+    await variant.getByLabel('售价').fill('109')
+    await variant.getByLabel('修改原因').fill('补货调价')
+    await variant.getByRole('button', { name: '保存规格' }).click()
+    await variant.getByText('规格已保存', { exact: true }).waitFor()
+    await variant.getByLabel('库存调整量').fill('2')
+    await variant.getByLabel('调整原因').fill('到货盘点')
+    await page.route(
+      '**/stock-adjustments/',
+      async (route) => {
+        await route.fetch()
+        await route.abort('connectionreset')
+      },
+      { times: 1 },
+    )
+    await variant.getByRole('button', { name: '登记库存调整' }).click()
+    await variant.getByRole('button', { name: '确认上次库存调整结果' }).click()
+    await variant.getByText('可售库存 5', { exact: true }).waitFor()
+    await variant.getByRole('listitem').first().waitFor()
+    assert.equal(await variant.getByRole('listitem').count(), 1)
+    await page.getByRole('link', { name: '返回商品管理' }).click()
     await page.getByRole('button', { name: '上架', exact: true }).click()
     await page.getByText('在售', { exact: true }).waitFor()
     const shop = await browser.newPage({ viewport: { width: 1440, height: 900 } })
     await shop.goto(origin)
     await shop.getByRole('link', { name: '查看规格' }).click()
+    await shop.locator('img.product-cover').evaluate((img) => img.decode())
+    assert.equal(await shop.locator('img.product-cover').evaluate((img) => img.naturalWidth), 40)
     await shop.getByRole('button', { name: '青绿' }).click()
-    await shop.getByText('¥99.00 · 有货').waitFor()
+    await shop.getByText('¥109.00 · 有货').waitFor()
     await shop.setViewportSize({ width: 375, height: 812 })
     await shop.getByRole('button', { name: /暖白/ }).click()
     await shop.getByText('¥129.00 · 暂时缺货').waitFor()

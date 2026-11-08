@@ -30,7 +30,7 @@ onMounted(() => userStore.restoreSession())
     </header>
 
     <main class="mall-layout__main">
-      <router-view />
+      <router-view :key="$route.path" />
     </main>
 
     <footer class="mall-layout__footer">SIQ优选商城</footer>

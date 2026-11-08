@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         // 开发环境由 Vite 代理到 Django，避免跨域
+        '/media': { target: env.VITE_PROXY_TARGET || 'http://127.0.0.1:8000' },
         '/api': {
           target: env.VITE_PROXY_TARGET || 'http://127.0.0.1:8000',
           changeOrigin: true,

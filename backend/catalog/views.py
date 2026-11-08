@@ -22,7 +22,7 @@ class CanManageCatalog(BasePermission):
 
 def products():
     return (
-        Product.objects.select_related("category")
+        Product.objects.select_related("category", "cover")
         .prefetch_related("skus")
         .order_by("-id")
     )

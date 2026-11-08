@@ -5,6 +5,8 @@ Web 已接入身份、资料地址和首批商品运营功能。商城首页为�
 
 开发入口见[设计交付总览](docs/07-predevelopment-handoff.md)和[AGENTS](AGENTS.md)。验收进度见[开发登记](docs/11-readiness-and-acceptance.md)。
 
+商品管理页的“维护商品”支持替换主图、调整规格售价，以及按原因增减库存并查看流水。安装后端依赖后，应用 catalog.0002 迁移。Ubuntu 以 MALL_MEDIA_ROOT 指向持久媒体目录，随库备份并核对 Nginx 的 /media/ 目录映射。已有媒体的环境先迁移文件，再切换配置。
+
 首次启用商品功能时，在目标开发库备份并核对迁移后执行下文的 migrate 步骤。通过受信任的管理员为运营账号分配 `catalog_operator` 组，重新登录后即可看到商品管理入口。
 
 在 Windows 项目根目录运行 `backend\.venv\Scripts\python.exe qa/windows/smoke.py` 可复验地址并发、双标签刷新和商品上下架。先完成前端 npm ci 与后端开发依赖安装。本机需装 Chrome 和 MariaDB 11.8，可用 SIQ_CHROME_PATH 与 SIQ_MARIADB_BIN 指定安装位置。脚本使用随机端口和临时数据目录。
@@ -77,7 +79,7 @@ npm run build
 sudo apt update
 sudo apt install -y nginx mariadb-server redis-server python3.12 python3.12-venv git
 sudo useradd -r -s /usr/sbin/nologin mall
-sudo install -d -o mall -g mall /opt/mall /var/log/mall
+sudo install -d -o mall -g mall /opt/mall /var/log/mall /var/lib/mall/media
 sudo install -d -o root -g root -m 700 /etc/mall
 ```
 

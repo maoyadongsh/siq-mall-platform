@@ -7,6 +7,14 @@ class Category(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
 
+class MediaAsset(models.Model):
+    file = models.FileField(upload_to="catalog/%Y/%m/")
+    width = models.PositiveIntegerField()
+    height = models.PositiveIntegerField()
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 class Product(models.Model):
     class Status(models.TextChoices):
         DRAFT = "draft", "草稿"
@@ -14,6 +22,9 @@ class Product(models.Model):
         OFF_SALE = "off_sale", "已下架"
 
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    cover = models.ForeignKey(
+        MediaAsset, null=True, blank=True, on_delete=models.PROTECT
+    )
     title = models.CharField(max_length=120)
     description = models.TextField(blank=True)
     status = models.CharField(
@@ -26,6 +37,7 @@ class Product(models.Model):
 
 
 class Sku(models.Model):
+    version = models.PositiveIntegerField(default=1)
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="skus")
     label = models.CharField(max_length=80)
     price = models.DecimalField(
@@ -50,3 +62,27 @@ class CatalogEvent(models.Model):
     action = models.CharField(max_length=20)
     snapshot = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class StockAdjustment(models.Model):
+    sku = models.ForeignKey(Sku, on_delete=models.PROTECT, related_name="adjustments")
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    operator = models.CharField(max_length=150)
+    key = models.UUIDField()
+    expected_version = models.PositiveIntegerField()
+    delta = models.IntegerField()
+    reason = models.CharField(max_length=200)
+    before = models.PositiveIntegerField()
+    after = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["actor", "key"], name="catalog_adjustment_key"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(after=models.F("before") + models.F("delta")),
+                name="catalog_adjustment_balance",
+            ),
+        ]

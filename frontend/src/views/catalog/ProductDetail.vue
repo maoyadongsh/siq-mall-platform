@@ -27,6 +27,12 @@ watch(() => props.id, load, { immediate: true })
     <p v-if="error" role="alert">{{ error }} <button @click="load">重新加载</button></p>
     <p v-else-if="!product">正在加载商品…</p>
     <article v-else>
+      <img
+        v-if="product.cover_url"
+        class="product-cover"
+        :src="product.cover_url"
+        :alt="product.title"
+      >
       <small>{{ product.category }}</small>
       <h1>{{ product.title }}</h1>
       <p>{{ product.description }}</p>

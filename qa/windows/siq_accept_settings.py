@@ -15,3 +15,6 @@ DATABASES = {
     }
 }
 CORS_ALLOWED_ORIGINS = [os.environ["SIQ_BROWSER_URL"]]
+
+DEBUG = True
+MEDIA_ROOT = os.environ["SIQ_TEST_MEDIA_ROOT"]

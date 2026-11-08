@@ -29,13 +29,18 @@ class SkuOutput(serializers.ModelSerializer):
 
     class Meta:
         model = Sku
-        fields = ("id", "label", "price", "available_stock")
+        fields = ("id", "label", "price", "available_stock", "version")
 
 
 class ProductOutput(serializers.ModelSerializer):
     id = serializers.CharField()
     category = serializers.CharField(source="category.name")
     skus = SkuOutput(many=True)
+    cover_url = serializers.SerializerMethodField()
+
+    def get_cover_url(self, obj) -> str | None:
+        return obj.cover.file.url if obj.cover_id else None
+
     currency = serializers.CharField(default="CNY")
 
     class Meta:
@@ -49,6 +54,7 @@ class ProductOutput(serializers.ModelSerializer):
             "version",
             "skus",
             "currency",
+            "cover_url",
         )
 
 

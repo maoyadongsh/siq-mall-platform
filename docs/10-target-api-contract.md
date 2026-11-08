@@ -224,3 +224,9 @@ Content-Type: application/json
 ### I04 首批可用接口（2026-11-08）
 
 当前实现的完整字段以生成的 openapi.yaml 为准。GET regions/ 返回登录用户可选的省/市/区字典。GET products/ 与 products/{id}/ 公开可售商品及规格，列表支持 q、page、page_size。POST ops/products/ 接收 title、category（平面分类名称）、description 和 skus（label、price、available_stock），事务创建草稿及初始规格。上架/下架动作校验 catalog.manage_catalog 权限与 expected_version，并记录审计。当前动作使用版本冲突防止重复写入，完整的幂等响应重放、独立 SKU 编辑和媒体接口属于后续任务。
+
+### 商品维护接口（2026-11-08）
+
+运营权限沿用 catalog.manage_catalog。GET/PATCH ops/products/{id}/ 获取或修改标题、分类、描述、cover_id，写入带商品 expected_version。POST ops/media/ 接收 multipart 的 file，返回 ready 资源标识与规范化主图 URL。公开商品的可选 cover_url 为空时使用原布局。每件商品本阶段展示一张主图。
+
+PATCH ops/skus/{id}/ 接收 label 或 price，附 SKU expected_version 和 reason。POST ops/skus/{id}/stock-adjustments/ 使用 SKU 版本、整数 delta、reason 和 UUID 格式的 Idempotency-Key。成功201返回流水 id、sku_id、操作者快照、调整前后数量、原因与时间。同一操作者原键原参数重放首次流水，同键不同参数409。GET 同路径以页码分页倒序查看人工调整历史。起始库存可见创建草稿时的审计快照。
