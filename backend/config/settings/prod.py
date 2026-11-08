@@ -6,6 +6,8 @@ DEBUG = False
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")  # noqa: F405  缺失即启动失败
 ENVIRONMENT = env("DJANGO_ENV", "production")  # noqa: F405
+DEMO_VERIFICATION_ENABLED = False
+TERMS_VERSION = env("TERMS_VERSION", "demo-v1")  # noqa: F405
 
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "")  # noqa: F405
 if not ALLOWED_HOSTS:

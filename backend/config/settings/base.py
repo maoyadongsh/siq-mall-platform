@@ -64,6 +64,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_spectacular",
     "common",
+    "accounts.apps.AccountsConfig",
+    "users.apps.UsersConfig",
 ]
 
 MIDDLEWARE = [
@@ -157,24 +159,29 @@ AUTH_PASSWORD_VALIDATORS = [
 # ===== DRF =====
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "accounts.authentication.SessionJWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_PAGINATION_CLASS": "common.pagination.StandardPagination",
     "PAGE_SIZE": 20,
     "EXCEPTION_HANDLER": "common.exceptions.api_exception_handler",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
     "DEFAULT_THROTTLE_RATES": {
         "anon": "60/min",
         "user": "600/min",
+        "login_identifier": "5/min",
+        "login_ip": "20/min",
     },
     "DATETIME_FORMAT": "iso-8601",
     "UNAUTHENTICATED_USER": None,
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -184,6 +191,10 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "user_id",
     "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
 }
+
+REFRESH_COOKIE_NAME = "mall_refresh"
+MALL_CSRF_COOKIE_NAME = "mall_csrf"
+CSRF_TRUSTED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "")
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "SIQ优选商城 API",
@@ -195,7 +206,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "")
-CORS_ALLOW_CREDENTIALS = False
+CORS_ALLOW_CREDENTIALS = True
 
 # ===== 国际化与时区 =====
 LANGUAGE_CODE = "zh-hans"

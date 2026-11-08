@@ -2,24 +2,27 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
 import { useUserStore } from '@/stores/user'
+import { ensureCsrfToken } from '@/utils/csrf'
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
-
-const service = axios.create({ baseURL, timeout: 15000 })
+const service = axios.create({ baseURL, timeout: 15000, withCredentials: true })
 
 let refreshingPromise = null
 
-service.interceptors.request.use((config) => {
+service.interceptors.request.use(async (config) => {
   const userStore = useUserStore()
   if (userStore.accessToken) {
     config.headers.Authorization = `Bearer ${userStore.accessToken}`
+  }
+  const method = (config.method || 'get').toLowerCase()
+  if (!['get', 'head', 'options'].includes(method)) {
+    config.headers['X-CSRF-Token'] = await ensureCsrfToken()
   }
   return config
 })
 
 service.interceptors.response.use(
   (response) => {
-    // 后端统一结构：code=0 时把 data 直接交给调用方
     const body = response.data
     if (body && body.code === 0) {
       return body.data
@@ -32,12 +35,11 @@ service.interceptors.response.use(
     const { response, config = {} } = error
     const body = response?.data
 
-    // 只自动重放幂等读请求；写请求由调用方确认结果后再试
     const method = (config.method || 'get').toLowerCase()
     const canReplay = ['get', 'head', 'options'].includes(method)
     if (response?.status === 401 && !config._retried && canReplay) {
       const userStore = useUserStore()
-      if (!userStore.refreshToken) {
+      if (!userStore.hasRefreshSession) {
         userStore.clear()
         ElMessage.error(body?.message || '登录已过期，请重新登录')
         return Promise.reject(error)

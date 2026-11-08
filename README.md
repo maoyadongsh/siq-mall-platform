@@ -1,9 +1,9 @@
 # SIQ优选商城（siq-mall-platform）
 
 Vue 3 + Django 5.2/DRF + JWT + MariaDB + Redis 在线电商工程。
-当前交付：基础框架及开发前设计包；工作区存在未完成的认证草稿，尚无已验收业务模块。Windows 11 开发，Ubuntu 24.04 直接部署，不使用 Docker。
+当前交付：I01基础框架及I02 Web身份权限实现，尚无已验收业务模块或小程序客户端。Windows 11 开发，Ubuntu 24.04 直接部署，不使用 Docker。
 
-开发前先读[设计交付总览](docs/07-predevelopment-handoff.md)与[AGENTS.md](AGENTS.md)。I01基础框架遗留修复与本次自动验证结果见[准备与验收登记](docs/11-readiness-and-acceptance.md)，历史测试报告不作为当前通过证据；I02–I11业务尚未开始。
+开发前先读[设计交付总览](docs/07-predevelopment-handoff.md)与[AGENTS.md](AGENTS.md)。I01/I02自动验证结果见[准备与验收登记](docs/11-readiness-and-acceptance.md)，历史测试报告不作为当前通过证据；后续按迭代计划实施I03–I11。
 
 | 文档 | 用途 |
 | --- | --- |
@@ -18,7 +18,7 @@ Vue 3 + Django 5.2/DRF + JWT + MariaDB + Redis 在线电商工程。
 | [审查与优化建议](docs/04-project-review.md) | 代码证据、优先级、商业化缺口 |
 | [本轮验证登记](docs/05-review-validation-2026-11-06.md) | 2026-11-06实际执行与待验收项 |
 | [历史验收记录](docs/03-iteration-01-acceptance.md) | 旧版记录，不能替代本轮验证 |
-| [OpenAPI](docs/openapi.yaml) | 按当前实际基础路由生成；认证目标契约见10，I02尚未接入 |
+| [OpenAPI](docs/openapi.yaml) | 按当前实际路由生成并校验；未实现目标契约见10 |
 
 ## Windows 11 启动
 

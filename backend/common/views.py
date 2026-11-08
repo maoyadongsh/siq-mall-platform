@@ -1,4 +1,4 @@
-"""基础视图：健康检查、token 刷新（迭代一范围，不含业务）。"""
+"""基础视图：健康检查与旧 JSON refresh 过渡兼容。"""
 
 from django.conf import settings
 from drf_spectacular.utils import extend_schema
@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from common import health
 from common.constants import ErrorCode
@@ -75,6 +76,13 @@ class TokenRefreshAPIView(APIView):
     def post(self, request):
         serializer = TokenRefreshSerializer(data=request.data)
         try:
+            raw_refresh = request.data.get("refresh")
+            if raw_refresh and RefreshToken(raw_refresh).get("session_id"):
+                raise BusinessError(
+                    ErrorCode.TOKEN_INVALID,
+                    "请使用当前客户端的刷新接口",
+                    http_status=401,
+                )
             serializer.is_valid(raise_exception=True)
         except (TokenError, InvalidToken) as exc:
             raise BusinessError(

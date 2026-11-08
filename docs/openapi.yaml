@@ -4,6 +4,152 @@ info:
   version: 1.0.0
   description: SIQ优选商城前后端分离接口文档（/api/v1/）
 paths:
+  /api/v1/auth/csrf/:
+    get:
+      operationId: api_v1_auth_csrf_retrieve
+      tags:
+      - 身份
+      security:
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CsrfResponse'
+          description: ''
+  /api/v1/auth/login/:
+    post:
+      operationId: api_v1_auth_login_create
+      tags:
+      - 身份
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+  /api/v1/auth/logout/:
+    post:
+      operationId: api_v1_auth_logout_create
+      tags:
+      - 身份
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+  /api/v1/auth/password/change/:
+    post:
+      operationId: api_v1_auth_password_change_create
+      tags:
+      - 身份
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChangeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordChangeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordChangeRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+  /api/v1/auth/password/reset/:
+    post:
+      operationId: api_v1_auth_password_reset_create
+      tags:
+      - 身份
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
   /api/v1/auth/refresh/:
     post:
       operationId: api_v1_auth_refresh_create
@@ -45,6 +191,106 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+  /api/v1/auth/register/:
+    post:
+      operationId: api_v1_auth_register_create
+      tags:
+      - 身份
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+  /api/v1/auth/verifications/:
+    post:
+      operationId: api_v1_auth_verifications_create
+      tags:
+      - 身份
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VerificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VerificationRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+  /api/v1/auth/web/refresh/:
+    post:
+      operationId: api_v1_auth_web_refresh_create
+      tags:
+      - 身份
+      security:
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
   /api/v1/health/:
     get:
       operationId: api_v1_health_retrieve
@@ -72,8 +318,385 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
           description: ''
+  /api/v1/ops/roles/:
+    get:
+      operationId: api_v1_ops_roles_retrieve
+      tags:
+      - 权限
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleListResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+  /api/v1/users/me/:
+    get:
+      operationId: api_v1_users_me_retrieve
+      tags:
+      - 用户资料
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+          description: ''
+    patch:
+      operationId: api_v1_users_me_partial_update
+      tags:
+      - 用户资料
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfileUpdateRequest'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+          description: ''
+  /api/v1/users/me/addresses/:
+    get:
+      operationId: api_v1_users_me_addresses_retrieve
+      tags:
+      - 地址
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressListResponse'
+          description: ''
+    post:
+      operationId: api_v1_users_me_addresses_create
+      tags:
+      - 地址
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddressInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddressInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+  /api/v1/users/me/addresses/{address_id}/:
+    patch:
+      operationId: api_v1_users_me_addresses_partial_update
+      parameters:
+      - in: path
+        name: address_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 地址
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAddressWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAddressWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAddressWriteRequest'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+    delete:
+      operationId: api_v1_users_me_addresses_destroy
+      parameters:
+      - in: path
+        name: address_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 地址
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+  /api/v1/users/me/addresses/{address_id}/default/:
+    post:
+      operationId: api_v1_users_me_addresses_default_create
+      parameters:
+      - in: path
+        name: address_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - 地址
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+  /api/v1/users/me/phone/:
+    post:
+      operationId: api_v1_users_me_phone_create
+      tags:
+      - 用户资料
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneBindRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PhoneBindRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PhoneBindRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyResponse'
+          description: ''
 components:
   schemas:
+    Address:
+      type: object
+      properties:
+        recipient:
+          type: string
+          maxLength: 50
+        phone:
+          type: string
+          pattern: ^\+?[0-9][0-9\- ]{6,18}$
+        province:
+          type: string
+          maxLength: 50
+        city:
+          type: string
+          maxLength: 50
+        district:
+          type: string
+          maxLength: 50
+        region_code:
+          type: string
+          pattern: ^[0-9]{6,12}$
+        detail:
+          type: string
+          maxLength: 200
+        is_default:
+          type: boolean
+          default: false
+        id:
+          type: string
+        version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - city
+      - created_at
+      - detail
+      - district
+      - id
+      - phone
+      - province
+      - recipient
+      - region_code
+      - updated_at
+      - version
+    AddressInputRequest:
+      type: object
+      properties:
+        recipient:
+          type: string
+          minLength: 1
+          maxLength: 50
+        phone:
+          type: string
+          minLength: 1
+          pattern: ^\+?[0-9][0-9\- ]{6,18}$
+        province:
+          type: string
+          minLength: 1
+          maxLength: 50
+        city:
+          type: string
+          minLength: 1
+          maxLength: 50
+        district:
+          type: string
+          minLength: 1
+          maxLength: 50
+        region_code:
+          type: string
+          minLength: 1
+          pattern: ^[0-9]{6,12}$
+        detail:
+          type: string
+          minLength: 1
+          maxLength: 200
+        is_default:
+          type: boolean
+          default: false
+      required:
+      - city
+      - detail
+      - district
+      - phone
+      - province
+      - recipient
+      - region_code
+    AddressListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    AddressResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/Address'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     Checks:
       type: object
       properties:
@@ -84,6 +707,27 @@ components:
       required:
       - database
       - redis
+    CsrfResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          additionalProperties: {}
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     Dependency:
       type: object
       properties:
@@ -106,6 +750,26 @@ components:
       description: |-
         * `ok` - ok
         * `fail` - fail
+    EmptyResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          nullable: true
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     ErrorResponse:
       type: object
       properties:
@@ -182,6 +846,151 @@ components:
       - message
       - request_id
       - timestamp
+    LoginRequest:
+      type: object
+      properties:
+        identifier:
+          type: string
+          minLength: 1
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - identifier
+      - password
+    LogoutRequest:
+      type: object
+      properties:
+        scope:
+          allOf:
+          - $ref: '#/components/schemas/ScopeEnum'
+          default: current
+    PasswordChangeRequest:
+      type: object
+      properties:
+        current_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - current_password
+      - new_password
+    PasswordResetRequest:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          writeOnly: true
+          minLength: 1
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - challenge_id
+      - code
+      - new_password
+    PatchedAddressWriteRequest:
+      type: object
+      properties:
+        recipient:
+          type: string
+          minLength: 1
+          maxLength: 50
+        phone:
+          type: string
+          minLength: 1
+          pattern: ^\+?[0-9][0-9\- ]{6,18}$
+        province:
+          type: string
+          minLength: 1
+          maxLength: 50
+        city:
+          type: string
+          minLength: 1
+          maxLength: 50
+        district:
+          type: string
+          minLength: 1
+          maxLength: 50
+        region_code:
+          type: string
+          minLength: 1
+          pattern: ^[0-9]{6,12}$
+        detail:
+          type: string
+          minLength: 1
+          maxLength: 200
+        is_default:
+          type: boolean
+          default: false
+        expected_version:
+          type: integer
+          minimum: 1
+    PatchedProfileUpdateRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+          minLength: 1
+          maxLength: 50
+    PhoneBindRequest:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          writeOnly: true
+          minLength: 1
+        phone:
+          type: string
+          minLength: 1
+          pattern: ^\+?[0-9][0-9\- ]{6,18}$
+      required:
+      - challenge_id
+      - code
+      - phone
+    ProfileResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/UserSummary'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    PurposeEnum:
+      enum:
+      - register
+      - password_reset
+      - phone_bind
+      type: string
+      description: |-
+        * `register` - register
+        * `password_reset` - password_reset
+        * `phone_bind` - phone_bind
     RefreshData:
       type: object
       properties:
@@ -212,6 +1021,117 @@ components:
       - message
       - request_id
       - timestamp
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          pattern: ^[A-Za-z0-9_]{3,30}$
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        accepted_terms_version:
+          type: string
+          minLength: 1
+        captcha_id:
+          type: string
+          format: uuid
+        captcha_code:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - accepted_terms_version
+      - password
+      - username
+    RoleListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleUser'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    RoleUser:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+      required:
+      - id
+      - roles
+      - username
+    ScopeEnum:
+      enum:
+      - current
+      - all
+      type: string
+      description: |-
+        * `current` - current
+        * `all` - all
+    SessionData:
+      type: object
+      properties:
+        access:
+          type: string
+        access_expires_at:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        session_id:
+          type: string
+          format: uuid
+        csrf_token:
+          type: string
+      required:
+      - access
+      - access_expires_at
+      - csrf_token
+      - session_id
+      - user
+    SessionResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/SessionData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     TokenRefreshRequest:
       type: object
       properties:
@@ -220,3 +1140,41 @@ components:
           minLength: 1
       required:
       - refresh
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        nickname:
+          type: string
+        has_verified_phone:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+      required:
+      - has_verified_phone
+      - id
+      - nickname
+      - roles
+      - username
+    VerificationRequest:
+      type: object
+      properties:
+        purpose:
+          $ref: '#/components/schemas/PurposeEnum'
+        target:
+          type: string
+          minLength: 1
+          maxLength: 150
+      required:
+      - purpose
+      - target
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

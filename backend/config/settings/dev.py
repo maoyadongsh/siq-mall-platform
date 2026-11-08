@@ -14,6 +14,8 @@ SECRET_KEY = (
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "0.0.0.0"]
 
 ENVIRONMENT = "development"
+DEMO_VERIFICATION_ENABLED = True
+TERMS_VERSION = "demo-v1"
 
 # 本地调试时不复用长连接，便于看到每次请求的真实连接状态
 DATABASES["default"]["CONN_MAX_AGE"] = 0  # noqa: F405

@@ -21,6 +21,8 @@ CACHES = {
 }
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+DEMO_VERIFICATION_ENABLED = True
+SESSION_COOKIE_SECURE = False
 
 LOGGING["root"]["handlers"] = ["console"]  # noqa: F405
 LOGGING["root"]["level"] = "WARNING"  # noqa: F405

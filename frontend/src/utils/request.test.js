@@ -1,17 +1,19 @@
 import { AxiosError } from 'axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { messageError, userStore } = vi.hoisted(() => ({
+const { ensureCsrfToken, messageError, userStore } = vi.hoisted(() => ({
+  ensureCsrfToken: vi.fn(),
   messageError: vi.fn(),
   userStore: {
     accessToken: '',
-    refreshToken: '',
+    hasRefreshSession: false,
     clear: vi.fn(),
     refreshAccessToken: vi.fn(),
   },
 }))
 
 vi.mock('@/stores/user', () => ({ useUserStore: () => userStore }))
+vi.mock('@/utils/csrf', () => ({ ensureCsrfToken }))
 vi.mock('element-plus', () => ({ ElMessage: { error: messageError } }))
 
 import service from './request'
@@ -28,9 +30,10 @@ function unauthorized(config) {
 describe('request 401 handling', () => {
   beforeEach(() => {
     userStore.accessToken = 'expired-access'
-    userStore.refreshToken = 'refresh-token'
+    userStore.hasRefreshSession = true
     userStore.clear.mockReset()
     userStore.refreshAccessToken.mockReset()
+    ensureCsrfToken.mockReset().mockResolvedValue('csrf-token')
     messageError.mockReset()
   })
 
@@ -83,8 +86,8 @@ describe('request 401 handling', () => {
     expect(requests).toHaveLength(1)
   })
 
-  it('clears the session without calling refresh when no refresh token exists', async () => {
-    userStore.refreshToken = ''
+  it('clears the session without calling refresh when no refresh cookie exists', async () => {
+    userStore.hasRefreshSession = false
     service.defaults.adapter = async (config) => {
       throw unauthorized(config)
     }
