@@ -1,0 +1,102 @@
+const { chromium } = require('playwright-core')
+const assert = require('node:assert/strict')
+;(async () => {
+  const browser = await chromium.launch({
+    executablePath:
+      process.env.SIQ_CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+    headless: true,
+  })
+  try {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } })
+    await ctx.addInitScript(() => Object.defineProperty(navigator, 'locks', { value: undefined }))
+    const origin = process.env.SIQ_BROWSER_URL
+    const page = await ctx.newPage()
+    await page.goto(origin + '/login')
+    await page.locator('[name=identifier]').fill('accept_operator')
+    await page.locator('[name=password]').fill(process.env.SIQ_TEST_PASSWORD)
+    await page.locator('[type=submit]').click()
+    await page.getByRole('link', { name: '商品管理' }).waitFor()
+    await page.getByRole('link', { name: '商品管理' }).click()
+    await page.getByRole('button', { name: '新建商品' }).click()
+    await page.locator('.draft').getByLabel('商品名称', { exact: true }).fill('测试茶杯')
+    await page.getByLabel('分类', { exact: true }).fill('茶具')
+    await page.getByLabel('规格名称').fill('青绿')
+    await page.getByLabel('售价').fill('99')
+    await page.getByLabel('可售库存').fill('3')
+    await page.getByRole('button', { name: '添加规格' }).click()
+    await page.getByLabel('规格名称').last().fill('暖白')
+    await page.getByLabel('售价').last().fill('129')
+    await page.getByRole('button', { name: '保存草稿' }).click()
+    await page.getByRole('button', { name: '上架', exact: true }).click()
+    await page.getByText('在售', { exact: true }).waitFor()
+    const shop = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+    await shop.goto(origin)
+    await shop.getByRole('link', { name: '查看规格' }).click()
+    await shop.getByRole('button', { name: '青绿' }).click()
+    await shop.getByText('¥99.00 · 有货').waitFor()
+    await shop.setViewportSize({ width: 375, height: 812 })
+    await shop.getByRole('button', { name: /暖白/ }).click()
+    await shop.getByText('¥129.00 · 暂时缺货').waitFor()
+    await page.getByRole('button', { name: '下架', exact: true }).click()
+    await page.getByText('已下架', { exact: true }).waitFor()
+    await shop.reload()
+    await shop.getByText('商品已下架或不存在', { exact: false }).waitFor()
+    console.log('PASS catalog desktop/mobile publish/SKU/unpublish')
+    await page.goto(origin + '/account/addresses')
+    await page.getByRole('button', { name: '新建地址' }).click()
+    await page.getByLabel('收件人').fill('测试用户')
+    await page.getByLabel('联系电话').fill('13800000000')
+    await page.getByLabel('省份').selectOption({ label: '浙江省' })
+    await page.getByLabel('城市').selectOption({ label: '杭州市' })
+    await page.getByLabel('区县').selectOption({ label: '西湖区' })
+    await page.getByLabel('详细地址').fill('样例路1号')
+    await page.getByRole('button', { name: '创建地址' }).click()
+    await page.getByText('地址已创建', { exact: true }).waitFor()
+    const tab = await ctx.newPage()
+    await tab.goto(origin + '/account/addresses')
+    for (const p of [page, tab]) await p.getByRole('button', { name: '编辑', exact: true }).click()
+    await page.getByLabel('详细地址').fill('修改甲')
+    await page.getByRole('button', { name: '保存修改' }).click()
+    await page.getByText('地址已更新', { exact: true }).waitFor()
+    await tab.getByLabel('详细地址').fill('修改乙')
+    const conflict = tab.waitForResponse(
+      (r) => r.request().method() === 'PATCH' && r.status() === 409,
+    )
+    await tab.getByRole('button', { name: '保存修改' }).click()
+    await conflict
+    assert.equal(await tab.getByLabel('详细地址').inputValue(), '修改乙')
+    console.log('PASS address cascading fields + stale edit retained')
+    let active = 0,
+      peak = 0,
+      requests = 0
+    let started
+    const seen = new Promise((r) => (started = r))
+    await ctx.route('**/auth/web/refresh/', async (route) => {
+      active++
+      peak = Math.max(active, peak)
+      if (++requests === 1) {
+        started()
+        await new Promise((r) => setTimeout(r, 11000))
+      }
+      try {
+        const resp = await route.fetch()
+        await route.fulfill({ response: resp })
+      } finally {
+        active--
+      }
+    })
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await seen
+    await new Promise((r) => setTimeout(r, 10100))
+    await tab.reload({ waitUntil: 'domcontentloaded' })
+    for (const p of [page, tab]) await p.getByRole('button', { name: '新建地址' }).waitFor()
+    assert.equal(peak, 1)
+    assert.equal(requests, 2)
+    console.log('PASS two-tab fallback 11s refresh')
+  } finally {
+    await browser.close()
+  }
+})().catch((e) => {
+  console.error(e)
+  process.exitCode = 1
+})

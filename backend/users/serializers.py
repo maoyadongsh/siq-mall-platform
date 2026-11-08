@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 from rest_framework import serializers
 
 from accounts.serializers import (
@@ -5,6 +8,11 @@ from accounts.serializers import (
     MeResponseSerializer,
 )
 from common.serializers import EnvelopeSerializer
+
+
+REGIONS = json.loads(
+    (Path(__file__).parent / "data" / "regions-v2.2.0.json").read_text(encoding="utf-8")
+)
 
 
 class ProfileUpdateSerializer(serializers.Serializer):
@@ -30,6 +38,27 @@ class AddressInputSerializer(serializers.Serializer):
     region_code = serializers.RegexField(r"^[0-9]{6,12}$")
     detail = serializers.CharField(max_length=200, trim_whitespace=True)
     is_default = serializers.BooleanField(required=False, default=False)
+
+    def validate(self, attrs):
+        code = attrs["region_code"]
+        for field, table, key in (
+            ("province", "province_list", code[:2] + "0000"),
+            ("city", "city_list", code[:4] + "00"),
+            ("district", "county_list", code),
+        ):
+            if REGIONS[table].get(key) != attrs[field]:
+                raise serializers.ValidationError({field: "请重新选择收货地区"})
+        return attrs
+
+
+class RegionDirectorySerializer(serializers.Serializer):
+    province_list = serializers.DictField(child=serializers.CharField())
+    city_list = serializers.DictField(child=serializers.CharField())
+    county_list = serializers.DictField(child=serializers.CharField())
+
+
+class RegionResponseSerializer(EnvelopeSerializer):
+    data = RegionDirectorySerializer()
 
 
 class AddressWriteSerializer(AddressInputSerializer):

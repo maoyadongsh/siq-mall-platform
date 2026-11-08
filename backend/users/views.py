@@ -13,6 +13,8 @@ from common.response import success
 
 from .models import Address
 from .serializers import (
+    REGIONS,
+    RegionResponseSerializer,
     AddressDeleteSerializer,
     AddressInputSerializer,
     AddressListResponseSerializer,
@@ -94,6 +96,14 @@ class PhoneBindAPIView(APIView):
                 ErrorCode.PHONE_CONFLICT, "手机号已被其他账号绑定", http_status=409
             ) from exc
         return success(data=user_summary(request.user))
+
+
+class RegionDirectoryAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(tags=["地址"], responses={200: RegionResponseSerializer})
+    def get(self, request):
+        return success(data=REGIONS)
 
 
 class AddressListCreateAPIView(APIView):

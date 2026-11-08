@@ -12,6 +12,13 @@ onMounted(() => userStore.restoreSession())
       <div class="mall-layout__brand">SIQ优选商城</div>
       <nav class="mall-layout__nav">
         <router-link class="mall-layout__link" to="/">首页</router-link>
+        <router-link
+          v-if="userStore.profile?.can_manage_catalog"
+          class="mall-layout__link"
+          to="/ops/products"
+        >
+          商品管理
+        </router-link>
         <router-link v-if="userStore.isLoggedIn" class="mall-layout__link" to="/account">
           我的账号
         </router-link>
@@ -26,7 +33,7 @@ onMounted(() => userStore.restoreSession())
       <router-view />
     </main>
 
-    <footer class="mall-layout__footer">SIQ优选商城 · 身份与权限</footer>
+    <footer class="mall-layout__footer">SIQ优选商城</footer>
   </div>
 </template>
 

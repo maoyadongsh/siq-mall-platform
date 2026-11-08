@@ -31,6 +31,7 @@ def user_summary(user) -> dict:
     return {
         "id": str(user.id),
         "username": user.username,
+        "can_manage_catalog": user.has_perm("catalog.manage_catalog"),
         "nickname": profile.nickname,
         "has_verified_phone": profile.phone_verified_at is not None,
         "roles": list(user.groups.values_list("name", flat=True)),

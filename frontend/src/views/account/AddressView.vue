@@ -29,6 +29,7 @@ import {
   setDefaultAddress,
   updateAddress,
 } from '@/api/addresses'
+import request from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
@@ -53,12 +54,34 @@ const form = reactive({
   is_default: false,
 })
 
+const regions = ref(null)
+const cities = computed(() => choices('city_list', 'province_list', form.province, 2))
+const counties = computed(() =>
+  choices('county_list', 'city_list', form.city, 4).filter(
+    ([code]) => regions.value.province_list[code.slice(0, 2) + '0000'] === form.province,
+  ),
+)
+function choices(table, parents, name, prefixLength) {
+  if (!regions.value || !name) return []
+  return Object.entries(regions.value[table]).filter(
+    ([code]) => regions.value[parents][code.slice(0, prefixLength).padEnd(6, '0')] === name,
+  )
+}
+async function loadRegions() {
+  try {
+    regions.value = await request.get('/regions/')
+  } catch {
+    errorMessage.value = '收货地区加载失败，请重试'
+  }
+}
 const formValid = computed(() =>
   ['recipient', 'phone', 'province', 'city', 'district', 'region_code', 'detail'].every((field) =>
     form[field].trim(),
   ),
 )
 
+function changeProvince() { form.city = ''; changeCity() }
+function changeCity() { form.district = ''; form.region_code = '' }
 function resetForm() {
   editingId.value = ''
   formVersion.value = 1
@@ -171,6 +194,7 @@ onMounted(() => {
     return
   }
   loadAddresses()
+  loadRegions()
 })
 </script>
 
@@ -181,7 +205,7 @@ onMounted(() => {
         <div class="address-page__header">
           <div>
             <h1>地址管理</h1>
-            <p>最多保存20条；平台地址能力未接入时可全程手填。</p>
+            <p>最多保存 20 条收货地址。</p>
           </div>
           <el-button :disabled="busyId !== ''" @click="showForm ? resetForm() : (showForm = true)">
             {{ showForm ? '取消编辑' : '新建地址' }}
@@ -217,18 +241,28 @@ onMounted(() => {
           <el-form-item label="联系电话" required>
             <el-input v-model="form.phone" maxlength="20" />
           </el-form-item>
-          <el-form-item label="省份" required>
-            <el-input v-model="form.province" maxlength="50" />
-          </el-form-item>
-          <el-form-item label="城市" required>
-            <el-input v-model="form.city" maxlength="50" />
-          </el-form-item>
-          <el-form-item label="区县" required>
-            <el-input v-model="form.district" maxlength="50" />
-          </el-form-item>
-          <el-form-item label="地区码" required>
-            <el-input v-model="form.region_code" maxlength="12" placeholder="例如330106" />
-          </el-form-item>
+          <label>省份<select
+            v-model="form.province"
+            @change="changeProvince"
+          >
+            <option value="">请选择省份</option>
+            <option v-for="(name, code) in regions?.province_list" :key="code">{{ name }}</option>
+          </select></label>
+          <label>城市<select
+            v-model="form.city"
+            @change="changeCity"
+          >
+            <option value="">请选择城市</option>
+            <option v-for="[code, name] in cities" :key="code">{{ name }}</option>
+          </select></label>
+          <label>区县<select
+            v-model="form.region_code"
+            @change="form.district = regions.county_list[form.region_code] || ''"
+          >
+            <option value="">请选择区县</option>
+            <option v-for="[code, name] in counties" :key="code" :value="code">{{ name }}</option>
+          </select></label>
+          <el-button v-if="!regions" @click="loadRegions">重新加载地区</el-button>
         </div>
         <el-form-item label="详细地址" required>
           <el-input v-model="form.detail" type="textarea" :rows="3" maxlength="200" />
@@ -253,9 +287,7 @@ onMounted(() => {
             <el-tag v-if="address.is_default" type="success">默认</el-tag>
           </div>
           <p>{{ address.province }}{{ address.city }}{{ address.district }}{{ address.detail }}</p>
-          <p class="address-item__meta">
-            地区码：{{ address.region_code }} · 版本：{{ address.version }}
-          </p>
+
           <div class="address-item__actions">
             <el-button :disabled="busyId !== ''" @click="editAddress(address)">编辑</el-button>
             <el-button
@@ -285,6 +317,20 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.address-form label {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.address-form select {
+  min-height: 44px;
+  font: inherit;
+  color: inherit;
+  border: 1px solid var(--mall-border);
+  border-radius: 8px;
+  background: white;
+  padding: 0 10px;
+}
 .address-page {
   max-width: 960px;
   margin: 0 auto;

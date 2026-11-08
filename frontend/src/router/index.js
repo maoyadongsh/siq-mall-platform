@@ -13,8 +13,26 @@ const router = createRouter({
         {
           path: '',
           name: 'home',
-          component: () => import('@/views/home/Index.vue'),
+          component: () => import('@/views/catalog/CatalogList.vue'),
+          alias: '/products',
           meta: { title: '首页' },
+        },
+        {
+          path: 'products/:id',
+          component: () => import('@/views/catalog/ProductDetail.vue'),
+          props: true,
+          meta: { title: '商品详情' },
+        },
+        {
+          path: 'ops/products',
+          component: () => import('@/views/catalog/CatalogList.vue'),
+          props: { manage: true },
+          meta: { title: '商品管理', requiresAuth: true, catalogPermission: true },
+        },
+        {
+          path: 'status',
+          component: () => import('@/views/home/Index.vue'),
+          meta: { title: '服务状态' },
         },
         {
           path: 'login',
@@ -58,6 +76,7 @@ router.beforeEach(async (to) => {
   if (!userStore.isLoggedIn) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
+  if (to.meta.catalogPermission && !userStore.profile?.can_manage_catalog) return { name: 'account' }
   return true
 })
 

@@ -220,3 +220,7 @@ Content-Type: application/json
 领域事件：order.created、order.paid、order.canceled、order.shipped、order.completed、review.moderated、cms.published、support.message_created。统一含event_id、schema_version、aggregate_id、occurred_at、必要业务引用；不放token/完整地址。消费者重试至少一次、按(event_id,consumer)唯一；发送平台消息失败不能回滚已成立订单。
 
 每个接口实施验收至少包括请求字段、成功信封、业务异常、认证/对象范围、幂等或版本冲突、分页/边界、文档与运行响应一致。OpenAPI必须覆盖状态码与示例；前端不能通过硬编码成功响应绕过尚未实现接口。旧客户端遇到新增字段可忽略，遇未知状态显示可理解说明并重新查询，禁止默认当成功。
+
+### I04 首批可用接口（2026-11-08）
+
+当前实现的完整字段以生成的 openapi.yaml 为准。GET regions/ 返回登录用户可选的省/市/区字典。GET products/ 与 products/{id}/ 公开可售商品及规格，列表支持 q、page、page_size。POST ops/products/ 接收 title、category（平面分类名称）、description 和 skus（label、price、available_stock），事务创建草稿及初始规格。上架/下架动作校验 catalog.manage_catalog 权限与 expected_version，并记录审计。当前动作使用版本冲突防止重复写入，完整的幂等响应重放、独立 SKU 编辑和媒体接口属于后续任务。

@@ -1,9 +1,13 @@
 # SIQ优选商城（siq-mall-platform）
 
 Vue 3 + Django 5.2/DRF + JWT + MariaDB + Redis 在线电商工程。
-当前交付：I01基础框架及I02 Web身份权限实现，尚无已验收业务模块或小程序客户端。Windows 11 开发，Ubuntu 24.04 直接部署，不使用 Docker。
+Web 已接入身份、资料地址和首批商品运营功能。商城首页为商品列表，服务状态页位于 `/status`。授权运营人员可在 `/ops/products` 保存多规格商品草稿并上下架。环境为 Windows 11 开发、Ubuntu 24.04 原生部署。
 
-开发前先读[设计交付总览](docs/07-predevelopment-handoff.md)与[AGENTS.md](AGENTS.md)。I01/I02自动验证结果见[准备与验收登记](docs/11-readiness-and-acceptance.md)，历史测试报告不作为当前通过证据；后续按迭代计划实施I03–I11。
+开发入口见[设计交付总览](docs/07-predevelopment-handoff.md)和[AGENTS](AGENTS.md)。验收进度见[开发登记](docs/11-readiness-and-acceptance.md)。
+
+首次启用商品功能时，在目标开发库备份并核对迁移后执行下文的 migrate 步骤。通过受信任的管理员为运营账号分配 `catalog_operator` 组，重新登录后即可看到商品管理入口。
+
+在 Windows 项目根目录运行 `backend\.venv\Scripts\python.exe qa/windows/smoke.py` 可复验地址并发、双标签刷新和商品上下架。先完成前端 npm ci 与后端开发依赖安装。本机需装 Chrome 和 MariaDB 11.8，可用 SIQ_CHROME_PATH 与 SIQ_MARIADB_BIN 指定安装位置。脚本使用随机端口和临时数据目录。
 
 | 文档 | 用途 |
 | --- | --- |

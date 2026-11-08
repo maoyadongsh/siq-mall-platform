@@ -74,7 +74,7 @@ def update_address(user, address_id, data):
         set_default(replacement)
     for field, value in data.items():
         setattr(address, field, value)
-    address.is_default = requested_default
+    address.is_default = requested_default or not addresses
     address.version += 1
     address.save()
     return address

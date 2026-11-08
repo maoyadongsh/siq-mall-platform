@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "common",
     "accounts.apps.AccountsConfig",
     "users.apps.UsersConfig",
+    "catalog.apps.CatalogConfig",
 ]
 
 MIDDLEWARE = [

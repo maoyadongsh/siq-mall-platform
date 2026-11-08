@@ -23,6 +23,7 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserSummarySerializer(serializers.Serializer):
+    can_manage_catalog = serializers.BooleanField()
     id = serializers.CharField()
     username = serializers.CharField()
     nickname = serializers.CharField(allow_blank=True)

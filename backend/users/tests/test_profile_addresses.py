@@ -222,3 +222,23 @@ def test_address_rejects_invalid_region_and_unknown_fields(client):
         **auth_headers(login),
     )
     assert response.status_code == 400
+
+
+def test_region_must_match_district_and_single_address_stays_default(client):
+    login = register_user(client)
+    rejected = client.post(
+        "/api/v1/users/me/addresses/",
+        address_payload(district="其他区"),
+        format="json",
+        **auth_headers(login),
+    )
+    assert rejected.status_code == 400
+    address = create_address(client, login)
+    saved = client.patch(
+        f"/api/v1/users/me/addresses/{address['id']}/",
+        address_payload(is_default=False, expected_version=address["version"]),
+        format="json",
+        **auth_headers(login),
+    )
+    assert saved.status_code == 200
+    assert saved.data["data"]["is_default"] is True

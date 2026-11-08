@@ -17,10 +17,10 @@ async function withRefreshLock(task) {
     return navigator.locks.request('mall_session_refresh', task)
   }
   const owner = crypto.randomUUID()
-  for (let attempt = 0; attempt < 50; attempt += 1) {
+  for (let attempt = 0; attempt < 450; attempt += 1) {
     const lock = JSON.parse(localStorage.getItem(LOCK_KEY) || 'null')
     if (!lock || lock.expiresAt < Date.now()) {
-      localStorage.setItem(LOCK_KEY, JSON.stringify({ owner, expiresAt: Date.now() + 10000 }))
+      localStorage.setItem(LOCK_KEY, JSON.stringify({ owner, expiresAt: Date.now() + 40000 }))
       await delay(50)
       const confirmed = JSON.parse(localStorage.getItem(LOCK_KEY) || 'null')
       if (confirmed?.owner === owner) {

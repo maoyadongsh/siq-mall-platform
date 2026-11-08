@@ -318,6 +318,113 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
           description: ''
+  /api/v1/ops/products/:
+    get:
+      operationId: api_v1_ops_products_retrieve
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+          description: ''
+    post:
+      operationId: api_v1_ops_products_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DraftInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DraftInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+          description: ''
+  /api/v1/ops/products/{id}/publish/:
+    post:
+      operationId: api_v1_ops_products_publish_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+          description: ''
+  /api/v1/ops/products/{id}/unpublish/:
+    post:
+      operationId: api_v1_ops_products_unpublish_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VersionInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+          description: ''
   /api/v1/ops/roles/:
     get:
       operationId: api_v1_ops_roles_retrieve
@@ -338,6 +445,59 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EmptyResponse'
+          description: ''
+  /api/v1/products/:
+    get:
+      operationId: api_v1_products_retrieve
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+          description: ''
+  /api/v1/products/{id}/:
+    get:
+      operationId: catalog_product_detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+          description: ''
+  /api/v1/regions/:
+    get:
+      operationId: api_v1_regions_retrieve
+      tags:
+      - 地址
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegionResponse'
           description: ''
   /api/v1/users/me/:
     get:
@@ -750,6 +910,28 @@ components:
       description: |-
         * `ok` - ok
         * `fail` - fail
+    DraftInputRequest:
+      type: object
+      properties:
+        category:
+          type: string
+          minLength: 1
+          maxLength: 50
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 5000
+        skus:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuInputRequest'
+      required:
+      - category
+      - skus
+      - title
     EmptyResponse:
       type: object
       properties:
@@ -961,6 +1143,108 @@ components:
       - challenge_id
       - code
       - phone
+    ProductListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/ProductPage'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    ProductOutput:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+          maxLength: 120
+        category:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/ProductOutputStatusEnum'
+        version:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        skus:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuOutput'
+        currency:
+          type: string
+          default: CNY
+      required:
+      - category
+      - id
+      - skus
+      - title
+    ProductOutputStatusEnum:
+      enum:
+      - draft
+      - on_sale
+      - off_sale
+      type: string
+      description: |-
+        * `draft` - 草稿
+        * `on_sale` - 在售
+        * `off_sale` - 已下架
+    ProductPage:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductOutput'
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    ProductResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/ProductOutput'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     ProfileResponse:
       type: object
       properties:
@@ -1015,6 +1299,45 @@ components:
           format: date-time
         data:
           $ref: '#/components/schemas/RefreshData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    RegionDirectory:
+      type: object
+      properties:
+        province_list:
+          type: object
+          additionalProperties:
+            type: string
+        city_list:
+          type: object
+          additionalProperties:
+            type: string
+        county_list:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+      - city_list
+      - county_list
+      - province_list
+    RegionResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/RegionDirectory'
       required:
       - code
       - data
@@ -1132,6 +1455,47 @@ components:
       - message
       - request_id
       - timestamp
+    SkuInputRequest:
+      type: object
+      properties:
+        label:
+          type: string
+          minLength: 1
+          maxLength: 80
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        available_stock:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+      required:
+      - available_stock
+      - label
+      - price
+    SkuOutput:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+          maxLength: 80
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        available_stock:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+      required:
+      - available_stock
+      - id
+      - label
+      - price
     TokenRefreshRequest:
       type: object
       properties:
@@ -1143,6 +1507,8 @@ components:
     UserSummary:
       type: object
       properties:
+        can_manage_catalog:
+          type: boolean
         id:
           type: string
         username:
@@ -1156,6 +1522,7 @@ components:
           items:
             type: string
       required:
+      - can_manage_catalog
       - has_verified_phone
       - id
       - nickname
@@ -1173,6 +1540,14 @@ components:
       required:
       - purpose
       - target
+    VersionInputRequest:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+      required:
+      - expected_version
   securitySchemes:
     BearerAuth:
       type: http
