@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from common.constants import ErrorCode as Code
 from common.exceptions import BusinessError
+from content.models import ContentEvent
 from orders.models import Event
 from reviews.models import ReviewAction
 
@@ -31,6 +32,7 @@ PLACEHOLDER = re.compile(r"\{([a-z_]+)\}")
 SAMPLES = {
     "order_no": "DEMO-PREVIEW",
     "review_status": "已公开",
+    "announcement_title": "示例公告",
 }
 
 
@@ -257,6 +259,30 @@ def deliver_review_action(pk):
         {"review_status": labels[action.to_status]},
     )
     NotificationConsumption.objects.create(event_id=action.event_id, consumer=CONSUMER)
+    return True
+
+
+@transaction.atomic
+def deliver_content_event(pk):
+    event = get_object_or_404(
+        ContentEvent.objects.select_for_update().select_related("revision__content"),
+        pk=pk,
+    )
+    if NotificationConsumption.objects.filter(
+        event_id=event.event_id, consumer=CONSUMER
+    ).exists():
+        return False
+    for user in get_user_model().objects.filter(is_active=True).order_by("pk"):
+        create_notice(
+            user,
+            event.event_id,
+            event.kind,
+            "system",
+            "announcement",
+            event.revision.content_id,
+            {"announcement_title": event.revision.title},
+        )
+    NotificationConsumption.objects.create(event_id=event.event_id, consumer=CONSUMER)
     return True
 
 

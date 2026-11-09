@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import serializers
 from rest_framework.parsers import MultiPartParser
+from rest_framework.permissions import BasePermission
 from rest_framework.views import APIView
 from common.pagination import StandardPagination
 from common.response import success
@@ -121,9 +122,20 @@ def validated(schema, request):
     return form.validated_data
 
 
+class CanUploadMedia(BasePermission):
+    def has_permission(self, request, view):
+        return bool(
+            request.user
+            and (
+                request.user.has_perm("catalog.manage_catalog")
+                or request.user.has_perm("content.publish")
+            )
+        )
+
+
 class Upload(APIView):
     parser_classes = [MultiPartParser]
-    permission_classes = [CanManageCatalog]
+    permission_classes = [CanUploadMedia]
 
     @extend_schema(request=MediaInput, responses={201: AssetResponse})
     def post(self, request):

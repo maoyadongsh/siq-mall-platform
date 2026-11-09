@@ -152,3 +152,12 @@ stateDiagram-v2
 ## I07 数据模型落地说明（2026-11-09）
 
 发行总量由模板行锁与 issued < total 条件更新保证；单用户限领通过锁内统计券实例及 UNIQUE(template,user,claim_index) 保证，未另设可独立漂移的用户计数表。草稿版本、发布、停领均保留模板修订快照及操作者，发布/停领原因随幂等回执保存。每张券保留领取时条款，活动订单以唯一订单外键关联。订单中的 coupon_snapshot 及订单项 discount_allocated 冻结实际使用的规则和分摊；释放后仍可从历史订单回溯。
+
+
+## I09–I10 数据模型落地说明（2026-11-09）
+
+通知实际使用 `notifications_notification`、`notifications_notificationsequence`、`notifications_notificationconsumption`、`notifications_notificationtemplate` 及启用指针表。订单事件、评价审核动作、公告事件和后续客服事件共用UUID事件标识，但各消费者独立记录回执；订单履约动态字段不能作为通知已读或已投递依据。序号在收件人用户锁和序号行锁内分配，已读水位只作用于已提交序号。
+
+CMS 实际使用 `content_content`、`content_contentrevision`、`content_contentaction` 与 `content_contentevent`。内容行保存稳定 slug、版本、发布状态和已发布revision指针；revision保存标题、跨端内容块、平台、排序、起止时间及公告通知开关。草稿新增revision不改变指针，发布/下线与操作审计、幂等回执在同一事务完成。公开查询重新校验时段和平台，首页缓存最长60秒且发布/下线提交后失效；商品推荐不作为缓存中的可售事实，每次聚合重新查询。
+
+`notify_inbox` 只允许公告使用，事件与公告revision一对一，防止同版本重复发布造成重复广播。通知只表示站内兜底，不派生微信永久授权或送达状态。`content.0001` 的无表 `ContentAccess` 仅承载 `content.publish` 权限，不保存业务内容；实际内容表从 `content.0002` 开始。

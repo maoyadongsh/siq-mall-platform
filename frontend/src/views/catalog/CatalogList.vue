@@ -1,9 +1,11 @@
 <script setup>
 import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import request from '@/utils/request'
 import DraftForm from './DraftForm.vue'
 
 const props = defineProps({ manage: Boolean })
+const route = useRoute()
 const query = ref('')
 const currentQuery = ref('')
 const page = ref(1)
@@ -57,10 +59,10 @@ function turn(delta) {
   load()
 }
 watch(
-  () => props.manage,
+  [() => props.manage, () => route.query.q],
   () => {
     creating.value = false
-    query.value = ''
+    query.value = props.manage ? '' : String(route.query.q || '')
     search()
   },
   { immediate: true },

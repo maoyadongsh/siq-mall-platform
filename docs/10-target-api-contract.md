@@ -263,3 +263,14 @@ products/{id}/reviews/ 公开在售商品已通过的评价，返回页码分页
 `ops/notification-templates/` 要求 `content.publish`（运营组 `content_operator`）。PATCH 以 `expected_version` 创建未启用的新版本，不改变当前线上模板；activate 同时校验目标版本和当前启用版本，并要求 `Idempotency-Key`。标题与正文只支持事件白名单变量，缺少变量时消费者显式失败并等待配置修复后补投，不发送半成品。
 
 订阅结果接口按用户、平台和 `client_event_id` 去重，返回 `delivery_status=not_sent`。accept 只代表一次授权结果，不是永久许可或实际送达证明；当前没有真实微信模板配置、发送接口或送达回执。
+
+
+### I10 CMS 内容发布（2026-11-09）
+
+`ops/cms/`、`ops/cms/{id}/draft/`、`preview/`、`publish/`、`unpublish/` 以及公开的 `cms/home/`、`cms/pages/{slug}/`、`cms/announcements/{id}/` 已接入，实际请求与响应以 `openapi.yaml` 为准。权限为 `content.publish`，运营组为 `content_operator`。公开内容只取已发布指针且满足 `start_at <= now < end_at` 的版本，并按 web/mobile/mini 展示端过滤；预览仅返回授权运营的指定草稿或历史版本。
+
+保存草稿新增不可变 revision 并推进内容版本，不能透传状态或发布指针。发布与下线要求 `Idempotency-Key`、revision、expected_version，动作回执和操作审计同事务保存。内容标识创建后不可修改，避免草稿编辑改变既有公开链接。首页内容缓存最长60秒，发布/下线在提交后主动失效；推荐商品每次重新查询，下架或无可售库存的项不返回。无已发布首页内容时，`fallback_products` 返回真实可售商品。
+
+内容块支持 heading/text/rich_text/image/link/product_list。富文本使用 nh3 白名单清洗，危险标签、事件属性、javascript/data/协议相对链接等直接拒绝；链接仅允许站内路径或HTTPS。图片复用 `ops/media/` 的真实解码、静态图片、5MB、2000万像素及重编码校验，内容运营与商品运营均可按权限上传。
+
+公告 revision 的 `notify_inbox=true` 时，发布事务同时写唯一公告事件；扫描进程为每个活跃用户生成一条系统通知并保留消费回执。同一公告版本重复发布不新增事件，非公告不能开启联动。该动作只代表站内消息，不产生微信订阅授权或实际送达。

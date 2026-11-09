@@ -1,0 +1,323 @@
+.cms-home,
+.cms-page,
+.cms-ops,
+.cms-editor {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.cms-home__hero {
+  padding: clamp(24px, 5vw, 56px);
+  border-radius: 20px;
+  color: #fff;
+  background: var(--mall-color-primary);
+}
+.cms-home__hero h1 {
+  max-width: 720px;
+  margin: 8px 0 16px;
+  font-size: clamp(30px, 5vw, 48px);
+}
+.cms-home__eyebrow {
+  letter-spacing: 0.14em;
+}
+.cms-home__search {
+  display: flex;
+  max-width: 620px;
+  margin-top: 28px;
+}
+.cms-home__search-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+.cms-home__search input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 8px 0 0 8px;
+  font: inherit;
+  font-size: 16px;
+}
+.cms-home__search button {
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 0 8px 8px 0;
+  color: var(--mall-color-primary);
+  background: #fff;
+}
+.cms-banner,
+.cms-floor,
+.cms-announcements,
+.cms-fallback,
+.cms-service {
+  margin: 24px 0;
+  padding: clamp(16px, 3vw, 28px);
+  border: 1px solid var(--mall-border);
+  border-radius: 16px;
+  background: #fff;
+}
+.cms-announcements ul {
+  padding-left: 20px;
+}
+.cms-announcements a,
+.cms-service a,
+.product-card a,
+.content-blocks__link a,
+.cms-empty a,
+.cms-ops a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--mall-color-primary);
+}
+.content-blocks__text,
+.content-blocks__rich {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  line-height: 1.75;
+}
+.content-blocks__rich :deep(a) {
+  color: var(--mall-color-primary);
+}
+.content-blocks__image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px;
+}
+.product-card {
+  overflow: hidden;
+  border: 1px solid var(--mall-border);
+  border-radius: 12px;
+  background: #fff;
+}
+.product-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--mall-bg);
+}
+.product-card__body {
+  padding: 16px;
+}
+.product-card__body h3 {
+  margin: 0;
+}
+.cms-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.cms-error,
+.cms-success {
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+.cms-error {
+  color: #8b2c2c;
+  background: #fff0f0;
+}
+.cms-success {
+  color: var(--mall-color-primary);
+  background: #edf5ef;
+}
+.cms-empty,
+.cms-loading {
+  padding: 32px 16px;
+  text-align: center;
+}
+.cms-page {
+  max-width: 860px;
+  padding: clamp(16px, 4vw, 36px);
+  border-radius: 16px;
+  background: #fff;
+}
+.cms-ops__heading,
+.cms-preview-panel__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.cms-ops button,
+.cms-editor button {
+  min-height: 44px;
+  padding: 7px 12px;
+  border: 1px solid var(--mall-border);
+  border-radius: 8px;
+  color: var(--mall-color-primary);
+  background: #fff;
+}
+.cms-ops button:disabled,
+.cms-editor button:disabled {
+  opacity: 0.5;
+}
+.cms-create,
+.cms-filter {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 16px;
+  background: #fff;
+}
+.cms-create label,
+.cms-filter label,
+.cms-block-fields label,
+.cms-config-panel > label,
+.cms-preview-panel > label {
+  display: grid;
+  gap: 6px;
+}
+.cms-editor input,
+.cms-editor textarea,
+.cms-editor select,
+.cms-ops input,
+.cms-ops select {
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--mall-border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+.cms-table-wrap {
+  overflow-x: auto;
+}
+.cms-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+.cms-table th,
+.cms-table td {
+  padding: 14px;
+  border-bottom: 1px solid var(--mall-border);
+  text-align: left;
+}
+.cms-table td small {
+  display: block;
+  margin-top: 5px;
+  color: var(--mall-text-secondary);
+}
+.cms-pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+.cms-editor__grid {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.85fr) minmax(320px, 1.5fr) minmax(240px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.cms-block-panel,
+.cms-preview-panel,
+.cms-config-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--mall-border);
+  border-radius: 12px;
+  background: #fff;
+}
+.cms-block-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cms-block-panel ol {
+  display: grid;
+  gap: 8px;
+  padding-left: 22px;
+}
+.cms-block-panel li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+.cms-block-panel li > span {
+  display: flex;
+}
+.cms-block-panel li button {
+  padding: 5px;
+}
+.cms-block-panel li button[aria-pressed='true'] {
+  color: #fff;
+  background: var(--mall-color-primary);
+}
+.cms-block-fields {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--mall-border);
+}
+.cms-block-fields textarea,
+.cms-config-panel textarea {
+  width: 100%;
+  resize: vertical;
+}
+.cms-preview-panel__canvas {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.cms-preview-panel__dirty,
+.cms-config-panel__note {
+  color: var(--mall-text-secondary);
+  font-size: 13px;
+}
+.cms-config-panel fieldset {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--mall-border);
+}
+.cms-config-panel fieldset input {
+  min-height: 20px;
+}
+@media (max-width: 1050px) {
+  .cms-editor__grid {
+    grid-template-columns: 1fr;
+  }
+  .cms-block-panel,
+  .cms-preview-panel,
+  .cms-config-panel {
+    min-width: 0;
+  }
+}
+@media (max-width: 600px) {
+  .cms-home__hero {
+    border-radius: 12px;
+  }
+  .cms-home__search {
+    max-width: 100%;
+  }
+  .cms-ops__heading,
+  .cms-preview-panel__heading {
+    flex-direction: column;
+  }
+  .cms-table thead {
+    display: none;
+  }
+  .cms-table tr,
+  .cms-table td {
+    display: block;
+  }
+  .cms-table tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--mall-border);
+  }
+}

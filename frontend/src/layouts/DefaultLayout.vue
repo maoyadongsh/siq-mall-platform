@@ -87,6 +87,13 @@ onBeforeUnmount(() => {
         <router-link
           v-if="userStore.profile?.can_publish_content"
           class="mall-layout__link"
+          to="/ops/cms"
+        >
+          内容管理
+        </router-link>
+        <router-link
+          v-if="userStore.profile?.can_publish_content"
+          class="mall-layout__link"
           to="/ops/notification-templates"
         >
           通知模板

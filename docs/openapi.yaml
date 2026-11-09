@@ -452,6 +452,181 @@ paths:
               schema:
                 $ref: '#/components/schemas/QuoteResponse'
           description: ''
+  /api/v1/cms/announcements/{identifier}/:
+    get:
+      operationId: api_v1_cms_announcements_retrieve
+      parameters:
+      - in: path
+        name: identifier
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: platform
+        schema:
+          type: string
+          enum:
+          - mini
+          - mobile
+          - web
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicContentResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/cms/home/:
+    get:
+      operationId: api_v1_cms_home_retrieve
+      parameters:
+      - in: query
+        name: platform
+        schema:
+          type: string
+          enum:
+          - mini
+          - mobile
+          - web
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/cms/pages/{identifier}/:
+    get:
+      operationId: api_v1_cms_pages_retrieve
+      parameters:
+      - in: path
+        name: identifier
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: platform
+        schema:
+          type: string
+          enum:
+          - mini
+          - mobile
+          - web
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicContentResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/coupons/:
     get:
       operationId: api_v1_coupons_retrieve
@@ -834,6 +1009,440 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OpResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/cms/:
+    get:
+      operationId: operator_cms_list
+      parameters:
+      - in: query
+        name: kind
+        schema:
+          type: string
+          enum:
+          - announcement
+          - banner
+          - floor
+          - page
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentPageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+    post:
+      operationId: operator_cms_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ContentInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ContentInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/cms/{id}/:
+    get:
+      operationId: operator_cms_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/cms/{id}/draft/:
+    patch:
+      operationId: api_v1_ops_cms_draft_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRevisionInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRevisionInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRevisionInputRequest'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/cms/{id}/preview/:
+    get:
+      operationId: api_v1_ops_cms_preview_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: platform
+        schema:
+          type: string
+          enum:
+          - mini
+          - mobile
+          - web
+      - in: query
+        name: revision
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreviewResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/cms/{id}/publish/:
+    post:
+      operationId: api_v1_ops_cms_publish_create
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PublishInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PublishInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/cms/{id}/unpublish/:
+    post:
+      operationId: api_v1_ops_cms_unpublish_create
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PublishInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PublishInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
           description: ''
         '400':
           content:
@@ -3725,6 +4334,146 @@ components:
       required:
       - database
       - redis
+    ContentData:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+        publication_state:
+          type: string
+        version:
+          type: integer
+        published_revision:
+          type: integer
+          nullable: true
+        latest_revision:
+          $ref: '#/components/schemas/RevisionData'
+        revisions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RevisionData'
+      required:
+      - id
+      - kind
+      - latest_revision
+      - publication_state
+      - published_revision
+      - slug
+      - status
+      - version
+    ContentInputRequest:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        slug:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9-]{0,79}$
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        blocks:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          maxItems: 50
+        platforms:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlatformsEnum'
+          default:
+          - web
+          - mobile
+          - mini
+        notify_inbox:
+          type: boolean
+          default: false
+        sort_order:
+          type: integer
+          maximum: 100000
+          minimum: -100000
+          default: 0
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - blocks
+      - kind
+      - start_at
+      - title
+    ContentPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page_size:
+          type: integer
+        page:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentData'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    ContentPageResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/ContentPage'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    ContentResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/ContentData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     CouponData:
       type: object
       properties:
@@ -4106,6 +4855,27 @@ components:
       - message
       - request_id
       - timestamp
+    HomeResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          additionalProperties: {}
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     Item:
       type: object
       properties:
@@ -4166,6 +4936,18 @@ components:
       - message
       - request_id
       - timestamp
+    KindEnum:
+      enum:
+      - banner
+      - floor
+      - announcement
+      - page
+      type: string
+      description: |-
+        * `banner` - banner
+        * `floor` - floor
+        * `announcement` - announcement
+        * `page` - page
     LineRequest:
       type: object
       properties:
@@ -4919,6 +5701,44 @@ components:
           type: string
           minLength: 1
           maxLength: 50
+    PatchedRevisionInputRequest:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        slug:
+          type: string
+          minLength: 1
+          pattern: ^[a-z0-9][a-z0-9-]{0,79}$
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        blocks:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          maxItems: 50
+        platforms:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlatformsEnum'
+        notify_inbox:
+          type: boolean
+          default: false
+        sort_order:
+          type: integer
+          maximum: 100000
+          minimum: -100000
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+          nullable: true
     PatchedTemplateVersionRequest:
       type: object
       properties:
@@ -5044,6 +5864,16 @@ components:
       - challenge_id
       - code
       - phone
+    PlatformsEnum:
+      enum:
+      - web
+      - mobile
+      - mini
+      type: string
+      description: |-
+        * `web` - web
+        * `mobile` - mobile
+        * `mini` - mini
     Preview:
       type: object
       properties:
@@ -5054,6 +5884,48 @@ components:
       required:
       - body
       - title
+    PreviewData:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        slug:
+          type: string
+        platform:
+          type: string
+        preview:
+          type: boolean
+        revision:
+          $ref: '#/components/schemas/RevisionData'
+      required:
+      - id
+      - kind
+      - platform
+      - preview
+      - revision
+      - slug
+    PreviewResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/PreviewData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     ProductListResponse:
       type: object
       properties:
@@ -5186,6 +6058,42 @@ components:
       - wechat_mini
       type: string
       description: '* `wechat_mini` - wechat_mini'
+    PublicContentData:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        slug:
+          type: string
+        revision:
+          $ref: '#/components/schemas/RevisionData'
+      required:
+      - id
+      - kind
+      - revision
+      - slug
+    PublicContentResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/PublicContentData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     PublicListResponse:
       type: object
       properties:
@@ -5253,6 +6161,22 @@ components:
       - id
       - rating
       - sku_label
+    PublishInputRequest:
+      type: object
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        expected_version:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          default: ''
+          maxLength: 200
+      required:
+      - expected_version
+      - revision
     PurposeEnum:
       enum:
       - register
@@ -5552,6 +6476,46 @@ components:
         * `reject` - reject
         * `failed` - failed
         * `unavailable` - unavailable
+    RevisionData:
+      type: object
+      properties:
+        revision_no:
+          type: integer
+        title:
+          type: string
+        blocks:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        platforms:
+          type: array
+          items:
+            type: string
+        notify_inbox:
+          type: boolean
+        sort_order:
+          type: integer
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - blocks
+      - created_at
+      - end_at
+      - notify_inbox
+      - platforms
+      - revision_no
+      - sort_order
+      - start_at
+      - title
     RoleListResponse:
       type: object
       properties:

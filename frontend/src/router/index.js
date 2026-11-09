@@ -11,6 +11,29 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         {
+          path: 'ops/cms',
+          component: () => import('@/views/content/OpsCmsList.vue'),
+          meta: { title: '内容管理', requiresAuth: true, contentPermission: true },
+        },
+        {
+          path: 'ops/cms/:id/edit',
+          component: () => import('@/views/content/OpsCmsEditor.vue'),
+          props: true,
+          meta: { title: '内容编辑与发布', requiresAuth: true, contentPermission: true },
+        },
+        {
+          path: 'pages/:identifier',
+          component: () => import('@/views/content/ContentPage.vue'),
+          props: (route) => ({ kind: 'page', identifier: route.params.identifier }),
+          meta: { title: '商城单页' },
+        },
+        {
+          path: 'announcements/:identifier',
+          component: () => import('@/views/content/ContentPage.vue'),
+          props: (route) => ({ kind: 'announcement', identifier: route.params.identifier }),
+          meta: { title: '商城公告' },
+        },
+        {
           path: 'messages',
           component: () => import('@/views/notifications/MessageCenter.vue'),
           meta: { title: '消息中心', requiresAuth: true },
@@ -89,9 +112,13 @@ const router = createRouter({
         {
           path: '',
           name: 'home',
-          component: () => import('@/views/catalog/CatalogList.vue'),
-          alias: '/products',
+          component: () => import('@/views/content/HomeView.vue'),
           meta: { title: '首页' },
+        },
+        {
+          path: 'products',
+          component: () => import('@/views/catalog/CatalogList.vue'),
+          meta: { title: '选购商品' },
         },
         {
           path: 'products/:id',

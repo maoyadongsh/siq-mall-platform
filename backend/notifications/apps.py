@@ -19,6 +19,7 @@ DEFAULT_TEMPLATES = {
         "你的评价审核结果为{review_status}，可查看详细说明。",
     ),
     "support.message_created": ("客服已回复", "你的客服会话有新回复，请打开会话查看。"),
+    "cms.announcement_published": ("商城公告", "{announcement_title}"),
 }
 
 
@@ -52,6 +53,7 @@ TEMPLATE_VARIABLES = {
     "order.completed": {"order_no"},
     "review.moderated": {"review_status"},
     "support.message_created": set(),
+    "cms.announcement_published": {"announcement_title"},
 }
 
 

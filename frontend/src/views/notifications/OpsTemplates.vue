@@ -29,12 +29,12 @@ async function load() {
   }
 }
 
-function select(row, keepNotice = false) {
+function select(row) {
   selected.value = row
   title.value = row.title
   body.value = row.body
   error.value = ''
-  if (!keepNotice) notice.value = ''
+  notice.value = ''
 }
 
 async function save() {
@@ -48,9 +48,9 @@ async function save() {
       body: body.value,
       variables: selected.value.supported_variables,
     })
-    notice.value = '已保存为新草稿版本；启用前线上模板不变。'
     await load()
-    select(result, true)
+    select(result)
+    notice.value = '已保存为新草稿版本；启用前线上模板不变。'
   } catch (e) {
     error.value = e.response?.data?.errors?.[0]?.detail || e.message
   } finally {
@@ -72,9 +72,9 @@ async function activate() {
   notice.value = ''
   try {
     const result = await activateTemplate(selected.value, active.version)
-    notice.value = '新版本已启用，后续事件将使用此模板。'
     await load()
-    select(result, true)
+    select(result)
+    notice.value = '新版本已启用，后续事件将使用此模板。'
   } catch (e) {
     error.value = e.message
   } finally {

@@ -111,6 +111,7 @@ def run_suite(work):
                 "promotions/tests/test_races.py",
                 "reviews/tests/test_races.py",
                 "notifications/tests/test_races.py",
+                "content/tests/test_races.py",
                 "--no-cov",
             ]
         )
