@@ -120,6 +120,9 @@ onUnmounted(() => {
         商品 ¥{{ order.goods_amount }}　配送 ¥{{ order.freight_amount }}　应付
         <strong>¥{{ order.payable_amount }}</strong>
       </p>
+      <p v-if="order.coupon_snapshot">
+        优惠券：{{ order.coupon_snapshot.name }} · 已减 ¥{{ order.discount_amount }}
+      </p>
       <h3>收货信息</h3>
       <p>{{ order.address_snapshot.recipient }} · {{ order.address_snapshot.phone }}</p>
       <p>

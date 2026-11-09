@@ -222,6 +222,57 @@ const assert = require('node:assert/strict')
     await shop.getByRole('link', { name: /结算预览/ }).click()
     await shop.getByRole('button', { name: '确认金额并提交订单' }).click()
     await shop.getByRole('heading', { name: '待付款', exact: true }).waitFor()
+    await page.goto(origin + '/ops/coupons')
+    await page.getByRole('button', { name: '新建优惠券' }).click()
+    await page.getByLabel('券名称').fill('春日满129减20')
+    await page.getByRole('button', { name: '保存草稿' }).click()
+    await page.getByRole('button', { name: '发布', exact: true }).click()
+    await page.getByLabel('操作原因').fill('领券验收')
+    await page.getByRole('button', { name: '确认发布' }).click()
+    await page.getByText('发放中', { exact: true }).waitFor()
+    await shop.goto(origin + '/coupons')
+    await shop.route(
+      '**/coupons/*/claim/',
+      async (route) => {
+        assert.equal((await route.fetch()).status(), 201)
+        await route.abort('connectionreset')
+      },
+      { times: 1 },
+    )
+    await shop.getByRole('button', { name: '领取优惠券' }).click()
+    await shop.getByRole('button', { name: '领取优惠券' }).click()
+    await shop.getByText('已领取「春日满129减20」', { exact: false }).waitFor()
+    await page.getByRole('button', { name: '停止领取' }).click()
+    await page.getByLabel('操作原因').fill('结束发放')
+    await page.getByRole('button', { name: '确认停领' }).click()
+    await page.getByText('已停领', { exact: true }).waitFor()
+    async function useCoupon() {
+      await shop.goto(origin)
+      await shop.getByRole('link', { name: '查看规格' }).click()
+      await shop.getByRole('button', { name: '青绿' }).click()
+      await shop.getByRole('button', { name: '加入购物车' }).click()
+      await shop.getByText('已加入购物车', { exact: true }).waitFor()
+      await shop.getByRole('link', { name: '查看购物车' }).click()
+      await shop.getByRole('link', { name: /结算预览/ }).click()
+      await shop.getByLabel('结算优惠券').selectOption({ label: '春日满129减20 · 可减 ¥20.00' })
+      await shop.getByText('¥109.00', { exact: true }).waitFor()
+      await shop.getByRole('button', { name: '确认金额并提交订单' }).click()
+      await shop.getByText('已减 ¥20.00', { exact: false }).waitFor()
+    }
+    await useCoupon()
+    await shop.getByRole('button', { name: '取消订单', exact: true }).click()
+    await shop.getByRole('button', { name: '确认取消并释放库存' }).click()
+    await shop.getByRole('heading', { name: '已取消', exact: true }).waitFor()
+    await useCoupon()
+    await shop.getByRole('button', { name: '进入模拟支付' }).click()
+    await shop.getByRole('button', { name: '模拟付款成功' }).click()
+    await shop.getByRole('heading', { name: '待发货', exact: true }).waitFor()
+    await shop.goto(origin + '/account/coupons')
+    await shop.getByLabel('券状态').selectOption('used')
+    await shop.getByRole('heading', { name: '春日满129减20' }).waitFor()
+    console.log(
+      'PASS coupon publish -> claim retry -> stop -> select -> release -> reuse -> redeem',
+    )
   } finally {
     await browser.close()
   }

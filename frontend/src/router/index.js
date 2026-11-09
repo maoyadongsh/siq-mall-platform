@@ -11,6 +11,22 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         {
+          path: 'coupons',
+          component: () => import('@/views/coupons/Coupons.vue'),
+          meta: { title: '领券中心' },
+        },
+        {
+          path: 'account/coupons',
+          component: () => import('@/views/coupons/Coupons.vue'),
+          props: { wallet: true },
+          meta: { title: '我的优惠券', requiresAuth: true },
+        },
+        {
+          path: 'ops/coupons',
+          component: () => import('@/views/coupons/OpsCoupons.vue'),
+          meta: { title: '优惠券管理', requiresAuth: true, promotionPermission: true },
+        },
+        {
           path: 'orders',
           component: () => import('@/views/orders/OrderList.vue'),
           meta: { title: '我的订单', requiresAuth: true },
@@ -115,6 +131,8 @@ router.beforeEach(async (to) => {
   if (!userStore.isLoggedIn) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
+  if (to.meta.promotionPermission && !userStore.profile?.can_manage_promotions)
+    return { name: 'account' }
   if (to.meta.fulfill && !userStore.profile?.can_fulfill_orders) return { name: 'account' }
   if (to.meta.catalogPermission && !userStore.profile?.can_manage_catalog)
     return { name: 'account' }

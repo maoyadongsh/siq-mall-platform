@@ -33,12 +33,9 @@ class Basket(StrictInput):
 
 class QuoteInput(Basket):
     address_id = serializers.IntegerField(min_value=1, max_value=2**63 - 1)
-    user_coupon_id = serializers.IntegerField(required=False, allow_null=True)
-
-    def validate_user_coupon_id(self, value):
-        if value is not None:
-            raise serializers.ValidationError("当前试算暂不支持优惠券")
-        return value
+    user_coupon_id = serializers.IntegerField(
+        min_value=1, max_value=2**63 - 1, required=False, allow_null=True
+    )
 
 
 class Version(StrictInput):
@@ -123,6 +120,7 @@ class QuoteData(serializers.Serializer):
     currency = serializers.CharField()
     address_summary = serializers.DictField()
     selected_coupon = serializers.JSONField(allow_null=True)
+    available_coupons = serializers.ListField(child=serializers.DictField())
     unavailable_coupons = serializers.ListField()
 
 

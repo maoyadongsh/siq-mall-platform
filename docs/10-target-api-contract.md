@@ -240,3 +240,9 @@ carts/items/、carts/items/{id}/、carts/merge/ 和 checkout/quote/ 已接入，
 第4节列出的 orders、payments、operations 与第6节 ops/orders 接口已接入，具体请求/响应见 openapi.yaml。业务号、报价及 intent 使用 UUID。各写接口验证 Idempotency-Key。短事务按用户串行写入，GET operations 仅返回已提交记录，读到404时仍须使用原意图与原键重试。锁竞争重试耗尽返回409、10009及Retry-After。下单响应未知时可用 orders/by-intent 找回订单。取消/超时释放可售库存，成功付款仅消耗预占。订单事件及其消费记录分别与业务和投影写入同事务。GET ops/order-activities/ 返回授权履约人员最近20条已投递动态。
 
 I06 的配送与金额从服务端重算。订单四项金额以Decimal(12,2)保存并校验应付公式。商品、单价、主图、配送地址与履约记录按订单展示。不同于未来含券版本，本阶段优惠额为0。Windows 使用同一管理命令持续扫描，Ubuntu 使用 systemd timer 扫描数据库 Outbox。Celery 投递与订阅通知留给后续消费者；当前演示运行无需新增消息代理。
+
+### I07 优惠券（2026-11-09）
+
+第5、6节的优惠券中心、领券、本人券包、运营草稿维护、发布和停领接口已接入。权限为 promotions.manage，运营组为 promotion_operator。领取、发布及停领带 Idempotency-Key；模板修改与发布动作校验 expected_version。领取接口依赖限流时遇到Redis连接失败返回503，可持原键重试。已提交领取的重放返回首次领取结果，当前状态以本人券包为准。券包可按 unused/reserved/used/expired 筛选，占用和已用券带本人关联订单号。
+
+checkout/quote/ 接受一个可空 user_coupon_id。响应包含 available_coupons、unavailable_coupons、selected_coupon，金额及各行 discount_allocated 均为两位小数字符串。结算列表优先展示最早到期的100张未用券，完整券包分页可达。主动选择的券即使在该列表之外仍单独验证。不可用选择返回409；他人持有的券返回404。用户需重新选择并确认当前应付金额。原无券报价仍可按原快照校验。

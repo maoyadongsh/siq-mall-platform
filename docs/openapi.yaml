@@ -452,6 +452,115 @@ paths:
               schema:
                 $ref: '#/components/schemas/QuoteResponse'
           description: ''
+  /api/v1/coupons/:
+    get:
+      operationId: api_v1_coupons_retrieve
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateListResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/coupons/{id}/claim/:
+    post:
+      operationId: api_v1_coupons_claim_create
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CouponResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/health/:
     get:
       operationId: api_v1_health_retrieve
@@ -505,6 +614,357 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OpResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/coupons/:
+    get:
+      operationId: ops_coupon_list
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateListResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+    post:
+      operationId: api_v1_ops_coupons_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DraftRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DraftRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/coupons/{id}/:
+    get:
+      operationId: api_v1_ops_coupons_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+    patch:
+      operationId: api_v1_ops_coupons_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDraftPatchRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDraftPatchRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDraftPatchRequest'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/coupons/{id}/publish/:
+    post:
+      operationId: api_v1_ops_coupons_publish_create
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/coupons/{id}/stop-claiming/:
+    post:
+      operationId: api_v1_ops_coupons_stop_claiming_create
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateResponse'
           description: ''
         '400':
           content:
@@ -1891,6 +2351,51 @@ paths:
               schema:
                 $ref: '#/components/schemas/EmptyResponse'
           description: ''
+  /api/v1/users/me/coupons/:
+    get:
+      operationId: api_v1_users_me_coupons_retrieve
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/users/me/phone/:
     post:
       operationId: api_v1_users_me_phone_create
@@ -1926,6 +2431,19 @@ paths:
           description: ''
 components:
   schemas:
+    ActionRequest:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+      - expected_version
+      - reason
     ActivityResponse:
       type: object
       properties:
@@ -2299,6 +2817,96 @@ components:
       required:
       - database
       - redis
+    CouponData:
+      type: object
+      properties:
+        id:
+          type: string
+        template_id:
+          type: string
+        template_version:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        threshold_amount:
+          type: string
+        reduction_amount:
+          type: string
+          nullable: true
+        discount_bps:
+          type: integer
+          nullable: true
+        cap_amount:
+          type: string
+          nullable: true
+        scope:
+          type: string
+        product_ids:
+          type: array
+          items:
+            type: string
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        order_no:
+          type: string
+          format: uuid
+          nullable: true
+        serial_no:
+          type: string
+          format: uuid
+      required:
+      - cap_amount
+      - discount_bps
+      - end_at
+      - id
+      - name
+      - order_no
+      - product_ids
+      - reduction_amount
+      - scope
+      - serial_no
+      - start_at
+      - status
+      - template_id
+      - template_version
+      - threshold_amount
+      - type
+    CouponResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/CouponData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    CouponScopeEnum:
+      enum:
+      - all
+      - products
+      type: string
+      description: |-
+        * `all` - all
+        * `products` - products
     CreateRequest:
       type: object
       properties:
@@ -2396,6 +3004,76 @@ components:
       - category
       - skus
       - title
+    DraftRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        threshold_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        reduction_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        discount_bps:
+          type: integer
+          maximum: 10000
+          minimum: 1
+          nullable: true
+        cap_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        scope:
+          $ref: '#/components/schemas/CouponScopeEnum'
+        product_ids:
+          type: array
+          items:
+            type: integer
+            maximum: 9223372036854775807
+            minimum: 1
+            format: int64
+          maxItems: 500
+        total:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+        per_user_limit:
+          type: integer
+          maximum: 32767
+          minimum: 1
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        claim_start_at:
+          type: string
+          format: date-time
+        claim_end_at:
+          type: string
+          format: date-time
+      required:
+      - claim_end_at
+      - claim_start_at
+      - end_at
+      - name
+      - per_user_limit
+      - product_ids
+      - scope
+      - start_at
+      - threshold_amount
+      - total
+      - type
     EmptyResponse:
       type: object
       properties:
@@ -2606,8 +3284,16 @@ components:
       properties:
         scope:
           allOf:
-          - $ref: '#/components/schemas/ScopeEnum'
+          - $ref: '#/components/schemas/LogoutScopeEnum'
           default: current
+    LogoutScopeEnum:
+      enum:
+      - current
+      - all
+      type: string
+      description: |-
+        * `current` - current
+        * `all` - all
     MediaInputRequest:
       type: object
       properties:
@@ -2953,6 +3639,67 @@ components:
         expected_version:
           type: integer
           minimum: 1
+    PatchedDraftPatchRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        threshold_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        reduction_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        discount_bps:
+          type: integer
+          maximum: 10000
+          minimum: 1
+          nullable: true
+        cap_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        scope:
+          $ref: '#/components/schemas/CouponScopeEnum'
+        product_ids:
+          type: array
+          items:
+            type: integer
+            maximum: 9223372036854775807
+            minimum: 1
+            format: int64
+          maxItems: 500
+        total:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+        per_user_limit:
+          type: integer
+          maximum: 32767
+          minimum: 1
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        claim_start_at:
+          type: string
+          format: date-time
+        claim_end_at:
+          type: string
+          format: date-time
+        expected_version:
+          type: integer
+          minimum: 1
     PatchedProductEditRequest:
       type: object
       properties:
@@ -3250,11 +3997,17 @@ components:
           additionalProperties: {}
         selected_coupon:
           nullable: true
+        available_coupons:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
         unavailable_coupons:
           type: array
           items: {}
       required:
       - address_summary
+      - available_coupons
       - currency
       - discount_amount
       - expires_at
@@ -3279,6 +4032,9 @@ components:
           format: int64
         user_coupon_id:
           type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
           nullable: true
       required:
       - address_id
@@ -3480,14 +4236,6 @@ components:
       - id
       - roles
       - username
-    ScopeEnum:
-      enum:
-      - current
-      - all
-      type: string
-      description: |-
-        * `current` - current
-        * `all` - all
     SessionData:
       type: object
       properties:
@@ -3593,6 +4341,144 @@ components:
       - id
       - label
       - price
+    TemplateData:
+      type: object
+      properties:
+        id:
+          type: string
+        template_id:
+          type: string
+        template_version:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        threshold_amount:
+          type: string
+        reduction_amount:
+          type: string
+          nullable: true
+        discount_bps:
+          type: integer
+          nullable: true
+        cap_amount:
+          type: string
+          nullable: true
+        scope:
+          type: string
+        product_ids:
+          type: array
+          items:
+            type: string
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+        issued:
+          type: integer
+        total:
+          type: integer
+        per_user_limit:
+          type: integer
+        claim_start_at:
+          type: string
+          format: date-time
+        claim_end_at:
+          type: string
+          format: date-time
+        reserved:
+          type: integer
+        used:
+          type: integer
+      required:
+      - cap_amount
+      - claim_end_at
+      - claim_start_at
+      - discount_bps
+      - end_at
+      - id
+      - issued
+      - name
+      - per_user_limit
+      - product_ids
+      - reduction_amount
+      - scope
+      - start_at
+      - status
+      - template_id
+      - template_version
+      - threshold_amount
+      - total
+      - type
+      - version
+    TemplateListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/TemplatesPage'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    TemplateResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/TemplateData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    TemplatesPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateData'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
     TokenRefreshRequest:
       type: object
       properties:
@@ -3601,9 +4487,19 @@ components:
           minLength: 1
       required:
       - refresh
+    TypeEnum:
+      enum:
+      - fixed
+      - percentage
+      type: string
+      description: |-
+        * `fixed` - fixed
+        * `percentage` - percentage
     UserSummary:
       type: object
       properties:
+        can_manage_promotions:
+          type: boolean
         can_fulfill_orders:
           type: boolean
         can_manage_catalog:
@@ -3623,6 +4519,7 @@ components:
       required:
       - can_fulfill_orders
       - can_manage_catalog
+      - can_manage_promotions
       - has_verified_phone
       - id
       - nickname
@@ -3668,6 +4565,47 @@ components:
           minimum: 1
       required:
       - expected_version
+    WalletPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CouponData'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    WalletResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/WalletPage'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
   securitySchemes:
     BearerAuth:
       type: http

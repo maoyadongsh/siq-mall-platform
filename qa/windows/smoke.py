@@ -108,6 +108,7 @@ def run_suite(work):
                 "catalog/tests/test_stock_races.py",
                 "cart/tests/test_race.py",
                 "orders/tests/test_races.py",
+                "promotions/tests/test_races.py",
                 "--no-cov",
             ]
         )
@@ -117,7 +118,7 @@ def run_suite(work):
                 "manage.py",
                 "shell",
                 "-c",
-                "import os; from django.contrib.auth.models import User,Group; user=User.objects.create_user('accept_operator',password=os.environ['SIQ_TEST_PASSWORD']); user.groups.add(Group.objects.get(name='catalog_operator'),Group.objects.get(name='order_operator'))",
+                "import os; from django.contrib.auth.models import User,Group; user=User.objects.create_user('accept_operator',password=os.environ['SIQ_TEST_PASSWORD']); user.groups.add(Group.objects.get(name='catalog_operator'),Group.objects.get(name='order_operator'),Group.objects.get(name='promotion_operator'))",
             ]
         )
         start(
@@ -181,7 +182,7 @@ def run_suite(work):
                     if result:
                         assert 0 <= result[0] <= 90
                         cursor.execute(
-                            "SELECT COUNT(*) FROM orders_stockmovement WHERE kind='release'"
+                            "SELECT COUNT(*) FROM orders_stockmovement m JOIN orders_orderitem i ON i.id=m.item_id JOIN orders_event e ON e.order_id=i.order_id WHERE m.kind='release' AND e.reason='timeout'"
                         )
                         assert cursor.fetchone()[0] == 1
                         print(

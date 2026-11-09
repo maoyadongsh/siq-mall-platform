@@ -96,8 +96,9 @@ export const patchItem = (item, changes) =>
   request.patch('/carts/items/' + item.id + '/', { ...changes, expected_version: item.version })
 export const deleteItem = (item) =>
   request.delete('/carts/items/' + item.id + '/', { data: { expected_version: item.version } })
-export const quote = (address_id, items) =>
+export const quote = (address_id, items, user_coupon_id = null) =>
   request.post('/checkout/quote/', {
     address_id,
+    user_coupon_id,
     items: items.map(({ sku_id, quantity }) => ({ sku_id, quantity })),
   })

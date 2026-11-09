@@ -150,7 +150,7 @@ def test_quote_uses_server_prices_and_versions_without_reservation(shopper):
     assert sku.available_stock == 150
     for bad in (
         {**data, "payable_amount": "0.01"},
-        {**data, "user_coupon_id": 1},
+        {**data, "user_coupon_id": -1},
         {**data, "items": data["items"] * 2},
     ):
         assert client.post(QUOTE, bad, format="json").status_code == 400

@@ -160,7 +160,9 @@ def modify(user, pk, data, remove=False):
     return result
 
 
-def calculate_quote(user, data):
+def calculate_quote(user, data, *, for_order=False):
+    from promotions.services import apply_discount
+
     address = get_object_or_404(Address, user=user, pk=data["address_id"])
     code = address.region_code
     if (
@@ -219,19 +221,28 @@ def calculate_quote(user, data):
         "phone_masked": address.phone[:3] + "****" + address.phone[-4:],
         "region": address.province + address.city + address.district,
     }
+    discount, selected, options, rejected = apply_discount(
+        user,
+        data.get("user_coupon_id"),
+        lines,
+        skus,
+        list_options=not for_order,
+        lock=for_order,
+    )
     amounts = {
         "goods_amount": str(total),
         "freight_amount": str(freight),
-        "discount_amount": "0.00",
-        "payable_amount": str(total + freight),
+        "discount_amount": str(discount),
+        "payable_amount": str(total + freight - discount),
         "currency": "CNY",
     }
     body = {
         "items": lines,
         **amounts,
         "address_summary": summary,
-        "selected_coupon": None,
-        "unavailable_coupons": [],
+        "selected_coupon": selected,
+        "available_coupons": options,
+        "unavailable_coupons": rejected,
     }
     snapshot = {
         "items": lines,
@@ -241,6 +252,8 @@ def calculate_quote(user, data):
         "shipping_threshold": str(settings.CART_FREE_SHIPPING_THRESHOLD),
         "base_freight": str(settings.CART_BASE_FREIGHT),
     }
+    if selected:
+        snapshot["coupon"] = selected
     return body, snapshot, address
 
 

@@ -97,3 +97,14 @@
 .variant-editor {
   margin: 16px 0;
 }
+
+.catalog select {
+  min-height: 44px;
+  max-width: 100%;
+  font: inherit;
+  border: 1px solid var(--mall-border);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: white;
+  color: inherit;
+}

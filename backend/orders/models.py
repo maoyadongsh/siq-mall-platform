@@ -10,6 +10,7 @@ class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     quote = models.OneToOneField(Quote, on_delete=models.PROTECT)
     intent_id = models.UUIDField()
+    coupon_snapshot = models.JSONField(null=True, blank=True)
     address_snapshot = models.JSONField()
     goods_amount = models.DecimalField(max_digits=12, decimal_places=2)
     freight_amount = models.DecimalField(max_digits=12, decimal_places=2)

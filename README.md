@@ -28,6 +28,12 @@ Web 已接入身份、资料地址和首批商品运营功能。商城首页为�
 | [历史验收记录](docs/03-iteration-01-acceptance.md) | 旧版记录，不能替代本轮验证 |
 | [OpenAPI](docs/openapi.yaml) | 按当前实际路由生成并校验；未实现目标契约见10 |
 
+## 优惠券使用与运营
+
+买家在 `/coupons` 领券，在 `/account/coupons` 查看券包。结算页显示可减金额与不可用原因；每单最多使用一张，仅抵商品金额。取消待付款订单后，仍在有效期内的券可再次使用。
+
+在已有环境启用 I07 前先备份，核对并应用 `orders.0002_order_coupon_snapshot` 与 `promotions.0001_initial`。由受信任的管理员为营销人员分配 `promotion_operator` 组，重新登录后进入 `/ops/coupons`。先保存草稿，再核对时段、门槛、范围、总量及每人限领数后发布。停止领取只影响后续发放。订单扫描任务同时处理过期未用券。回滚前须处理占券中的待付款订单，保留券账、模板历史、订单快照与幂等回执。
+
 ## 订单演示与关单任务
 
 首次启用 I06 前，在目标开发库备份并核对 `catalog.0003_sku_reserved_stock` 和 `orders.0001_initial` 后运行 migrate。在隔离的开发环境中设置 `DEMO_PAYMENT_ENABLED=1` 并重启后端即可演示付款成功或失败。生产 settings 始终禁用模拟支付。通过受信任的管理员为履约人员分配 `order_operator` 组，重新登录后进入 `/ops/orders`。买家在用户中心进入“我的订单与交易记录”。

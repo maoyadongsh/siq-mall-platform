@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from cart.models import Cart, CartItem, Quote
+from promotions.services import reserve as reserve_coupon, finish as finish_coupon
 from cart.services import calculate_quote
 from catalog.models import Product, Sku
 from common.constants import ErrorCode as Code
@@ -76,7 +77,7 @@ def detail(order, ops=False):
         ],
         "address_snapshot": order.address_snapshot,
         "shipment": order.shipment,
-        "coupon_snapshot": None,
+        "coupon_snapshot": order.coupon_snapshot,
         "payment_summary": payment_data(payment, order) if payment else None,
         "events": [
             {"type": e.kind, "at": e.occurred_at.isoformat(), "reason": e.reason}
@@ -211,7 +212,13 @@ def place(user, data):
     if timezone.now() >= q.expires_at:
         conflict(Code.QUOTE_EXPIRED, "报价已过期，请重新试算")
     body, current, address = calculate_quote(
-        user, {"address_id": old["address_summary"]["id"], "items": lines}
+        user,
+        {
+            "address_id": old["address_summary"]["id"],
+            "items": lines,
+            "user_coupon_id": (old.get("coupon") or {}).get("id"),
+        },
+        for_order=True,
     )
     if current != old:
         conflict(Code.QUOTE_CHANGED, "价格、地址或配送规则已变化，请重新试算并确认")
@@ -229,6 +236,7 @@ def place(user, data):
                 "currency",
             )
         },
+        coupon_snapshot=body["selected_coupon"],
         address_snapshot={
             k: getattr(address, k)
             for k in (
@@ -243,6 +251,7 @@ def place(user, data):
         },
         expires_at=timezone.now() + timedelta(minutes=30),
     )
+    reserve_coupon(order)
     covers = {
         p.pk: p.cover.file.url if p.cover_id else None
         for p in Product.objects.filter(
@@ -288,6 +297,7 @@ def cancel_locked(order, actor, reason):
     if order.status != "pending":
         conflict(Code.ORDER_STATUS_INVALID, "仅待付款订单可以取消")
     settle_stock(order, "release")
+    finish_coupon(order, False)
     transition(order, "canceled", actor, reason)
 
 
@@ -333,6 +343,7 @@ def simulate(user, no, data):
     if payment.status == "success":
         Settlement.objects.create(order=order, payment=payment)
         settle_stock(order, "consume")
+        finish_coupon(order, True)
         transition(order, "paid", user)
     return order, payment_data(payment, order)
 

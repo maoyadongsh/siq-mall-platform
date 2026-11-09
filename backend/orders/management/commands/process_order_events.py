@@ -3,6 +3,7 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from django.db import close_old_connections
 from django.utils import timezone
+from promotions.models import Coupon
 from orders.models import Order, Event
 from orders.services import expire_one, deliver_one
 
@@ -18,6 +19,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         while True:
             close_old_connections()
+            Coupon.objects.filter(status="unused", end_at__lte=timezone.now()).update(
+                status="expired"
+            )
             failures = 0
             for rows, handler in (
                 (

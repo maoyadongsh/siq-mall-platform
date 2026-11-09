@@ -13,6 +13,14 @@ onMounted(() => userStore.restoreSession())
       <nav class="mall-layout__nav">
         <router-link class="mall-layout__link" to="/">首页</router-link>
         <router-link class="mall-layout__link" to="/cart">购物车</router-link>
+        <router-link class="mall-layout__link" to="/coupons">领券中心</router-link>
+        <router-link
+          v-if="userStore.profile?.can_manage_promotions"
+          class="mall-layout__link"
+          to="/ops/coupons"
+        >
+          优惠券管理
+        </router-link>
         <router-link
           v-if="userStore.profile?.can_manage_catalog"
           class="mall-layout__link"
