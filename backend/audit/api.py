@@ -1,4 +1,9 @@
+from dataclasses import dataclass
+from typing import Callable
+from uuid import UUID
+
 from django.core.paginator import Paginator
+from django.db.models import F, Value
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import serializers
 from rest_framework.permissions import BasePermission, IsAuthenticated
@@ -60,91 +65,118 @@ def entry(row, object_type, object_id, action, summary):
     }
 
 
-def entries():
-    rows = []
-    for row in CatalogEvent.objects.select_related("actor", "product").order_by("-id")[
-        :100
-    ]:
-        rows.append(
-            entry(
-                row,
-                "product",
-                row.product_id,
-                row.action,
-                {"status": row.snapshot.get("status")},
+@dataclass(frozen=True)
+class AuditSource:
+    model: type
+    object_field: str
+    action_field: str
+    summary: Callable
+    time_field: str = "created_at"
+
+
+SOURCES = {
+    "product": AuditSource(
+        CatalogEvent,
+        "product_id",
+        "action",
+        lambda r: {"status": r.snapshot.get("status")},
+    ),
+    "category": AuditSource(
+        CategoryEvent,
+        "category_id",
+        "action",
+        lambda r: {"name": r.snapshot.get("name")},
+    ),
+    "order": AuditSource(
+        Event, "order__order_no", "kind", lambda r: {"reason": r.reason}, "occurred_at"
+    ),
+    "review": AuditSource(
+        ReviewAction,
+        "review_id",
+        "operation",
+        lambda r: {"to_status": r.to_status, "reason": r.reason},
+    ),
+    "content": AuditSource(
+        ContentAction,
+        "content_id",
+        "operation",
+        lambda r: {"reason": r.reason, "version": r.snapshot.get("version")},
+    ),
+    "support_conversation": AuditSource(
+        SupportCommand, "conversation_id", "operation", lambda r: {}
+    ),
+    "user_role": AuditSource(
+        RoleAction, "target_id", "action", lambda r: {"reason": r.reason, **r.snapshot}
+    ),
+    "coupon_template": AuditSource(
+        Revision, "template_id", "action", lambda r: {"version": r.version}
+    ),
+}
+
+
+def audit_keys(params):
+    bounds = {}
+    for param, lookup in (("created_after", "gte"), ("created_before", "lte")):
+        if value := params.get(param):
+            bounds[lookup] = serializers.DateTimeField().to_internal_value(value)
+    queries = []
+    for kind, source in SOURCES.items():
+        if params.get("object_type") and params["object_type"] != kind:
+            continue
+        filters = {f"{source.time_field}__{op}": value for op, value in bounds.items()}
+        if action := params.get("action"):
+            filters[source.action_field] = action
+        if raw_id := params.get("object_id"):
+            try:
+                object_id = UUID(raw_id) if kind == "order" else int(raw_id)
+            except ValueError:
+                continue
+            if str(object_id) != raw_id or (
+                kind != "order" and not 0 < object_id < 2**63
+            ):
+                continue
+            filters[source.object_field] = object_id
+        keys = (
+            source.model.objects.filter(**filters)
+            .order_by()
+            .annotate(
+                audit_time=F(source.time_field),
+                source_type=Value(kind),
+                event_pk=F("pk"),
             )
+            .values_list("audit_time", "source_type", "event_pk")
         )
-    for row in CategoryEvent.objects.select_related("actor", "category").order_by(
-        "-id"
-    )[:100]:
-        rows.append(
-            entry(
-                row,
-                "category",
-                row.category_id,
-                row.action,
-                {"name": row.snapshot.get("name")},
+        queries.append(keys)
+    if not queries:
+        return []
+    combined = (
+        queries[0].union(*queries[1:], all=True) if len(queries) > 1 else queries[0]
+    )
+    return combined.order_by("-audit_time", "source_type", "-event_pk")
+
+
+def page_entries(keys):
+    keys = list(keys)
+    rows = {}
+    for kind, source in SOURCES.items():
+        ids = [pk for _, source_type, pk in keys if kind == source_type]
+        if not ids:
+            continue
+        relations = ("actor", "order") if kind == "order" else ("actor",)
+        for row in source.model.objects.filter(pk__in=ids).select_related(*relations):
+            object_id = (
+                row.order.order_no
+                if kind == "order"
+                else getattr(row, source.object_field)
             )
-        )
-    for row in Event.objects.select_related("actor", "order").order_by("-id")[:100]:
-        rows.append(
-            entry(row, "order", row.order.order_no, row.kind, {"reason": row.reason})
-        )
-    for row in ReviewAction.objects.select_related("actor", "review").order_by("-id")[
-        :100
-    ]:
-        rows.append(
-            entry(
+            rows[kind, row.pk] = entry(
                 row,
-                "review",
-                row.review_id,
-                row.operation,
-                {"to_status": row.to_status, "reason": row.reason},
+                kind,
+                object_id,
+                getattr(row, source.action_field),
+                source.summary(row),
             )
-        )
-    for row in ContentAction.objects.select_related("actor", "content").order_by("-id")[
-        :100
-    ]:
-        rows.append(
-            entry(
-                row,
-                "content",
-                row.content_id,
-                row.operation,
-                {"reason": row.reason, "version": row.snapshot.get("version")},
-            )
-        )
-    for row in SupportCommand.objects.select_related("actor", "conversation").order_by(
-        "-id"
-    )[:100]:
-        rows.append(
-            entry(row, "support_conversation", row.conversation_id, row.operation, {})
-        )
-    for row in RoleAction.objects.select_related("actor", "target").order_by("-id")[
-        :100
-    ]:
-        rows.append(
-            entry(
-                row,
-                "user_role",
-                row.target_id,
-                row.action,
-                {"reason": row.reason, **row.snapshot},
-            )
-        )
-    for row in Revision.objects.select_related("actor", "template").order_by("-id")[
-        :100
-    ]:
-        rows.append(
-            entry(
-                row,
-                "coupon_template",
-                row.template_id,
-                row.action,
-                {"version": row.version},
-            )
-        )
-    return sorted(rows, key=lambda row: (row["created_at"], row["id"]), reverse=True)
+    return [rows[kind, pk] for _, kind, pk in keys]
 
 
 class Dashboard(APIView):
@@ -239,19 +271,7 @@ class AuditList(APIView):
         ],
     )
     def get(self, request):
-        rows = entries()
-        for field in ("object_type", "object_id", "action"):
-            if value := request.query_params.get(field):
-                rows = [row for row in rows if row[field] == value]
-        for field in ("created_after", "created_before"):
-            if value := request.query_params.get(field):
-                form = serializers.DateTimeField()
-                moment = form.to_internal_value(value)
-                rows = (
-                    [row for row in rows if row["created_at"] >= moment]
-                    if field == "created_after"
-                    else [row for row in rows if row["created_at"] <= moment]
-                )
+        rows = audit_keys(request.query_params)
         try:
             page_size = min(int(request.query_params.get("page_size", 20)), 100)
             page_number = int(request.query_params.get("page", 1))
@@ -267,6 +287,6 @@ class AuditList(APIView):
                 "page": page.number,
                 "page_size": page_size,
                 "total_pages": paginator.num_pages,
-                "results": page.object_list,
+                "results": page_entries(page.object_list),
             }
         )

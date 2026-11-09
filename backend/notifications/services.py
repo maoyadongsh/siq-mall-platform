@@ -5,13 +5,13 @@ import re
 from django.contrib.auth import get_user_model
 from django.core import signing
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from common.constants import ErrorCode as Code
 from common.exceptions import BusinessError
-from content.models import ContentEvent
+from content.models import Content, ContentEvent
 from orders.models import Event
 from reviews.models import ReviewAction
 from support.models import SupportMessage
@@ -263,12 +263,26 @@ def deliver_review_action(pk):
     return True
 
 
+def live_content_events():
+    now = timezone.now()
+    return ContentEvent.objects.filter(
+        revision__content__kind="announcement",
+        revision__content__status="published",
+        revision__content__published_revision_id=F("revision_id"),
+        revision__notify_inbox=True,
+        revision__start_at__lte=now,
+    ).filter(Q(revision__end_at__isnull=True) | Q(revision__end_at__gt=now))
+
+
 @transaction.atomic
 def deliver_content_event(pk):
-    event = get_object_or_404(
-        ContentEvent.objects.select_for_update().select_related("revision__content"),
-        pk=pk,
-    )
+    content_id = ContentEvent.objects.values_list(
+        "revision__content_id", flat=True
+    ).get(pk=pk)
+    Content.objects.select_for_update().only("pk").get(pk=content_id)
+    event = live_content_events().select_related("revision").filter(pk=pk).first()
+    if event is None:
+        return False
     if NotificationConsumption.objects.filter(
         event_id=event.event_id, consumer=CONSUMER
     ).exists():
@@ -339,20 +353,31 @@ def unread(user):
     return {"total": sum(by_type.values()), "by_type": by_type}
 
 
-def watermark(user, notice_type):
-    sequence, _ = NotificationSequence.objects.get_or_create(user=user)
+def latest_sequence(user):
+    return (
+        NotificationSequence.objects.filter(user=user)
+        .values_list("last_seq", flat=True)
+        .first()
+        or 0
+    )
+
+
+def watermark(user, notice_type, upper=None):
+    if upper is None:
+        upper = latest_sequence(user)
     return signing.dumps(
-        {"user": user.pk, "type": notice_type or "", "seq": sequence.last_seq},
+        {"user": user.pk, "type": notice_type or "", "seq": upper},
         salt="notifications.read",
     )
 
 
-def cursor_token(user, notice_type, row):
+def cursor_token(user, notice_type, row, upper):
     return signing.dumps(
         {
             "user": user.pk,
             "type": notice_type or "",
             "seq": row.recipient_seq,
+            "upper": upper,
             "id": row.pk,
         },
         salt="notifications.cursor",
@@ -379,22 +404,26 @@ def page(user, notice_type, cursor, limit):
         rows = rows.filter(type=notice_type)
     if cursor:
         value = load_token(user, notice_type, cursor, "notifications.cursor")
+        upper = value.get("upper", value["seq"])
         rows = rows.filter(
             Q(recipient_seq__lt=value["seq"])
             | Q(recipient_seq=value["seq"], pk__lt=value["id"])
         )
+    else:
+        upper = latest_sequence(user)
+    rows = rows.filter(recipient_seq__lte=upper)
     selected = list(rows.order_by("-recipient_seq", "-id")[: limit + 1])
     has_more = len(selected) > limit
     selected = selected[:limit]
     return {
         "results": [notice_data(row) for row in selected],
         "next_cursor": (
-            cursor_token(user, notice_type, selected[-1])
+            cursor_token(user, notice_type, selected[-1], upper)
             if selected and has_more
             else None
         ),
         "has_more": has_more,
-        "read_watermark": watermark(user, notice_type),
+        "read_watermark": watermark(user, notice_type, upper),
     }
 
 

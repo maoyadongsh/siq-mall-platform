@@ -4,8 +4,8 @@
   <block wx:if="{{conversation}}"><view class="row"><view>会话 #{{conversation.id}} · {{conversation.status === 'open' ? '进行中' : '已关闭'}}</view><button wx:if="{{conversation.status === 'open'}}" class="secondary" bindtap="close">关闭</button></view>
     <view wx:if="{{!rows.length && !pending.length}}" class="muted">还没有消息，请描述问题。</view>
     <view wx:for="{{rows}}" wx:key="id" class="card"><view class="muted">{{item.sender_role === 'buyer' ? '我' : '客服'}} · {{item.created_at}}</view><view>{{item.body}}</view></view>
-    <view wx:for="{{pending}}" wx:key="client_message_id" class="card"><view class="muted">{{item.state === 'failed' ? '发送失败' : '发送中'}}</view><view>{{item.body}}</view><button wx:if="{{item.state === 'failed'}}" class="secondary" data-item="{{item}}" bindtap="send">重试发送</button></view>
-    <block wx:if="{{conversation.status === 'open'}}"><textarea class="textarea" value="{{draft}}" maxlength="2000" placeholder="输入纯文本消息" bindinput="onInput" /><button class="primary" bindtap="send">发送消息</button></block>
+    <view wx:for="{{pending}}" wx:key="client_message_id" class="card"><view class="muted">{{item.state === 'failed' ? '发送失败' : '发送中'}}</view><view>{{item.body}}</view><button wx:if="{{item.state === 'failed'}}" class="secondary" data-item="{{item}}" disabled="{{busy}}" bindtap="send">重试发送</button></view>
+    <block wx:if="{{conversation.status === 'open'}}"><textarea class="textarea" value="{{draft}}" maxlength="2000" placeholder="输入纯文本消息" bindinput="onInput" /><button class="primary" disabled="{{busy}}" bindtap="send">发送消息</button></block>
     <button wx:else class="primary" bindtap="create">新开会话</button>
   </block>
   <view wx:if="{{loading}}">正在读取会话…</view>

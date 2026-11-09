@@ -116,6 +116,7 @@ def run_suite(work):
                 "notifications/tests/test_races.py",
                 "content/tests/test_races.py",
                 "support/tests/test_races.py",
+                "../qa/acceptance/test_delivery_boundaries.py",
                 "--no-cov",
             ]
         )

@@ -5,7 +5,6 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import close_old_connections
 from django.utils import timezone
 
-from content.models import ContentEvent
 from notifications.models import NotificationConsumption
 from notifications.services import (
     CONSUMER,
@@ -13,6 +12,7 @@ from notifications.services import (
     deliver_order_event,
     deliver_review_action,
     deliver_support_message,
+    live_content_events,
 )
 from orders.models import Event, Order
 from orders.services import deliver_one, expire_one
@@ -63,7 +63,7 @@ class Command(BaseCommand):
                     deliver_review_action,
                 ),
                 (
-                    ContentEvent.objects.exclude(event_id__in=consumed).order_by("pk"),
+                    live_content_events().exclude(event_id__in=consumed).order_by("pk"),
                     deliver_content_event,
                 ),
                 (

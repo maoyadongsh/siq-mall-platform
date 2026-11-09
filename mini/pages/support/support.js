@@ -56,20 +56,28 @@ Page({
   },
   onInput(event) { this.setData({ draft: event.detail.value }) },
   async send(event) {
-    const item = event ? event.currentTarget.dataset.item : { client_message_id: uuid(), body: this.data.draft.trim(), state: 'sending' }
-    if (!item.body || this.data.conversation.status !== 'open') return
-    item.state = event ? 'retrying' : 'sending'
-    if (!event) this.setData({ pending: this.data.pending.concat(item) })
-    else this.setData({ pending: [...this.data.pending] })
-    this.setData({ error: '' })
+    if (this.data.busy || this.data.conversation?.status !== 'open') return
+    const retry = event?.currentTarget?.dataset?.item
+    const pending = this.data.pending
+    const failed = retry && pending.find(row => row.client_message_id === retry.client_message_id && row.state === 'failed')
+    if (retry && !failed) return
+    const item = failed || { client_message_id: uuid(), body: this.data.draft.trim() }
+    if (!item.body) return
+    const sending = { ...item, state: 'sending' }
+    this.setData({ busy: true, error: '', draft: failed ? this.data.draft : '', pending: failed
+      ? pending.map(row => row === failed ? sending : row)
+      : pending.concat(sending) })
     try {
       const row = await request({ path: `/conversations/${this.data.conversation.id}/messages/`, method: 'POST', data: { client_message_id: item.client_message_id, body: item.body }, idempotencyKey: item.client_message_id })
-      this.setData({ rows: this.data.rows.concat(row), pending: this.data.pending.filter((pending) => pending.client_message_id !== item.client_message_id), draft: '' })
-      await this.loadMessages()
+      const rows = this.data.rows.some(existing => existing.id === row.id) ? this.data.rows : this.data.rows.concat(row)
+      this.setData({ rows, pending: this.data.pending.filter(p => p.client_message_id !== item.client_message_id) })
     } catch (error) {
-      item.state = 'failed'
-      this.setData({ pending: [...this.data.pending], error: `${error.message}；可用原消息标识重试。` })
+      this.setData({ pending: this.data.pending.map(row => row.client_message_id === item.client_message_id ? { ...item, state: 'failed' } : row), error: `${error.message}；可用原消息标识重试。` })
+      return
+    } finally {
+      this.setData({ busy: false })
     }
+    try { await this.loadMessages() } catch (error) { this.setData({ error: error.message }) }
   },
   async close() {
     const row = this.data.conversation

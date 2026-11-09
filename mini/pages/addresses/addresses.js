@@ -24,11 +24,14 @@ Page({
     }
   },
   async makeDefault(event) {
+    if (this.data.busy) return
+    this.setData({ busy: true, error: '' })
     const row = event.currentTarget.dataset.item
     try {
-      await request({ path: `/users/me/addresses/${row.id}/`, method: 'PATCH', data: { is_default: true, expected_version: row.version } })
-      this.load()
+      await request({ path: `/users/me/addresses/${row.id}/default/`, method: 'POST', data: {} })
+      await this.load()
     } catch (error) { this.setData({ error: error.message }) }
+    finally { this.setData({ busy: false }) }
   },
   async remove(event) {
     const row = event.currentTarget.dataset.item
