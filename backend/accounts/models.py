@@ -83,3 +83,31 @@ class VerificationChallenge(models.Model):
     class Meta:
         db_table = "accounts_verification"
         indexes = [models.Index(fields=["purpose", "expires_at"])]
+
+
+class RoleAction(models.Model):
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="role_admin_actions",
+    )
+    target = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="role_change_history",
+    )
+    action = models.CharField(max_length=16)
+    key = models.UUIDField()
+    digest = models.CharField(max_length=64)
+    reason = models.CharField(max_length=200)
+    snapshot = models.JSONField()
+    result = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["actor", "action", "key"], name="accounts_role_command_once"
+            )
+        ]
+        indexes = [models.Index(fields=["target", "created_at", "id"])]

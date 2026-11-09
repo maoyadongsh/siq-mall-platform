@@ -1,0 +1,13 @@
+<view class="container">
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+  <view wx:if="{{!logged}}" class="muted">当前为游客购物车，登录后按原提交标识合并。</view>
+  <view wx:if="{{!loading && !rows.length}}" class="card">购物车为空，去挑选商品吧。<navigator url="/pages/products/products" class="link">浏览商品</navigator></view>
+  <view wx:for="{{rows}}" wx:key="sku_id" class="card">
+    <view>{{item.title}} · {{item.label}}</view><view class="price">¥{{item.current_price}}</view>
+    <view wx:if="{{item.reason}}" class="error">{{item.reason}}</view>
+    <input class="input" type="number" value="{{item.quantity}}" data-item="{{item}}" bindchange="update" />
+    <button class="danger" data-item="{{item}}" bindtap="remove">移除</button>
+  </view>
+  <button wx:if="{{rows.length}}" class="primary" bindtap="checkout">{{logged ? '去结算' : '登录并合并购物车'}}</button>
+  <view wx:if="{{loading}}" class="muted">正在读取购物车…</view>
+</view>

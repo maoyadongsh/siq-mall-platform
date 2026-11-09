@@ -5,7 +5,7 @@ Web 已接入身份、地址、商品运营、购物车、订单履约、优惠�
 
 买家可以从商品详情加购，在 `/cart` 合并游客选择、改量、移除和选中商品，再到 `/checkout` 选择地址并试算。游客清单使用当前标签页的 sessionStorage；账号购物车由服务端保存。首次启用前在目标开发库核对并应用 `cart.0001_initial` 迁移。报价有效5分钟。买家确认后创建订单，可从 /orders 找回待付款订单或查看履约进度。
 
-开发入口见[设计交付总览](docs/07-predevelopment-handoff.md)和[AGENTS](AGENTS.md)。验收进度见[开发登记](docs/11-readiness-and-acceptance.md)。
+开发入口见[设计交付总览](docs/07-predevelopment-handoff.md)和[AGENTS](AGENTS.md)。验收进度见[开发登记](docs/11-readiness-and-acceptance.md)，累积演示版功能、逐任务状态和剩余事项见[总验收报告](docs/12-final-acceptance.md)。
 
 商品管理页的“维护商品”支持替换主图、调整规格售价，以及按原因增减库存并查看流水。安装后端依赖后，应用 catalog.0002 迁移。Ubuntu 以 MALL_MEDIA_ROOT 指向持久媒体目录，随库备份并核对 Nginx 的 /media/ 目录映射。已有媒体的环境先迁移文件，再切换配置。
 
@@ -26,6 +26,7 @@ Web 已接入身份、地址、商品运营、购物车、订单履约、优惠�
 | [审查与优化建议](docs/04-project-review.md) | 代码证据、优先级、商业化缺口 |
 | [本轮验证登记](docs/05-review-validation-2026-11-06.md) | 2026-11-06实际执行与待验收项 |
 | [历史验收记录](docs/03-iteration-01-acceptance.md) | 旧版记录，不能替代本轮验证 |
+| [原生小程序](mini/README.md) | 独立WXML/WXSS客户端、商城会话、共用API与Node适配测试；平台/真机未验 |
 | [OpenAPI](docs/openapi.yaml) | 按当前实际路由生成并校验；未实现目标契约见10 |
 
 ## 评价与审核
@@ -46,7 +47,7 @@ Web 已接入身份、地址、商品运营、购物车、订单履约、优惠�
 
 授权商品运营在 `/ops/categories` 维护父子分类、排序和启停，分类不能成环；停用父分类会隐藏公开子树。买家在 `/products` 按关键词、分类后代、价格区间和白名单排序查询，筛选保留在URL。首页分类导航使用同一公开树。
 
-`catalog.0004_categoryevent_category_enabled_category_parent_and_more` 为既有分类补充根节点兼容字段，升级前备份并审核。仅在临时演示库显式设置 `MALL_ALLOW_SCALE_SEED=1` 后运行 `manage.py seed_catalog_scale --products 1000 --skus 1 --prefix scale1k`；同前缀重复执行会拒绝，避免重复写入。1000商品功能集与10万商品/30万SKU性能集分别登记，不能据种子生成成功宣称性能达标。
+`catalog.0004_categoryevent_category_enabled_category_parent_and_more` 为既有分类补充根节点兼容字段，`catalog.0005_product_min_price_and_more` 为商品排序补充最低价回填与索引，升级前备份并审核。最低价在商品创建与SKU调价事务中同步维护，不能用未回填的旧数据推断排序正确。仅在临时演示库显式设置 `MALL_ALLOW_SCALE_SEED=1` 后运行 `manage.py seed_catalog_scale --products 1000 --skus 1 --prefix scale1k`；同前缀重复执行会拒绝，避免重复写入。1000商品功能集与10万商品/30万SKU性能集分别登记，不能据种子生成成功宣称性能达标。专用 `backend/.venv/Scripts/python.exe qa/windows/scale.py` 使用独立临时MariaDB和隔离买家执行10万商品短测；优化前后数据见docs/11§23，不能替代规定硬件和时长的完整性能验收。
 
 ## CMS 内容发布与首页
 
@@ -92,6 +93,12 @@ journalctl -u mall-orders.service -n 30
 ```
 
 每次扫描先关闭到期订单，再分别投递履约动态、订单通知和评价审核通知。Windows 持续进程与 Ubuntu timer 均按5秒间隔扫描，正常链路目标10秒内到达；高负载与 Ubuntu 实机延时另行登记。异常记录保留并在后续扫描重试，履约投影与通知消费互不回滚。停机恢复后执行一次 `manage.py process_order_events` 即可补扫。回滚应用前先处理待付款订单和已预占库存，备份订单、支付及流水，再停用对应任务；反向迁移会丢失业务记录。
+
+## 运营工作台与原生小程序
+
+运营入口 `/ops` 仅显示权限内真实待办。`access_admin` 可在 `/ops/access` 为用户调整角色，变更需要原因及会话版本、禁止自助修改并撤销目标用户会话；`audit_viewer` 可在 `/ops/audits` 只读查询现有商品、分类、订单、评价、CMS、客服、券和角色事件。新增迁移为 `accounts.0003_roleaction` 与 `audit.0001_initial`。
+
+独立原生小程序位于 `mini/`，采用WXML/WXSS而非Vue DOM。商城账号通过 `auth/mini/login/`、`refresh/`、`logout/` 使用独立会话，Web与mini refresh不能跨协议。页面覆盖商品、分享、购物车、地址、选券下单、订单恢复与模拟支付、评价、消息、CMS和客服。导入微信开发者工具后按 `mini/README.md` 配置本机AppID和HTTPS域名；当前没有真实平台账号、模板或真机结果。运行 `cd mini && npm test` 可执行4项Node适配测试，不替代开发者工具、体验版或真机验收。
 
 ## Windows 11 启动
 

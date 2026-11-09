@@ -57,6 +57,27 @@ onBeforeUnmount(() => {
         <router-link class="mall-layout__link" to="/cart">购物车</router-link>
         <router-link class="mall-layout__link" to="/coupons">领券中心</router-link>
         <router-link
+          v-if="userStore.profile?.can_manage_catalog || userStore.profile?.can_fulfill_orders || userStore.profile?.can_manage_promotions || userStore.profile?.can_publish_content || userStore.profile?.can_moderate_reviews || userStore.profile?.can_reply_support || userStore.profile?.can_assign_support || userStore.profile?.can_manage_roles || userStore.profile?.can_view_audit"
+          class="mall-layout__link"
+          to="/ops"
+        >
+          运营工作台
+        </router-link>
+        <router-link
+          v-if="userStore.profile?.can_manage_roles"
+          class="mall-layout__link"
+          to="/ops/access"
+        >
+          用户与角色
+        </router-link>
+        <router-link
+          v-if="userStore.profile?.can_view_audit"
+          class="mall-layout__link"
+          to="/ops/audits"
+        >
+          运营审计
+        </router-link>
+        <router-link
           v-if="userStore.profile?.can_manage_promotions"
           class="mall-layout__link"
           to="/ops/coupons"

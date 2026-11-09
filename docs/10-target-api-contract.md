@@ -291,4 +291,13 @@ products/{id}/reviews/ 公开在售商品已通过的评价，返回页码分页
 
 `categories/tree/` 返回启用的层级分类，停用父分类时子树不公开；`ops/categories/` 及 `ops/categories/{id}/` 要求 `catalog.manage_catalog`，创建与修改校验父子关系不成环、名称唯一和 `expected_version`，并保留分类审计。既有分类迁移为根节点，公开商品可售规则不变。
 
-`products/` 在原有 `q,page,page_size` 上新增 `category,min_price,max_price,sort`。分类包含启用后代；金额为非负十进制且上下限有序；排序仅允许 `newest,price_asc,price_desc,title`。下架商品仍不公开，分页信封和商品字段保持兼容。`seed_catalog_scale` 只允许在显式演示开关下生成指定规模数据，不能作为生产初始化命令。
+`products/` 在原有 `q,page,page_size` 上新增 `category,min_price,max_price,sort`。分类包含启用后代；金额为非负十进制且上下限有序；排序仅允许 `newest,price_asc,price_desc,title`。下架商品仍不公开，分页信封和商品字段保持兼容。`seed_catalog_scale` 只允许在显式演示开关下生成指定规模数据，不能作为生产初始化命令。`catalog.0005_product_min_price_and_more` 将最低价料化并建立 `(status,min_price,id)` 索引，历史商品通过迁移回填；商品创建和SKU调价事务同步维护，避免在30万SKU上实时聚合排序。
+
+
+### 运营与分端会话补齐（2026-11-09）
+
+`ops/dashboard/` 仅返回权限内真实待办。`ops/users/`、`ops/role-options/` 和 `ops/users/{id}/roles/` 要求 `accounts.manage_roles`，角色修改校验 `expected_version`、原因和 Idempotency-Key，禁止修改本人角色，提交后撤销目标用户既有会话并记录 `RoleAction`。`ops/audits/` 要求 `audit.view`（组 `audit_viewer`），以统一分页返回现有事实表的对象、动作、操作者、时间和脱敏摘要，不提供编辑删除。
+
+`auth/mini/login/` 接受商城账号密码并返回独立 access/refresh、到期时间、session_id 和用户摘要；`auth/mini/refresh/` 轮换mini refresh且旧值复用401；`auth/mini/logout/` 撤销当前mini会话。Web Cookie refresh与mini JSON refresh不能跨协议。该流程不涉及微信平台proof，不返回session_key/AppSecret，也不代表已完成微信身份绑定。
+
+原生小程序复用既有商品、购物车、报价、订单、支付、券、评价、消息、地址、CMS和客服API，字段与错误码不另设一套。平台账号、域名、AppID、微信登录/地址/订阅、体验版和真机结果仍缺，不能据源码或Node测试认定这些能力已通过。

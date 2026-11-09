@@ -1,0 +1,6 @@
+<view class="container">
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+  <view wx:if="{{profile}}" class="card"><view style="font-weight:600">{{profile.nickname || profile.username}}</view><view class="muted">{{profile.username}}</view></view>
+  <navigator wx:if="{{!logged}}" class="primary" url="/pages/login/login">登录商城账号</navigator>
+  <block wx:else><navigator class="card link" url="/pages/orders/orders">我的订单</navigator><navigator class="card link" url="/pages/messages/messages">消息中心</navigator><navigator class="card link" url="/pages/addresses/addresses">收货地址</navigator><navigator class="card link" url="/pages/support/support">联系客服</navigator><button class="danger" bindtap="signOut">退出本端登录</button></block>
+</view>

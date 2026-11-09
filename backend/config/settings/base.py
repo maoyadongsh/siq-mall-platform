@@ -45,7 +45,7 @@ def env_list(key: str, default: str = "") -> list[str]:
 
 # ===== 基础 =====
 SECRET_KEY = env("DJANGO_SECRET_KEY", "")  # dev/prod 各自校验
-APP_VERSION = env("APP_VERSION", "1.0.0")
+APP_VERSION = env("APP_VERSION", "1.1.0")
 ENVIRONMENT = env("DJANGO_ENV", "development")
 
 DEBUG = False
@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     "content.apps.ContentConfig",
     "notifications.apps.NotificationsConfig",
     "support.apps.SupportConfig",
+    "audit.apps.AuditConfig",
     "promotions.apps.PromotionsConfig",
     "orders.apps.OrdersConfig",
 ]

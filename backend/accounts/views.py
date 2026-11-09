@@ -230,7 +230,7 @@ class WebRefreshAPIView(APIView):
             raise BusinessError(
                 ErrorCode.TOKEN_INVALID, "登录状态已失效，请重新登录", http_status=401
             ) from exc
-        if session is None:
+        if session is None or session.client_kind != AuthSession.ClientKind.WEB:
             raise BusinessError(
                 ErrorCode.TOKEN_INVALID, "登录状态已失效，请重新登录", http_status=401
             )

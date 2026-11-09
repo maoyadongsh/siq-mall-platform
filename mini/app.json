@@ -1,0 +1,34 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/products/products",
+    "pages/product/product",
+    "pages/cart/cart",
+    "pages/checkout/checkout",
+    "pages/orders/orders",
+    "pages/order-detail/order-detail",
+    "pages/review/review",
+    "pages/account/account",
+    "pages/login/login",
+    "pages/messages/messages",
+    "pages/addresses/addresses",
+    "pages/support/support",
+    "pages/content/content"
+  ],
+  "window": {
+    "navigationBarTitleText": "SIQ优选商城",
+    "navigationBarBackgroundColor": "#174c43",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f7f6f2"
+  },
+  "tabBar": {
+    "color": "#65716a",
+    "selectedColor": "#174c43",
+    "backgroundColor": "#ffffff",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/cart/cart", "text": "购物车" },
+      { "pagePath": "pages/account/account", "text": "我的" }
+    ]
+  }
+}

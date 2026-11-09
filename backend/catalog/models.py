@@ -48,9 +48,13 @@ class Product(models.Model):
         max_length=12, choices=Status, default=Status.DRAFT, db_index=True
     )
     version = models.PositiveIntegerField(default=1)
+    min_price = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True, db_index=True
+    )
 
     class Meta:
         permissions = [("manage_catalog", "维护商品目录")]
+        indexes = [models.Index(fields=["status", "min_price", "id"])]
 
 
 class Sku(models.Model):

@@ -1,6 +1,5 @@
 from decimal import Decimal, InvalidOperation
 
-from django.db.models import Min
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import serializers
@@ -54,7 +53,7 @@ class PublicProducts(APIView):
         ],
     )
     def get(self, request):
-        rows = products().annotate(min_price=Min("skus__price"))
+        rows = products()
         if self.public:
             rows = rows.filter(status=Product.Status.ON_SALE)
         if query := request.query_params.get("q"):

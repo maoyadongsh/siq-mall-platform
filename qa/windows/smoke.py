@@ -125,7 +125,7 @@ def run_suite(work):
                 "manage.py",
                 "shell",
                 "-c",
-                "import os; from django.contrib.auth.models import User,Group; user=User.objects.create_user('accept_operator',password=os.environ['SIQ_TEST_PASSWORD']); user.groups.add(Group.objects.get(name='catalog_operator'),Group.objects.get(name='order_operator'),Group.objects.get(name='promotion_operator'),Group.objects.get(name='content_operator')); moderator=User.objects.create_user('accept_moderator',password=os.environ['SIQ_TEST_PASSWORD']); moderator.groups.add(Group.objects.get(name='review_moderator')); agent=User.objects.create_user('accept_agent',password=os.environ['SIQ_TEST_PASSWORD']); agent.groups.add(Group.objects.get(name='support_supervisor'))",
+                "import os; from django.contrib.auth.models import User,Group; user=User.objects.create_user('accept_operator',password=os.environ['SIQ_TEST_PASSWORD']); user.groups.add(Group.objects.get(name='catalog_operator'),Group.objects.get(name='order_operator'),Group.objects.get(name='promotion_operator'),Group.objects.get(name='content_operator')); moderator=User.objects.create_user('accept_moderator',password=os.environ['SIQ_TEST_PASSWORD']); moderator.groups.add(Group.objects.get(name='review_moderator')); agent=User.objects.create_user('accept_agent',password=os.environ['SIQ_TEST_PASSWORD']); agent.groups.add(Group.objects.get(name='support_supervisor')); access=User.objects.create_user('accept_access',password=os.environ['SIQ_TEST_PASSWORD']); access.groups.add(Group.objects.get(name='access_admin'),Group.objects.get(name='audit_viewer')); User.objects.create_user('accept_role_target',password=os.environ['SIQ_TEST_PASSWORD'])",
             ]
         )
         start(

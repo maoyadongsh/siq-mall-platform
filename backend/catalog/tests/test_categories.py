@@ -36,7 +36,9 @@ def create_category(client, name, parent=None):
 
 
 def product(category, title, price):
-    row = Product.objects.create(category=category, title=title, status="on_sale")
+    row = Product.objects.create(
+        category=category, title=title, status="on_sale", min_price=price
+    )
     Sku.objects.create(product=row, label="标准", price=price, available_stock=5)
     return row
 
@@ -136,3 +138,35 @@ def test_scale_seed_is_explicit_and_cannot_duplicate():
         )
         with pytest.raises(CommandError):
             call_command("seed_catalog_scale", products=10, prefix="test-scale")
+
+
+def test_min_price_is_maintained_on_create_and_sku_price_edit():
+    from catalog.maintenance import edit_sku
+    from catalog.services import create_draft
+
+    actor = User.objects.create_user("price_editor")
+    product_row = create_draft(
+        actor,
+        {
+            "category": "价格分类",
+            "title": "多规格商品",
+            "description": "",
+            "skus": [
+                {"label": "A", "price": "99.00", "available_stock": 2},
+                {"label": "B", "price": "49.00", "available_stock": 2},
+            ],
+        },
+    )
+    assert str(product_row.min_price) == "49.00"
+    sku = product_row.skus.get(label="A")
+    edit_sku(actor, sku.pk, {"expected_version": 1, "price": "29.00", "reason": "调价"})
+    product_row.refresh_from_db()
+    assert str(product_row.min_price) == "29.00"
+    first_sku = product_row.skus.get(label="B")
+    edit_sku(
+        actor,
+        first_sku.pk,
+        {"expected_version": 1, "price": "19.00", "reason": "再次调价"},
+    )
+    product_row.refresh_from_db()
+    assert str(product_row.min_price) == "19.00"

@@ -10,6 +10,7 @@ handler404 = "common.exceptions.handler404"
 handler500 = "common.exceptions.handler500"
 
 urlpatterns = [
+    path("api/v1/", include("audit.urls")),
     path("api/v1/", include("support.urls")),
     path("api/v1/", include("content.urls")),
     path("api/v1/", include("notifications.urls")),

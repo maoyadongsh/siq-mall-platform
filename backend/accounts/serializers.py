@@ -23,6 +23,8 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserSummarySerializer(serializers.Serializer):
+    can_manage_roles = serializers.BooleanField()
+    can_view_audit = serializers.BooleanField()
     can_reply_support = serializers.BooleanField()
     can_assign_support = serializers.BooleanField()
     can_publish_content = serializers.BooleanField()

@@ -1,0 +1,14 @@
+<view class="container">
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+  <view wx:if="{{notice}}" class="success">{{notice}}</view>
+  <view wx:for="{{rows}}" wx:for-index="itemIndex" wx:key="order_item_id" class="card">
+    <view>{{item.title}} · {{item.label}}</view>
+    <view wx:if="{{item.review}}"><view class="success">审核状态：{{item.review.status}}</view><view>{{item.review.content}}</view><view wx:if="{{item.review.moderation_reason}}" class="muted">{{item.review.moderation_reason}}</view></view>
+    <block wx:else>
+      <view class="row"><button wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="star" data-index="{{itemIndex}}" data-value="{{star}}" bindtap="onRating" class="{{item.rating === star ? 'primary' : 'secondary'}}">{{star}}星</button></view>
+      <textarea class="textarea" data-index="{{itemIndex}}" value="{{item.content}}" maxlength="500" placeholder="分享真实使用感受（1–500字）" bindinput="onContent" />
+      <button class="primary" data-index="{{itemIndex}}" bindtap="submit">提交评价</button>
+    </block>
+  </view>
+  <view wx:if="{{loading}}">正在读取评价资格…</view>
+</view>

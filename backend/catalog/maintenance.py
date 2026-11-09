@@ -6,6 +6,7 @@ from uuid import uuid4
 from PIL import Image, ImageOps, UnidentifiedImageError
 from django.core.files.base import ContentFile
 from django.db import IntegrityError, transaction
+from django.db.models import Min
 from django.shortcuts import get_object_or_404
 
 from common.constants import ErrorCode
@@ -127,6 +128,8 @@ def edit_sku(actor, pk, data):
         sku.save(update_fields=["label", "price", "version"])
     except IntegrityError as exc:
         raise invalid("规格名称冲突") from exc
+    product.min_price = product.skus.aggregate(value=Min("price"))["value"]
+    product.save(update_fields=["min_price"])
     bump(product)
     CatalogEvent.objects.create(
         product=product,

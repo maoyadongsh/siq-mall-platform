@@ -11,6 +11,21 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         {
+          path: 'ops',
+          component: () => import('@/views/operations/OpsDashboard.vue'),
+          meta: { title: '运营工作台', requiresAuth: true },
+        },
+        {
+          path: 'ops/access',
+          component: () => import('@/views/operations/OpsAccess.vue'),
+          meta: { title: '用户与角色', requiresAuth: true, rolesPermission: true },
+        },
+        {
+          path: 'ops/audits',
+          component: () => import('@/views/operations/OpsAudits.vue'),
+          meta: { title: '运营审计', requiresAuth: true, auditPermission: true },
+        },
+        {
           path: 'support',
           component: () => import('@/views/support/SupportView.vue'),
           meta: { title: '联系客服', requiresAuth: true },
@@ -220,6 +235,8 @@ router.beforeEach(async (to) => {
     !userStore.profile?.can_assign_support
   )
     return { name: 'account' }
+  if (to.meta.rolesPermission && !userStore.profile?.can_manage_roles) return { name: 'account' }
+  if (to.meta.auditPermission && !userStore.profile?.can_view_audit) return { name: 'account' }
   return true
 })
 

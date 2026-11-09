@@ -41,6 +41,7 @@ class Command(BaseCommand):
                         title=f"{prefix}-{index + 1:06d}",
                         description="隔离规模测试数据",
                         status="on_sale",
+                        min_price=Decimal("10.00") + Decimal(index % 10000) / 100,
                     )
                 )
                 if len(products) == 1000:

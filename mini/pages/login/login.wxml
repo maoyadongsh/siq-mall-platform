@@ -1,0 +1,8 @@
+<view class="container">
+  <view class="card"><view style="font-weight:600">商城账号登录</view><view class="muted">商城会话独立于微信平台登录态，不索取头像、昵称或手机号。</view></view>
+  <input class="input" data-field="identifier" value="{{identifier}}" placeholder="账号" bindinput="onInput" />
+  <input class="input" data-field="password" value="{{password}}" placeholder="密码" password bindinput="onInput" />
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+  <button class="primary" disabled="{{busy}}" bindtap="submit">{{busy ? '登录中…' : '登录'}}</button>
+  <button class="secondary" bindtap="unavailable">微信登录（待AppID配置）</button>
+</view>

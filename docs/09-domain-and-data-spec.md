@@ -168,3 +168,10 @@ CMS 实际使用 `content_content`、`content_contentrevision`、`content_conten
 `support_conversation` 保存买家、可选关联订单、分配客服、状态、版本和最后消息序号；`support_activeconversation` 分别以 user_id 和 conversation_id 唯一，创建/关闭与活动映射同事务，不使用部分唯一索引。`support_supportmessage` 以 `(conversation_id,sender_id,client_message_id)` 和 `(conversation_id,conversation_seq,id)` 唯一约束保证重试与稳定游标，正文为纯文本，通知事件UUID独立唯一。
 
 `support_readcursor` 以会话和读者唯一，水位只在目标消息属于该会话且序号更大时前进。`support_supportcommand` 保存创建、分配、关闭的永久幂等回执。客服回复事件由扫描器独立消费，不复制聊天正文到站内通知，不将发送成功或页面打开推断为对方在线/已读。关联订单只输出必要摘要，不输出收货快照。
+
+
+## 运营与分端落地说明（2026-11-09）
+
+`accounts_roleaction` 保存角色管理员、目标用户、幂等键、原因、变更前后角色和结果，保留 `auth.User` 与 `Profile.session_version`。角色更新在同一事务校验版本、写角色、撤销会话并写审计，禁止自助修改。`audit.AuditAccess` 是无业务表的权限载体，只提供 `audit.view`；审计查询聚合既有事实，不复制敏感快照。
+
+`AuthSession.client_kind` 继续区分web/mini，mini使用独立JSON refresh轮换与撤销，web Cookie+CSRF和mini refresh互不通用。小程序不新增用户、订单或库存事实表，所有交易仍由既有MariaDB约束和事务服务处理。

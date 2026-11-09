@@ -84,6 +84,75 @@ paths:
               schema:
                 $ref: '#/components/schemas/EmptyResponse'
           description: ''
+  /api/v1/auth/mini/login/:
+    post:
+      operationId: api_v1_auth_mini_login_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MiniSessionResponse'
+          description: ''
+  /api/v1/auth/mini/logout/:
+    post:
+      operationId: api_v1_auth_mini_logout_create
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+          description: ''
+  /api/v1/auth/mini/refresh/:
+    post:
+      operationId: api_v1_auth_mini_refresh_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MiniRefreshInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MiniRefreshInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MiniRefreshInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MiniSessionResponse'
+          description: ''
   /api/v1/auth/password/change/:
     post:
       operationId: api_v1_auth_password_change_create
@@ -1488,6 +1557,50 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+  /api/v1/ops/audits/:
+    get:
+      operationId: api_v1_ops_audits_retrieve
+      parameters:
+      - in: query
+        name: action
+        schema:
+          type: string
+      - in: query
+        name: created_after
+        schema:
+          type: string
+      - in: query
+        name: created_before
+        schema:
+          type: string
+      - in: query
+        name: object_id
+        schema:
+          type: string
+      - in: query
+        name: object_type
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditResponse'
+          description: ''
   /api/v1/ops/categories/:
     get:
       operationId: operator_category_tree
@@ -2856,6 +2969,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+  /api/v1/ops/dashboard/:
+    get:
+      operationId: api_v1_ops_dashboard_retrieve
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardResponse'
+          description: ''
   /api/v1/ops/media/:
     post:
       operationId: api_v1_ops_media_create
@@ -3703,6 +3831,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
+  /api/v1/ops/role-options/:
+    get:
+      operationId: api_v1_ops_role_options_retrieve
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleOptionsResponse'
+          description: ''
   /api/v1/ops/roles/:
     get:
       operationId: api_v1_ops_roles_retrieve
@@ -3814,6 +3957,60 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdjustmentResponse'
+          description: ''
+  /api/v1/ops/users/:
+    get:
+      operationId: api_v1_ops_users_retrieve
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleUsersResponse'
+          description: ''
+  /api/v1/ops/users/{id}/roles/:
+    post:
+      operationId: api_v1_ops_users_roles_create
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RoleUpdateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleUserResponse'
           description: ''
   /api/v1/orders/:
     get:
@@ -5275,6 +5472,74 @@ components:
       required:
       - agent_id
       - expected_version
+    AuditData:
+      type: object
+      properties:
+        id:
+          type: string
+        object_type:
+          type: string
+        object_id:
+          type: string
+        action:
+          type: string
+        actor:
+          type: string
+        summary:
+          type: object
+          additionalProperties: {}
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - action
+      - actor
+      - created_at
+      - id
+      - object_id
+      - object_type
+      - summary
+    AuditPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page_size:
+          type: integer
+        page:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditData'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    AuditResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/AuditPage'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     BasketRequest:
       type: object
       properties:
@@ -5948,6 +6213,27 @@ components:
       - message
       - request_id
       - timestamp
+    DashboardResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          additionalProperties: {}
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     Deleted:
       type: object
       properties:
@@ -6099,6 +6385,23 @@ components:
       required:
       - code
       - data
+      - message
+      - request_id
+      - timestamp
+    Envelope:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+      - code
       - message
       - request_id
       - timestamp
@@ -6457,6 +6760,59 @@ components:
           format: date-time
         data:
           $ref: '#/components/schemas/MessageData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    MiniRefreshInputRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    MiniSessionData:
+      type: object
+      properties:
+        access:
+          type: string
+        refresh:
+          type: string
+        access_expires_at:
+          type: string
+          format: date-time
+        refresh_expires_at:
+          type: string
+          format: date-time
+        session_id:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/UserSummary'
+      required:
+      - access
+      - access_expires_at
+      - refresh
+      - refresh_expires_at
+      - session_id
+      - user
+    MiniSessionResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/MiniSessionData'
       required:
       - code
       - data
@@ -7997,6 +8353,59 @@ components:
       - message
       - request_id
       - timestamp
+    RoleOption:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+    RoleOptionsResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    RoleUpdateRequest:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 0
+        role_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 30
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+      - expected_version
+      - reason
+      - role_ids
     RoleUser:
       type: object
       properties:
@@ -8012,6 +8421,66 @@ components:
       - id
       - roles
       - username
+    RoleUserData:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleOption'
+        expected_version:
+          type: integer
+      required:
+      - expected_version
+      - id
+      - roles
+      - username
+    RoleUserResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/RoleUserData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    RoleUsersResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleUserData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     SessionData:
       type: object
       properties:
@@ -8517,6 +8986,10 @@ components:
     UserSummary:
       type: object
       properties:
+        can_manage_roles:
+          type: boolean
+        can_view_audit:
+          type: boolean
         can_reply_support:
           type: boolean
         can_assign_support:
@@ -8548,9 +9021,11 @@ components:
       - can_fulfill_orders
       - can_manage_catalog
       - can_manage_promotions
+      - can_manage_roles
       - can_moderate_reviews
       - can_publish_content
       - can_reply_support
+      - can_view_audit
       - has_verified_phone
       - id
       - nickname

@@ -1,0 +1,20 @@
+<view class="container">
+  <view class="card" style="background:#174c43;color:#fff">
+    <view style="font-size:40rpx;font-weight:600">认真选好每一件日常用品</view>
+    <view style="margin:16rpx 0">真实商品与统一交易规则，当前为演示商城。</view>
+    <input class="input" placeholder="搜索商品" bindinput="onQuery" confirm-type="search" bindconfirm="onSearch" />
+    <button class="secondary" bindtap="onSearch">搜索</button>
+  </view>
+  <scroll-view scroll-x style="white-space:nowrap" class="row">
+    <navigator url="/pages/products/products" class="secondary" style="display:inline-block;padding:16rpx">全部商品</navigator>
+    <navigator wx:for="{{categories}}" wx:key="id" url="/pages/products/products?category={{item.id}}" class="secondary" style="display:inline-block;padding:16rpx">{{item.name}}</navigator>
+  </scroll-view>
+  <view wx:if="{{loading}}">正在读取首页…</view>
+  <view wx:elif="{{error}}" class="error">{{error}}<button bindtap="load">重试</button></view>
+  <block wx:elif="{{data}}">
+    <view wx:for="{{data.banners}}" wx:key="id" class="card"><view wx:for="{{item.blocks}}" wx:key="index"><rich-text wx:if="{{item.type==='rich_text'}}" nodes="{{item.html}}" /><text wx:elif="{{item.type==='text'}}">{{item.text}}</text><image wx:elif="{{item.type==='image'}}" src="{{item.url}}" mode="widthFix" class="cover" /></view></view>
+    <view wx:if="{{data.announcements.length}}" class="card"><view style="font-weight:600">商城公告</view><navigator wx:for="{{data.announcements}}" wx:key="id" url="/pages/content/content?kind=announcement&id={{item.id}}" class="link" style="display:block;margin-top:16rpx">{{item.title}}</navigator></view>
+    <view wx:for="{{data.floors}}" wx:key="id" class="card"><view wx:for="{{item.blocks}}" wx:key="index"><view wx:if="{{item.type==='heading'}}" style="font-weight:600">{{item.text}}</view><view wx:if="{{item.type==='product_list'}}"><navigator wx:for="{{item.products}}" wx:for-item="product" wx:key="id" url="/pages/product/product?id={{product.id}}" class="row"><text>{{product.title}}</text><text class="price">{{product.min_price}}</text></navigator></view></view></view>
+    <view wx:if="{{!data.banners.length && !data.floors.length && !data.announcements.length}}" class="card"><view style="font-weight:600">当前可售商品</view><view class="muted">暂无已发布首页内容，仍可选购真实商品。</view><navigator wx:for="{{data.fallback_products}}" wx:key="id" url="/pages/product/product?id={{item.id}}" class="row"><text>{{item.title}}</text><text class="price">¥{{item.min_price}}</text></navigator></view>
+  </block>
+</view>

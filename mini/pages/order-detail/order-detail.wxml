@@ -1,0 +1,12 @@
+<view class="container" wx:if="{{order}}">
+  <view class="card"><view>{{order.order_no}}</view><view class="price">{{order.status}} · ¥{{order.payable_amount}}</view><view class="muted">请在30分钟付款期限内操作；页面恢复会重新查询状态。</view></view>
+  <view class="card"><view wx:for="{{order.items}}" wx:key="order_item_id">{{item.title}} · {{item.label}} × {{item.quantity}}</view></view>
+  <view class="card"><view wx:for="{{order.events}}" wx:key="type">{{item.type}} · {{item.at}}</view></view>
+  <view wx:if="{{error}}" class="error">{{error}}</view><view wx:if="{{notice}}" class="success">{{notice}}</view>
+  <block wx:if="{{order.status === 'pending'}}"><button class="primary" data-outcome="success" disabled="{{busy}}" bindtap="pay">模拟付款成功</button><button class="secondary" data-outcome="failed" disabled="{{busy}}" bindtap="pay">模拟付款失败</button><button class="danger" disabled="{{busy}}" bindtap="cancel">取消订单</button></block>
+  <button wx:if="{{order.status === 'shipped'}}" class="primary" disabled="{{busy}}" bindtap="receive">确认收货</button>
+  <navigator wx:if="{{order.status === 'completed'}}" class="primary" url="/pages/review/review?no={{order.order_no}}">评价商品与查看审核结果</navigator>
+  <navigator wx:if="{{order.status === 'completed'}}" class="secondary" url="/pages/support/support">联系客服</navigator>
+  <button class="secondary" bindtap="unavailable">订阅订单提醒（待平台配置）</button>
+</view>
+<view wx:else class="container"><view wx:if="{{loading}}">正在查询最新订单状态…</view><view wx:else class="error">{{error}}</view></view>

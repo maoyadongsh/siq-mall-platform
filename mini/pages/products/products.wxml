@@ -1,0 +1,13 @@
+<view class="container">
+  <input class="input" value="{{query}}" placeholder="搜索商品" bindinput="onQuery" bindconfirm="onSearch" />
+  <button class="primary" bindtap="onSearch">搜索</button>
+  <view class="row" style="margin:16rpx 0"><button class="secondary" data-value="newest" bindtap="onSort">最新</button><button class="secondary" data-value="price_asc" bindtap="onSort">价格升序</button><button class="secondary" data-value="price_desc" bindtap="onSort">价格降序</button></view>
+  <view wx:if="{{error}}" class="error">{{error}}<button bindtap="onSearch">重试</button></view>
+  <view wx:if="{{!loading && !rows.length}}" class="muted">没有找到相关商品，请调整搜索。</view>
+  <navigator wx:for="{{rows}}" wx:key="id" url="/pages/product/product?id={{item.id}}" class="card">
+    <image wx:if="{{item.cover_url}}" src="{{item.cover_url}}" mode="aspectFill" class="cover" style="height:320rpx" />
+    <view class="muted">{{item.category}}</view><view style="font-weight:600">{{item.title}}</view>
+    <view class="price">¥{{item.display_price}} 起</view>
+  </navigator>
+  <view wx:if="{{loading}}" class="muted">正在加载…</view>
+</view>

@@ -1,0 +1,7 @@
+<view class="container">
+  <view wx:if="{{error}}" class="error">{{error}}</view><view wx:if="{{notice}}" class="muted">{{notice}}</view>
+  <view class="card"><view class="row"><text>收货地址</text><navigator class="link" url="/pages/addresses/addresses">管理地址</navigator></view><picker wx:if="{{addresses.length}}" range="{{addresses}}" range-key="detail" value="{{addressIndex}}" bindchange="onAddress" class="picker">{{addresses[addressIndex].recipient}} · {{addresses[addressIndex].detail}}</picker><navigator wx:else url="/pages/addresses/addresses" class="link">请先添加收货地址</navigator></view>
+  <view wx:if="{{quote}}" class="card"><picker wx:if="{{couponOptions.length > 1}}" range="{{couponOptions}}" range-key="name" value="{{couponIndex}}" bindchange="onCoupon" class="picker">选择优惠券：{{couponOptions[couponIndex].name}}</picker><view>商品金额 ¥{{quote.goods_amount}}</view><view>配送费 ¥{{quote.freight_amount}}</view><view>优惠 ¥{{quote.discount_amount}}</view><view class="price">应付 ¥{{quote.payable_amount}}</view><view class="muted">报价有效至 {{quote.expires_at}}，提交时后端会再次核价。</view></view>
+  <button class="primary" disabled="{{!quote || busy}}" bindtap="submit">{{busy ? '提交中…' : '确认金额并提交订单'}}</button>
+  <view wx:if="{{loading}}">正在准备结算…</view>
+</view>

@@ -11,7 +11,10 @@ from .serializers import ProductOutput
 def create_draft(actor, data):
     category, _ = Category.objects.get_or_create(name=data["category"])
     product = Product.objects.create(
-        category=category, title=data["title"], description=data.get("description", "")
+        category=category,
+        title=data["title"],
+        description=data.get("description", ""),
+        min_price=min(row["price"] for row in data["skus"]),
     )
     try:
         Sku.objects.bulk_create([Sku(product=product, **row) for row in data["skus"]])

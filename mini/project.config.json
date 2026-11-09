@@ -1,0 +1,10 @@
+{
+  "compileType": "miniprogram",
+  "projectname": "siq-mall-mini-demo",
+  "appid": "",
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "urlCheck": true
+  }
+}
