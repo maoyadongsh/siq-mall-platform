@@ -98,6 +98,16 @@ onBeforeUnmount(() => {
         >
           通知模板
         </router-link>
+        <router-link
+          v-if="userStore.profile?.can_reply_support || userStore.profile?.can_assign_support"
+          class="mall-layout__link"
+          to="/ops/support"
+        >
+          客服工作台
+        </router-link>
+        <router-link v-if="userStore.isLoggedIn" class="mall-layout__link" to="/support">
+          联系客服
+        </router-link>
         <router-link v-if="userStore.isLoggedIn" class="mall-layout__link" to="/messages">
           消息<span v-if="unread" class="mall-layout__badge" :aria-label="unread + '条未读消息'">{{
             unread > 99 ? '99+' : unread

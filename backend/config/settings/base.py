@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "reviews.apps.ReviewsConfig",
     "content.apps.ContentConfig",
     "notifications.apps.NotificationsConfig",
+    "support.apps.SupportConfig",
     "promotions.apps.PromotionsConfig",
     "orders.apps.OrdersConfig",
 ]

@@ -79,6 +79,7 @@ async function signOut() {
       </el-descriptions-item>
     </el-descriptions>
     <div class="account-card__actions">
+      <router-link class="account-card__address" to="/support">联系客服</router-link>
       <router-link class="account-card__address" to="/messages">消息中心</router-link>
       <router-link class="account-card__address" to="/account/reviews">我的评价</router-link>
       <router-link class="account-card__address" to="/account/coupons">我的优惠券</router-link>

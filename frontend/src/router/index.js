@@ -11,6 +11,22 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         {
+          path: 'support',
+          component: () => import('@/views/support/SupportView.vue'),
+          meta: { title: '联系客服', requiresAuth: true },
+        },
+        {
+          path: 'support/:id',
+          component: () => import('@/views/support/SupportView.vue'),
+          props: true,
+          meta: { title: '客服会话', requiresAuth: true },
+        },
+        {
+          path: 'ops/support',
+          component: () => import('@/views/support/OpsSupport.vue'),
+          meta: { title: '客服工作台', requiresAuth: true, supportPermission: true },
+        },
+        {
           path: 'ops/cms',
           component: () => import('@/views/content/OpsCmsList.vue'),
           meta: { title: '内容管理', requiresAuth: true, contentPermission: true },
@@ -192,6 +208,12 @@ router.beforeEach(async (to) => {
   if (to.meta.catalogPermission && !userStore.profile?.can_manage_catalog)
     return { name: 'account' }
   if (to.meta.contentPermission && !userStore.profile?.can_publish_content)
+    return { name: 'account' }
+  if (
+    to.meta.supportPermission &&
+    !userStore.profile?.can_reply_support &&
+    !userStore.profile?.can_assign_support
+  )
     return { name: 'account' }
   return true
 })

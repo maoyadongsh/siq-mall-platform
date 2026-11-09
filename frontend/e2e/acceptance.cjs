@@ -392,6 +392,58 @@ const assert = require('node:assert/strict')
     await guest.getByText('当前可售商品', { exact: true }).waitFor()
     await guest.getByRole('link', { name: '查看规格' }).first().waitFor()
     console.log('PASS CMS draft preview -> publish retry -> draft isolation -> unpublish -> product fallback')
+
+    await shop.goto(origin + '/support')
+    await shop.getByRole('button', { name: '开始新会话' }).click()
+    await shop.getByRole('heading', { name: /客服会话 #/ }).waitFor()
+    const question = '商品还没收到怎么办'
+    await shop.locator('#support-draft').fill(question)
+    await shop.route(
+      '**/api/v1/conversations/*/messages/',
+      async (route) => {
+        assert.equal((await route.fetch()).status(), 201)
+        await route.abort('connectionreset')
+      },
+      { times: 1 },
+    )
+    await shop.getByRole('button', { name: '发送消息' }).click()
+    await shop.getByRole('button', { name: '重试发送' }).click()
+    await shop.locator('.support-message').filter({ hasText: question }).waitFor()
+    assert.equal(await shop.locator('.support-message').filter({ hasText: question }).count(), 1)
+    const supportUrl = shop.url()
+
+    const agent = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+    await agent.goto(origin + '/login')
+    await agent.locator('[name=identifier]').fill('accept_agent')
+    await agent.locator('[name=password]').fill(process.env.SIQ_TEST_PASSWORD)
+    await agent.locator('[type=submit]').click()
+    await agent.getByRole('link', { name: '客服工作台' }).click()
+    await agent.locator('.ops-support header select').selectOption('pending')
+    await agent.locator('.ops-support__queue button').first().waitFor()
+    await agent.getByRole('button', { name: '分配给此客服' }).click()
+    await agent.getByText('会话已分配，可由接待客服回复。', { exact: true }).waitFor()
+    await agent.getByText('接待客服 accept_agent', { exact: false }).waitFor()
+    await agent.getByRole('heading', { name: /客服会话 #/ }).waitFor()
+    assert.equal(await agent.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
+    const reply = '已为你查询订单，请稍等'
+    await agent.locator('#support-draft').fill(reply)
+    await agent.getByRole('button', { name: '发送消息' }).click()
+    await agent.locator('.support-message').filter({ hasText: reply }).waitFor()
+    await shop.bringToFront()
+    await shop.getByText(reply, { exact: true }).waitFor({ timeout: 15000 })
+    await shop.locator('.support-message').filter({ hasText: question }).getByText('对方已读').waitFor()
+
+    await shop.goto(origin + '/messages')
+    await shop.getByRole('heading', { name: '客服已回复' }).first().waitFor({ timeout: 15000 })
+    await shop.locator('article').filter({ hasText: '客服已回复' }).first().getByRole('button').click()
+    await shop.waitForURL(/\/support\/\d+/)
+    await shop.getByRole('button', { name: '关闭会话' }).click()
+    await shop.getByText('会话已关闭，之后不能再发送消息。', { exact: true }).waitFor()
+    await shop.getByRole('button', { name: '新开会话' }).click()
+    await shop.waitForURL((url) => /\/support\/\d+/.test(url.pathname) && url.toString() !== supportUrl)
+    await shop.getByRole('heading', { name: /客服会话 #/ }).waitFor()
+    assert.notEqual(shop.url(), supportUrl)
+    console.log('PASS support retry -> assign -> reply -> polling/read水位 -> inbox -> close/reopen')
   } finally {
     await browser.close()
   }

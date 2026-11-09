@@ -112,6 +112,7 @@ def run_suite(work):
                 "reviews/tests/test_races.py",
                 "notifications/tests/test_races.py",
                 "content/tests/test_races.py",
+                "support/tests/test_races.py",
                 "--no-cov",
             ]
         )
@@ -121,7 +122,7 @@ def run_suite(work):
                 "manage.py",
                 "shell",
                 "-c",
-                "import os; from django.contrib.auth.models import User,Group; user=User.objects.create_user('accept_operator',password=os.environ['SIQ_TEST_PASSWORD']); user.groups.add(Group.objects.get(name='catalog_operator'),Group.objects.get(name='order_operator'),Group.objects.get(name='promotion_operator'),Group.objects.get(name='content_operator')); moderator=User.objects.create_user('accept_moderator',password=os.environ['SIQ_TEST_PASSWORD']); moderator.groups.add(Group.objects.get(name='review_moderator'))",
+                "import os; from django.contrib.auth.models import User,Group; user=User.objects.create_user('accept_operator',password=os.environ['SIQ_TEST_PASSWORD']); user.groups.add(Group.objects.get(name='catalog_operator'),Group.objects.get(name='order_operator'),Group.objects.get(name='promotion_operator'),Group.objects.get(name='content_operator')); moderator=User.objects.create_user('accept_moderator',password=os.environ['SIQ_TEST_PASSWORD']); moderator.groups.add(Group.objects.get(name='review_moderator')); agent=User.objects.create_user('accept_agent',password=os.environ['SIQ_TEST_PASSWORD']); agent.groups.add(Group.objects.get(name='support_supervisor'))",
             ]
         )
         start(
@@ -212,6 +213,63 @@ def run_suite(work):
                     raise TimeoutError(
                         "pending order not closed and delivered within deadline"
                     )
+                worker.terminate()
+                worker.wait(timeout=10)
+                processes.remove(worker)
+                backup = work / "acceptance-backup.sql"
+                with backup.open("wb") as output:
+                    subprocess.run(
+                        [
+                            bin_dir / "mariadb-dump.exe",
+                            "--protocol=tcp",
+                            "--host=127.0.0.1",
+                            f"--port={db_port}",
+                            "--user=root",
+                            "--single-transaction",
+                            "--skip-lock-tables",
+                            "siq_accept",
+                        ],
+                        env={**env, "MYSQL_PWD": password},
+                        stdout=output,
+                        check=True,
+                    )
+                with pymysql.connect(
+                    host="127.0.0.1",
+                    port=db_port,
+                    user="root",
+                    password=password,
+                    autocommit=True,
+                ) as conn:
+                    with conn.cursor() as restore_cursor:
+                        restore_cursor.execute(
+                            "CREATE DATABASE siq_accept_restore CHARACTER SET utf8mb4"
+                        )
+                with backup.open("rb") as source:
+                    subprocess.run(
+                        [
+                            bin_dir / "mariadb.exe",
+                            "--protocol=tcp",
+                            "--host=127.0.0.1",
+                            f"--port={db_port}",
+                            "--user=root",
+                            "siq_accept_restore",
+                        ],
+                        env={**env, "MYSQL_PWD": password},
+                        stdin=source,
+                        check=True,
+                    )
+                for table in (
+                    "orders_order",
+                    "notifications_notification",
+                    "content_contentrevision",
+                    "support_supportmessage",
+                ):
+                    cursor.execute(
+                        f"SELECT (SELECT COUNT(*) FROM siq_accept.{table}),(SELECT COUNT(*) FROM siq_accept_restore.{table})"
+                    )
+                    counts = cursor.fetchone()
+                    assert counts[0] == counts[1], table
+                print("PASS MariaDB dump -> isolated restore -> table count parity")
     finally:
         for process in reversed(processes):
             process.terminate()

@@ -161,3 +161,10 @@ stateDiagram-v2
 CMS 实际使用 `content_content`、`content_contentrevision`、`content_contentaction` 与 `content_contentevent`。内容行保存稳定 slug、版本、发布状态和已发布revision指针；revision保存标题、跨端内容块、平台、排序、起止时间及公告通知开关。草稿新增revision不改变指针，发布/下线与操作审计、幂等回执在同一事务完成。公开查询重新校验时段和平台，首页缓存最长60秒且发布/下线提交后失效；商品推荐不作为缓存中的可售事实，每次聚合重新查询。
 
 `notify_inbox` 只允许公告使用，事件与公告revision一对一，防止同版本重复发布造成重复广播。通知只表示站内兜底，不派生微信永久授权或送达状态。`content.0001` 的无表 `ContentAccess` 仅承载 `content.publish` 权限，不保存业务内容；实际内容表从 `content.0002` 开始。
+
+
+## I11 客服数据模型落地说明（2026-11-09）
+
+`support_conversation` 保存买家、可选关联订单、分配客服、状态、版本和最后消息序号；`support_activeconversation` 分别以 user_id 和 conversation_id 唯一，创建/关闭与活动映射同事务，不使用部分唯一索引。`support_supportmessage` 以 `(conversation_id,sender_id,client_message_id)` 和 `(conversation_id,conversation_seq,id)` 唯一约束保证重试与稳定游标，正文为纯文本，通知事件UUID独立唯一。
+
+`support_readcursor` 以会话和读者唯一，水位只在目标消息属于该会话且序号更大时前进。`support_supportcommand` 保存创建、分配、关闭的永久幂等回执。客服回复事件由扫描器独立消费，不复制聊天正文到站内通知，不将发送成功或页面打开推断为对方在线/已读。关联订单只输出必要摘要，不输出收货快照。

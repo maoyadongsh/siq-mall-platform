@@ -274,3 +274,14 @@ products/{id}/reviews/ 公开在售商品已通过的评价，返回页码分页
 内容块支持 heading/text/rich_text/image/link/product_list。富文本使用 nh3 白名单清洗，危险标签、事件属性、javascript/data/协议相对链接等直接拒绝；链接仅允许站内路径或HTTPS。图片复用 `ops/media/` 的真实解码、静态图片、5MB、2000万像素及重编码校验，内容运营与商品运营均可按权限上传。
 
 公告 revision 的 `notify_inbox=true` 时，发布事务同时写唯一公告事件；扫描进程为每个活跃用户生成一条系统通知并保留消费回执。同一公告版本重复发布不新增事件，非公告不能开启联动。该动作只代表站内消息，不产生微信订阅授权或实际送达。
+
+
+### I11 客服会话（2026-11-09）
+
+`conversations/`、`conversations/{id}/messages/`、`read/`、`close/` 和对应 `ops/conversations/`、`assign/` 接口已接入，实际字段见 `openapi.yaml`。买家仅能访问本人会话；`support.reply` 只能读写已分配给当前客服的会话，`support.assign` 额外开放待分配与授权范围。运营组为 `support_agent` 和 `support_supervisor`。对象越权返回404，功能无权返回403。
+
+活动会话由独立一对一映射保证每位买家最多一个，创建、关闭与映射变更同事务。消息在会话锁内分配 `conversation_seq`，同一会话、发送者和 `client_message_id` 唯一；同键同正文重放返回原消息，异正文409，关闭后新发送409。写操作同时要求 `Idempotency-Key`，创建、分配和关闭另有永久命令回执。
+
+历史以签名 `(conversation_seq,id)` 游标区分 older/newer，返回升序消息、历史游标和轮询游标。买家与客服分别有只前进读水位，`counterpart_read_seq` 才用于“对方已读”，发送成功不产生已读或在线假象。关联订单只返回订单号、状态、金额和商品摘要，不返回地址快照。
+
+客服回复的唯一事件UUID由 `process_order_events` 消费，为买家生成一条 support 类站内通知；重复投递与重放均不重复创建消息或通知。首版Web使用5秒HTTP增量轮询，隐藏页面不发送轮询请求。

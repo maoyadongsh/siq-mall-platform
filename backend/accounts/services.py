@@ -31,6 +31,8 @@ def user_summary(user) -> dict:
     return {
         "id": str(user.id),
         "username": user.username,
+        "can_reply_support": user.has_perm("support.reply"),
+        "can_assign_support": user.has_perm("support.assign"),
         "can_publish_content": user.has_perm("content.publish"),
         "can_moderate_reviews": user.has_perm("reviews.moderate"),
         "can_manage_promotions": user.has_perm("promotions.manage"),

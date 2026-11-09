@@ -14,6 +14,7 @@ from common.exceptions import BusinessError
 from content.models import ContentEvent
 from orders.models import Event
 from reviews.models import ReviewAction
+from support.models import SupportMessage
 
 from .apps import TEMPLATE_VARIABLES
 from .models import (
@@ -283,6 +284,32 @@ def deliver_content_event(pk):
             {"announcement_title": event.revision.title},
         )
     NotificationConsumption.objects.create(event_id=event.event_id, consumer=CONSUMER)
+    return True
+
+
+@transaction.atomic
+def deliver_support_message(pk):
+    message = get_object_or_404(
+        SupportMessage.objects.select_for_update().select_related("conversation__user"),
+        pk=pk,
+        sender_role="agent",
+    )
+    if NotificationConsumption.objects.filter(
+        event_id=message.notification_event_id, consumer=CONSUMER
+    ).exists():
+        return False
+    create_notice(
+        message.conversation.user,
+        message.notification_event_id,
+        "support.message_created",
+        "support",
+        "support",
+        message.conversation_id,
+        {},
+    )
+    NotificationConsumption.objects.create(
+        event_id=message.notification_event_id, consumer=CONSUMER
+    )
     return True
 
 

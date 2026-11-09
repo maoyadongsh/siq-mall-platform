@@ -12,11 +12,13 @@ from notifications.services import (
     deliver_content_event,
     deliver_order_event,
     deliver_review_action,
+    deliver_support_message,
 )
 from orders.models import Event, Order
 from orders.services import deliver_one, expire_one
 from promotions.models import Coupon
 from reviews.models import ReviewAction
+from support.models import SupportMessage
 
 logger = logging.getLogger("mall")
 
@@ -63,6 +65,12 @@ class Command(BaseCommand):
                 (
                     ContentEvent.objects.exclude(event_id__in=consumed).order_by("pk"),
                     deliver_content_event,
+                ),
+                (
+                    SupportMessage.objects.filter(sender_role="agent")
+                    .exclude(notification_event_id__in=consumed)
+                    .order_by("pk"),
+                    deliver_support_message,
                 ),
             ):
                 count = 0
