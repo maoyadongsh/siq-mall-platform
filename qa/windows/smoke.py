@@ -109,6 +109,7 @@ def run_suite(work):
                 "cart/tests/test_race.py",
                 "orders/tests/test_races.py",
                 "promotions/tests/test_races.py",
+                "reviews/tests/test_races.py",
                 "--no-cov",
             ]
         )
@@ -118,7 +119,7 @@ def run_suite(work):
                 "manage.py",
                 "shell",
                 "-c",
-                "import os; from django.contrib.auth.models import User,Group; user=User.objects.create_user('accept_operator',password=os.environ['SIQ_TEST_PASSWORD']); user.groups.add(Group.objects.get(name='catalog_operator'),Group.objects.get(name='order_operator'),Group.objects.get(name='promotion_operator'))",
+                "import os; from django.contrib.auth.models import User,Group; user=User.objects.create_user('accept_operator',password=os.environ['SIQ_TEST_PASSWORD']); user.groups.add(Group.objects.get(name='catalog_operator'),Group.objects.get(name='order_operator'),Group.objects.get(name='promotion_operator')); moderator=User.objects.create_user('accept_moderator',password=os.environ['SIQ_TEST_PASSWORD']); moderator.groups.add(Group.objects.get(name='review_moderator'))",
             ]
         )
         start(

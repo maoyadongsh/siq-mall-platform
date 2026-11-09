@@ -11,6 +11,23 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         {
+          path: 'orders/:no/review',
+          component: () => import('@/views/reviews/OrderReview.vue'),
+          props: true,
+          meta: { title: '评价订单商品', requiresAuth: true },
+        },
+        {
+          path: 'account/reviews',
+          component: () => import('@/views/reviews/ReviewList.vue'),
+          meta: { title: '我的评价', requiresAuth: true },
+        },
+        {
+          path: 'ops/reviews',
+          component: () => import('@/views/reviews/ReviewList.vue'),
+          props: { ops: true },
+          meta: { title: '评价审核', requiresAuth: true, moderation: true },
+        },
+        {
           path: 'coupons',
           component: () => import('@/views/coupons/Coupons.vue'),
           meta: { title: '领券中心' },
@@ -131,6 +148,7 @@ router.beforeEach(async (to) => {
   if (!userStore.isLoggedIn) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
+  if (to.meta.moderation && !userStore.profile?.can_moderate_reviews) return { name: 'account' }
   if (to.meta.promotionPermission && !userStore.profile?.can_manage_promotions)
     return { name: 'account' }
   if (to.meta.fulfill && !userStore.profile?.can_fulfill_orders) return { name: 'account' }

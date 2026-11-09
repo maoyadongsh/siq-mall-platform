@@ -246,3 +246,9 @@ I06 的配送与金额从服务端重算。订单四项金额以Decimal(12,2)保
 第5、6节的优惠券中心、领券、本人券包、运营草稿维护、发布和停领接口已接入。权限为 promotions.manage，运营组为 promotion_operator。领取、发布及停领带 Idempotency-Key；模板修改与发布动作校验 expected_version。领取接口依赖限流时遇到Redis连接失败返回503，可持原键重试。已提交领取的重放返回首次领取结果，当前状态以本人券包为准。券包可按 unused/reserved/used/expired 筛选，占用和已用券带本人关联订单号。
 
 checkout/quote/ 接受一个可空 user_coupon_id。响应包含 available_coupons、unavailable_coupons、selected_coupon，金额及各行 discount_allocated 均为两位小数字符串。结算列表优先展示最早到期的100张未用券，完整券包分页可达。主动选择的券即使在该列表之外仍单独验证。不可用选择返回409；他人持有的券返回404。用户需重新选择并确认当前应付金额。原无券报价仍可按原快照校验。
+
+### I08 评价（2026-11-09）
+
+reviews/ 的 POST 验证登录买家、本人已完成订单项、1–5星及去首尾空白后的1–500字。重复业务提交409，同键同参重放201；该订单项有评价后不能再修改原文。users/me/reviews/ 可按 order_no 筛选本人记录。ops/reviews/ 要求 reviews.moderate，支持 status、product_id 与页码；队列仅返回核查所需商品、订单项、数量、状态与审核信息。moderate/ 要求 Idempotency-Key 和 expected_version，拒绝/隐藏的原因必填，冲突返回409。审核动作及版本同事务留痕。
+
+products/{id}/reviews/ 公开在售商品已通过的评价，返回页码分页结构，data.rating_summary.count 和 average 计算自所有已公开项。average 为保留一位小数的字符串；无公开评价时为null。公开作者统一标识为“已购用户”，订单号、用户标识、收货资料与审核原因不进入公开响应。

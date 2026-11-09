@@ -37,6 +37,8 @@ def summary(order, ops=False):
         actions = ["cancel"]
         if settings.DEMO_PAYMENT_ENABLED and timezone.now() < order.expires_at:
             actions.append("pay")
+    if order.status == "completed" and not ops:
+        actions = ["review"]
     if order.status == "paid" and ops:
         actions = ["ship"]
     if order.status == "shipped" and not ops:

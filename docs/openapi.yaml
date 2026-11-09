@@ -1429,6 +1429,151 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProductResponse'
           description: ''
+  /api/v1/ops/reviews/:
+    get:
+      operationId: api_v1_ops_reviews_retrieve
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: product_id
+        schema:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+      - in: query
+        name: status
+        schema:
+          enum:
+          - pending
+          - approved
+          - rejected
+          - hidden
+          type: string
+          minLength: 1
+        description: |-
+          * `pending` - 待审核
+          * `approved` - 已公开
+          * `rejected` - 未通过
+          * `hidden` - 已隐藏
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpsListResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/reviews/{id}/moderate/:
+    post:
+      operationId: api_v1_ops_reviews_moderate_create
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModerateInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ModerateInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ModerateInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpsResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/ops/roles/:
     get:
       operationId: api_v1_ops_roles_retrieve
@@ -2146,6 +2291,66 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProductResponse'
           description: ''
+  /api/v1/products/{id}/reviews/:
+    get:
+      operationId: api_v1_products_reviews_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicListResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/regions/:
     get:
       operationId: api_v1_regions_retrieve
@@ -2160,6 +2365,70 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegionResponse'
+          description: ''
+  /api/v1/reviews/:
+    post:
+      operationId: api_v1_reviews_create
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubmitInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubmitInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuyerResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
           description: ''
   /api/v1/users/me/:
     get:
@@ -2429,8 +2698,77 @@ paths:
               schema:
                 $ref: '#/components/schemas/EmptyResponse'
           description: ''
+  /api/v1/users/me/reviews/:
+    get:
+      operationId: api_v1_users_me_reviews_retrieve
+      parameters:
+      - in: query
+        name: order_no
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuyerListResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
 components:
   schemas:
+    ActionEnum:
+      enum:
+      - approve
+      - reject
+      - hide
+      type: string
+      description: |-
+        * `approve` - approve
+        * `reject` - reject
+        * `hide` - hide
     ActionRequest:
       type: object
       properties:
@@ -2768,6 +3106,109 @@ components:
             $ref: '#/components/schemas/LineRequest'
       required:
       - items
+    BuyerListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/BuyerPage'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    BuyerPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BuyerRow'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    BuyerResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/BuyerRow'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    BuyerRow:
+      type: object
+      properties:
+        id:
+          type: string
+        order_item_id:
+          type: string
+        order_no:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+        product_title:
+          type: string
+        sku_label:
+          type: string
+        rating:
+          type: integer
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+        status:
+          type: string
+        moderation_reason:
+          type: string
+      required:
+      - content
+      - created_at
+      - id
+      - moderation_reason
+      - order_item_id
+      - order_no
+      - product_id
+      - product_title
+      - rating
+      - sku_label
+      - status
+      - version
     CancelRequest:
       type: object
       properties:
@@ -3342,6 +3783,21 @@ components:
       - items
       - requires_confirmation
       - version
+    ModerateInputRequest:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        expected_version:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          default: ''
+          maxLength: 200
+      required:
+      - action
+      - expected_version
     OpResponse:
       type: object
       properties:
@@ -3379,6 +3835,115 @@ components:
       - resource_type
       - retry_after_seconds
       - status
+    OpsListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/OpsPage'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    OpsPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpsRow'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    OpsResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/OpsRow'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    OpsRow:
+      type: object
+      properties:
+        id:
+          type: string
+        order_item_id:
+          type: string
+        order_no:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+        product_title:
+          type: string
+        sku_label:
+          type: string
+        rating:
+          type: integer
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+        status:
+          type: string
+        moderation_reason:
+          type: string
+        quantity:
+          type: integer
+        order_status:
+          type: string
+      required:
+      - content
+      - created_at
+      - id
+      - moderation_reason
+      - order_item_id
+      - order_no
+      - order_status
+      - product_id
+      - product_title
+      - quantity
+      - rating
+      - sku_label
+      - status
+      - version
     OrderDetailData:
       type: object
       properties:
@@ -3959,6 +4524,73 @@ components:
       - message
       - request_id
       - timestamp
+    PublicListResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/PublicPage'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    PublicPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicRow'
+        rating_summary:
+          $ref: '#/components/schemas/Summary'
+      required:
+      - count
+      - page
+      - page_size
+      - rating_summary
+      - results
+      - total_pages
+    PublicRow:
+      type: object
+      properties:
+        id:
+          type: string
+        rating:
+          type: integer
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        sku_label:
+          type: string
+        author_display:
+          type: string
+      required:
+      - author_display
+      - content
+      - created_at
+      - id
+      - rating
+      - sku_label
     PurposeEnum:
       enum:
       - register
@@ -4341,6 +4973,37 @@ components:
       - id
       - label
       - price
+    SubmitInputRequest:
+      type: object
+      properties:
+        order_item_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+        content:
+          type: string
+          minLength: 1
+          maxLength: 500
+      required:
+      - content
+      - order_item_id
+      - rating
+    Summary:
+      type: object
+      properties:
+        count:
+          type: integer
+        average:
+          type: string
+          nullable: true
+      required:
+      - average
+      - count
     TemplateData:
       type: object
       properties:
@@ -4498,6 +5161,8 @@ components:
     UserSummary:
       type: object
       properties:
+        can_moderate_reviews:
+          type: boolean
         can_manage_promotions:
           type: boolean
         can_fulfill_orders:
@@ -4520,6 +5185,7 @@ components:
       - can_fulfill_orders
       - can_manage_catalog
       - can_manage_promotions
+      - can_moderate_reviews
       - has_verified_phone
       - id
       - nickname

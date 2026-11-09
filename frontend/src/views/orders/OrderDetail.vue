@@ -112,6 +112,12 @@ onUnmounted(() => {
         付款期限 {{ new Date(order.expires_at).toLocaleString()
         }}{{ now >= Date.parse(order.expires_at) ? '（已到期）' : '' }}
       </p>
+      <router-link
+        v-if="!ops && order.allowed_actions.includes('review')"
+        :to="'/orders/' + no + '/review'"
+      >
+        评价商品与查看审核结果
+      </router-link>
       <h3>商品明细</h3>
       <p v-for="i in order.items" :key="i.sku_id">
         {{ i.title }} · {{ i.label }}　¥{{ i.unit_price }} × {{ i.quantity }}

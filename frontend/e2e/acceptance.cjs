@@ -273,6 +273,54 @@ const assert = require('node:assert/strict')
     console.log(
       'PASS coupon publish -> claim retry -> stop -> select -> release -> reuse -> redeem',
     )
+
+    await shop.goto(origin + '/orders/' + no)
+    await shop.getByRole('link', { name: '评价商品与查看审核结果' }).click()
+    await shop.getByRole('radio', { name: '1 星', exact: true }).check()
+    await shop.getByLabel('评价内容').fill('杯子比预想的小')
+    await shop.route(
+      '**/api/v1/reviews/',
+      async (route) => {
+        assert.equal((await route.fetch()).status(), 201)
+        await route.abort('connectionreset')
+      },
+      { times: 1 },
+    )
+    await shop.getByRole('button', { name: '提交评价' }).click()
+    await shop.getByRole('button', { name: '提交评价' }).click()
+    await shop.getByText('评价已提交，等待审核', { exact: true }).waitFor()
+    const guest = await browser.newPage({ viewport: { width: 375, height: 812 } })
+    await guest.clock.install()
+    await guest.goto(origin)
+    await guest.getByRole('link', { name: '查看规格' }).click()
+    await guest.getByText('暂无公开评价。', { exact: true }).waitFor()
+    const staff = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+    await staff.goto(origin + '/login')
+    await staff.locator('[name=identifier]').fill('accept_moderator')
+    await staff.locator('[name=password]').fill(process.env.SIQ_TEST_PASSWORD)
+    await staff.locator('[type=submit]').click()
+    await staff.getByRole('link', { name: '评价审核' }).click()
+    await staff.getByRole('button', { name: '公开评价' }).click()
+    await staff.getByRole('button', { name: '确认公开' }).click()
+    await staff.getByText('审核已保存', { exact: true }).waitFor()
+    await guest.bringToFront()
+    await guest.clock.fastForward(46000)
+    await guest.getByText('杯子比预想的小', { exact: true }).waitFor()
+    await guest.getByText('1.0 / 5', { exact: true }).waitFor()
+    await staff.getByLabel('审核状态').selectOption('approved')
+    await staff.getByRole('button', { name: '筛选' }).click()
+    await staff.getByRole('button', { name: '隐藏评价' }).click()
+    await staff.getByLabel('审核原因', { exact: false }).fill('演示撤回')
+    await staff.getByRole('button', { name: '确认隐藏' }).click()
+    await staff.getByText('当前筛选下没有评价。', { exact: true }).waitFor()
+    await guest.bringToFront()
+    await guest.clock.fastForward(46000)
+    await guest.getByText('暂无公开评价。', { exact: true }).waitFor()
+    await shop.goto(origin + '/account/reviews')
+    await shop.getByText('审核说明：演示撤回', { exact: true }).waitFor()
+    console.log(
+      'PASS review lost response -> retry -> moderator publishes low rating -> public score -> hide -> buyer reason',
+    )
   } finally {
     await browser.close()
   }

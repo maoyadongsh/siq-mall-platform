@@ -1,0 +1,26 @@
+.review-section {
+  margin: 20px 0;
+  overflow-wrap: anywhere;
+}
+.review-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.review-field {
+  display: grid;
+  gap: 8px;
+}
+.catalog .rating-choice {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+}
+.catalog .rating-choice input {
+  min-height: 0;
+}
+.review-section textarea {
+  width: 100%;
+  font-size: 16px;
+}

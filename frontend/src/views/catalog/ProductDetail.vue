@@ -1,4 +1,5 @@
 <script setup>
+import PublicReviews from '@/views/reviews/PublicReviews.vue'
 import { ref, watch } from 'vue'
 import request from '@/utils/request'
 import { useUserStore } from '@/stores/user'
@@ -87,6 +88,7 @@ watch(() => props.id, load, { immediate: true })
         <p v-if="addError" role="alert">{{ addError }}</p>
       </div>
     </article>
+    <PublicReviews v-if="product" :id="id" />
   </section>
 </template>
 <style src="./catalog.css"></style>

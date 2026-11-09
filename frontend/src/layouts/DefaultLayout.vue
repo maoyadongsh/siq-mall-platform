@@ -35,6 +35,13 @@ onMounted(() => userStore.restoreSession())
         >
           订单履约
         </router-link>
+        <router-link
+          v-if="userStore.profile?.can_moderate_reviews"
+          class="mall-layout__link"
+          to="/ops/reviews"
+        >
+          评价审核
+        </router-link>
         <router-link v-if="userStore.isLoggedIn" class="mall-layout__link" to="/account">
           我的账号
         </router-link>

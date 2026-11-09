@@ -11,6 +11,7 @@ handler500 = "common.exceptions.handler500"
 
 urlpatterns = [
     path("api/v1/", include("promotions.urls")),
+    path("api/v1/", include("reviews.urls")),
     path("api/v1/", include("orders.urls")),
     path("api/v1/", include("cart.urls")),
     path("api/v1/", include("catalog.urls")),
