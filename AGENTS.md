@@ -5,8 +5,8 @@
 ## 1. 项目与当前状态
 
 - 自营单商家电商演示产品，PC商城、移动H5、买家微信小程序共用后端；运营后台以PC为主。
-- 当前已实现Web身份、地址管理及首批商品上架/展示流程。复验命令见README，当前证据见11§12，商品主图、SKU调价、库存调整与重放证据见11§13。I05 Web购物车与无券试算已实现，验证见11§14。I06 Web订单与模拟支付实现见11§15，I07优惠券已接入领取、试算、订单占用、核销与释放，证据见11§16。I08 已完成订单项评价、运营审核与公开评分见11§17。I09站内通知、未读水位、可靠消费及模板运营已实现，证据见11§18。I10 CMS草稿/发布、授权预览、定时上下线、首页聚合和运营编辑已实现，证据见11§19。I11买家客服、授权接待、稳定轮询、读水位与通知联动已实现，Windows全流程及隔离备份恢复见11§20。I04层级分类、筛选排序与1000商品功能集已补齐，10万商品最低价索引优化短测见11§23；完整规定性能仍待实测。运营工作台、角色授权与只读审计已补齐；独立原生小程序、分端商城会话及主要页面/API适配已完成，证据见11§22。Ubuntu、微信平台能力、真机、规定性能及人工验收仍待处理。
-- 当前授权为按计划持续完成I02–I11后续开发，从I02开始逐迭代实施；缺外部条件的Ubuntu/微信平台/真机项目单独登记，不伪造通过。设计/评审任务只改相关文档，不擅自部署生产资源。
+- 业务基线为 `17f5b91`。I01–I11 已接入 Vue 商城/运营及原生买家端。A1–A8 涉及订单找回、报价/支付、客服、默认地址、定时公告、已读水位与历史审计，已有自动回归。最新证据见[独立验收](docs/13-independent-acceptance.md)。
+- 本地实现、自动复验和人工签收分别登记。待验范围包括微信平台接入与设备、Ubuntu 24.04 原生预发、规定性能、备份恢复目标及人工审核。当前任务范围按用户指令确定。
 - 不上传作业系统；不发送邮件/消息、不发布或操作外部生产资源，除非用户明确要求。
 - 不自动把自动测试通过写成人工验收通过，不伪造平台/真机/部署结果。
 
@@ -18,17 +18,18 @@
 4. `docs/08-product-and-experience-spec.md`：三端页面、视觉与权限。
 5. `docs/09-domain-and-data-spec.md`、`docs/10-target-api-contract.md`：规则、字段和目标契约。
 6. `docs/02-iteration-plan.md`、`docs/11-readiness-and-acceptance.md`：当前任务、验收清单和台账。
-7. 涉及移动/小程序时读`docs/06-mobile-wechat-design.md`；基础框架历史证据看`docs/05-review-validation-2026-11-06.md`。
+7. 实现总表见 `docs/12-final-acceptance.md`，独立复验见 `docs/13-independent-acceptance.md`，预发及回滚见 `docs/14-native-deployment.md`。
+8. 涉及移动/小程序时读`docs/06-mobile-wechat-design.md`；基础框架历史证据看`docs/05-review-validation-2026-11-06.md`。
 
-按任务读取相关部分，不为简单改字遍历全部代码。文档与代码矛盾时先确定现状/目标，记录并同步修正；不得暗改公共协议。`docs/openapi.yaml`按当前实际路由生成并校验；10是包含未实现能力的目标契约，不能作为实现证明。
+按任务读取相关部分，不为简单改字遍历全部代码。文档与代码矛盾时先确定现状/目标，记录并同步修正；不得暗改公共协议。`docs/openapi.yaml`按当前实际路由生成并校验；10 从当前 OpenAPI 编制索引，同时说明实际校验和待接入的微信能力。
 
 ## 3. 固定技术与环境
 
 - 开发Windows 11、PowerShell；生产Ubuntu 24.04，Nginx + Gunicorn + systemd原生部署。不要添加Docker/Kubernetes或容器依赖。
 - 后端Python 3.12、Django 5.2、DRF、SimpleJWT、MariaDB/MySQL协议、Redis。MariaDB系列须在开发/预发明确验证；不能把协议兼容说成MySQL已测试。
 - Web为Vue3、Vite、Router、Pinia、Axios、SCSS，Element Plus按需导入。现有JS保持可用，新业务按工具链准备逐步引入TS，不顺手全量重写。
-- 小程序独立构建；原生或跨端框架须依据X01决策，不默认Vue DOM能复用。
-- 异步业务需要时使用Celery/Redis和Outbox；Windows worker按已验证的WSL2方案，不能声称Gunicorn在原生Windows验证过。
+- 小程序按 X01 决策使用原生 JS/WXML/WXSS，页面、导航、生命周期和存储单独维护，共用 API 契约。
+- 异步投递使用数据库事件和 process_order_events。Windows 用 --watch，Ubuntu 提供 systemd timer/service。新增消费者须验证重复投递、事务回滚与重启补扫。
 - 保留`auth.User`并扩展Profile，不直接改AUTH_USER_MODEL，不清库/删迁移以解决用户模型问题。
 
 ## 4. 实施方式与命名
@@ -86,13 +87,14 @@
 ```powershell
 npm ci
 npm run lint
+npm test
 npm run build
 ```
 
-- 只改文档时检查内容、链接、任务映射；无需为文案跑全套业务测试或重生成OpenAPI。
+- 只改文档时检查内容、链接、任务映射；无需为文案跑全套业务测试。若调整 OpenAPI 元数据，使用对齐版本及 MariaDB 引擎的隔离配置严格生成，并比对方法、字段与组件。
 - 后端变更运行相关测试和质量检查；契约变更重新生成/验证OpenAPI；前端变更lint/build并按风险验证交互。不要给可逆文案/样式改动增加只镜像实现的测试。
 - 并发/事务必须目标MariaDB与Redis集成测试；SQLite/内存缓存只证明隔离单测。覆盖率公共模块≥80%，交易服务分支目标≥90%；覆盖率不替代状态/权限/幂等用例。
-- 前端行为/E2E工具按计划引入；当前没有脚本就明确未建立，不编造`npm test`已通过。
+- Web 行为测试使用 Vitest，Windows 浏览器联测与临时 MariaDB 使用 qa/windows/smoke.py。小程序分别运行 npm --prefix mini test 和 node --test qa/acceptance/mini-boundaries.cjs。单独列出适配测试和真机结果。
 - Ubuntu部署、TLS、备份恢复、版本回滚与真实设备验收分开记录。性能目标尚未实测，不以build成功宣称LCP/吞吐达标。
 - 检查通过后不无理由反复扩测；新失败/新变更再补充。记录命令、环境、结果、限制和证据版本。
 

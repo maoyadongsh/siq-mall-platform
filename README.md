@@ -1,199 +1,123 @@
-# SIQ优选商城（siq-mall-platform）
+# SIQ 优选商城 · siq-mall-platform
 
-Vue 3 + Django 5.2/DRF + JWT + MariaDB + Redis 在线电商工程。
-Web 已接入身份、地址、商品运营、购物车、订单履约、优惠券、评价、站内通知、CMS内容发布与客服双端会话。商城首页聚合已发布内容和真实可售商品，服务状态页位于 `/status`。授权运营人员可在 `/ops/products` 保存多规格商品草稿并上下架。环境为 Windows 11 开发、Ubuntu 24.04 原生部署。
+SIQ 优选商城是一个单商家实物电商演示项目。买家可以从商品详情选规格、领券下单、模拟付款，到签收后评价。运营人员在同一套业务数据上维护商品、发货、审核评价、发布内容和回复客服消息。PC 商城与移动 H5 共用 Vue 应用，买家微信小程序独立实现，三端由 Django 统一核价和校验权限。
 
-买家可以从商品详情加购，在 `/cart` 合并游客选择、改量、移除和选中商品，再到 `/checkout` 选择地址并试算。游客清单使用当前标签页的 sessionStorage；账号购物车由服务端保存。首次启用前在目标开发库核对并应用 `cart.0001_initial` 迁移。报价有效5分钟。买家确认后创建订单，可从 /orders 找回待付款订单或查看履约进度。
+**当前交付基线为 `17f5b91`。** I01–I11 已形成可在 Windows 本地演示的业务闭环，独立验收发现的八项问题已修复。Ubuntu 24.04 部署、微信平台接入与真机、规定负载性能、人工签收各有独立的待验项。[逐项复验结果](docs/13-independent-acceptance.md)
 
-开发入口见[设计交付总览](docs/07-predevelopment-handoff.md)和[AGENTS](AGENTS.md)。验收进度见[开发登记](docs/11-readiness-and-acceptance.md)，累积演示版功能、逐任务状态和剩余事项见[总验收报告](docs/12-final-acceptance.md)。
+## 从一笔订单看产品
 
-商品管理页的“维护商品”支持替换主图、调整规格售价，以及按原因增减库存并查看流水。安装后端依赖后，应用 catalog.0002 迁移。Ubuntu 以 MALL_MEDIA_ROOT 指向持久媒体目录，随库备份并核对 Nginx 的 /media/ 目录映射。已有媒体的环境先迁移文件，再切换配置。
+| 操作者 | 实际入口 | 可演示的动作 |
+| --- | --- | --- |
+| 买家 · PC / H5 | `/`、`/products`、`/cart`、`/checkout` | 首页读取已发布内容，选择规格与数量，登录合并游客购物车，比较运费与券后应付金额。 |
+| 买家 · 交易与账户 | `/orders`、`/account`、`/account/addresses`、`/account/coupons` | 找回提交结果、模拟支付、查看履约记录、确认收货、管理收货地址与券包。 |
+| 买家 · 售后沟通 | `/account/reviews`、`/messages`、`/support` | 按已完成订单项评价，查看审核结果、站内通知，跟进客服会话。 |
+| 买家 · 小程序 | 首页、购物车、我的三个原生标签页 | 从分享进入商品详情，手填地址、试算选券、恢复订单、查询模拟支付及回复。商城账号可登录；微信身份、平台地址和订阅送达仍待接入。 |
+| 商品、履约、营销运营 | `/ops/products`、`/ops/categories`、`/ops/orders`、`/ops/coupons` | 维护多规格、库存流水和分类树，发布商品或券，处理已付款订单。 |
+| 内容、客服及权限运营 | `/ops/cms`、`/ops/reviews`、`/ops/support`、`/ops/access`、`/ops/audits` | 预览草稿、定时发布、审核评价、分配会话、调整角色、追查业务动作。工作台 `/ops` 按权限显示真实待办。 |
 
-首次启用商品功能时，在目标开发库备份并核对迁移后执行下文的 migrate 步骤。通过受信任的管理员为运营账号分配 `catalog_operator` 组，重新登录后即可看到商品管理入口。
+首次演示可先由受信任的管理员给测试账号分配 `catalog_operator` 和 `order_operator`，创建并上架有库存的商品。另用买家账号完成加购、添加地址和结算，再切回履约账号发货。模拟支付须在隔离开发环境显式设置 `DEMO_PAYMENT_ENABLED=1` 后重启后端，生产配置固定关闭。客服分配、消息到达和评价审核的演示步骤见[总验收报告](docs/12-final-acceptance.md)。
 
-在 Windows 项目根目录运行 `backend\.venv\Scripts\python.exe qa/windows/smoke.py` 可复验地址并发、双标签刷新、商品上下架、购物车合并重试及结算变价。先完成前端 npm ci 与后端开发依赖安装。本机需装 Chrome 和 MariaDB 11.8，可用 SIQ_CHROME_PATH 与 SIQ_MARIADB_BIN 指定安装位置。脚本使用随机端口和临时数据目录。
+## 技术栈与仓库结构
 
-| 文档 | 用途 |
+| 层 | 本项目使用的技术 | 负责什么 |
+| --- | --- | --- |
+| Web | Vue 3.5、Vue Router 4、Pinia 3、Axios、Vite 7、SCSS、Element Plus | 响应式商城、路由与会话状态、统一请求、运营表格与表单。依赖按 npm 锁文件安装。[前端工程](frontend/package.json) |
+| 微信小程序 | 原生 JavaScript、WXML、WXSS、微信页面栈与本地存储 | 独立导航、分享、弱网恢复和商城会话。页面共用交易 API。[小程序指南](mini/README.md) |
+| HTTP 与身份 | Python 3.12、Django 5.2、DRF 3.16、SimpleJWT、drf-spectacular | 模块化单体、序列化与权限、JWT 和服务端会话撤销、OpenAPI 3 契约。[后端依赖](backend/requirements.txt) |
+| 数据与任务 | MariaDB / PyMySQL、Redis / django-redis、Django 管理命令 | MariaDB 保存业务事实、锁和事件回执；Redis 提供缓存及限流；扫描进程处理超时和事件。 |
+| 媒体与内容 | Pillow、nh3、版本化内容块 | 校验上传图片、清洗富文本。草稿、预览与公开版本分开读取。[内容服务](backend/content/services.py) |
+| 验证与部署 | pytest-django、pytest-cov、Vitest、Node Test、Playwright/Chrome、Nginx、Gunicorn、systemd | 从隔离单测到真实 MariaDB 竞争与浏览器交易，配有 Ubuntu 原生部署模板。[验证脚本](qa/windows/smoke.py) · [部署手册](docs/14-native-deployment.md) |
+
+在一次结算中，三个客户端做相同的事：向同一个服务索取报价，然后提交已确认的报价。后台扫描与在线请求独立运行，用户关掉页面后，订单仍可超时关闭，已提交的事件仍可投递。
+
+```mermaid
+flowchart LR
+    Web["PC 商城 / 移动 H5 / 运营工作台"] --> API["Django REST API"]
+    Mini["原生微信小程序"] --> API
+    API --> Trade["核价、库存、券与订单事务"]
+    Trade --> DB[("MariaDB 业务记录与事件")]
+    API --> Cache[("Redis 缓存与限流")]
+    DB --> Scan["process_order_events"]
+    Scan --> DB
+```
+
+## 值得查看的工程设计
+
+| 用户会遇到的问题 | 实现机制与可核查的结果 |
 | --- | --- |
-| [开发架构](docs/01-architecture.md) | 需求、架构、API、字段、体验、测试与运维标准 |
-| [迭代计划](docs/02-iteration-plan.md) | 11个可部署阶段、逐任务验收标准、登记模板 |
-| [移动H5与微信小程序设计](docs/06-mobile-wechat-design.md) | 三端范围、平台差异、账号与生命周期、真机验收要求（设计阶段） |
-| [设计交付总览](docs/07-predevelopment-handoff.md) | 开发前文件入口、范围决策与审核边界 |
-| [页面、交互与权限](docs/08-product-and-experience-spec.md) | 三端功能、设计token、买家/运营页面及权限矩阵 |
-| [规则与数据模型](docs/09-domain-and-data-spec.md) | 金额、状态机、事务、字段与唯一约束 |
-| [目标接口契约](docs/10-target-api-contract.md) | 未来业务接口、字段、错误、联调样例，尚未实现 |
-| [开发准备与验收台账](docs/11-readiness-and-acceptance.md) | 决策、准备任务、验收用例与逐任务登记 |
-| [审查与优化建议](docs/04-project-review.md) | 代码证据、优先级、商业化缺口 |
-| [本轮验证登记](docs/05-review-validation-2026-11-06.md) | 2026-11-06实际执行与待验收项 |
-| [历史验收记录](docs/03-iteration-01-acceptance.md) | 旧版记录，不能替代本轮验证 |
-| [原生小程序](mini/README.md) | 独立WXML/WXSS客户端、商城会话、共用API与Node适配测试；平台/真机未验 |
-| [OpenAPI](docs/openapi.yaml) | 按当前实际路由生成并校验；未实现目标契约见10 |
+| 弱网下已点下单，却看不到结果 | 服务端把购买意图绑定账号，原报价关联唯一订单。小程序保留原报价、意图与幂等键，购物车已清空时也可找回。切换地址或券后，迟到的旧报价不能覆盖当前选择。[订单服务](backend/orders/services.py) · [小程序反例测试](qa/acceptance/mini-boundaries.cjs) |
+| 用户付款与关单任务同时发生 | 下单预占库存及优惠券，支付只消费预占，取消或超时释放。支付与关单锁定同一订单，结算记录约束单笔成功；数据库同时校验应付等式。验收包含 50 抢 10 库存及 100 抢 50 券。[并发验收台账](docs/11-readiness-and-acceptance.md) |
+| 定时公告提前泄露，或“全部已读”误读刚到的消息 | 发布产生版本事件，扫描时再核对当前版本及有效时间；通知序号、分页游标与签名已读水位共享同一上界。测试在取数与标记间插入新消息，确认它仍为未读。[通知服务](backend/notifications/services.py) · [边界测试](qa/acceptance/test_delivery_boundaries.py) |
+| 商品越多，按最低售价排序越慢 | 将最低 SKU 价维护在商品记录上，在创建、调价事务中更新，并回填历史数据。10 万商品、30 万 SKU 的本机串行短测中，P95 从 5.7810 秒降至 0.2500 秒；20 并发优化后为 0.8440 秒。硬件、并发和时长决定数字的适用范围。[规模测试](qa/windows/scale.py) · [测量记录](docs/11-readiness-and-acceptance.md) |
+| 运营需要解释“谁在什么时候做了什么” | 审计从八类事件读取，先在数据库过滤、合并和排序，再装载本页详情。授权审计员能从超过 100 条记录的历史中查到旧事件；客服仍只访问所分配会话。[审计查询](backend/audit/api.py) · [权限与页面规格](docs/08-product-and-experience-spec.md) |
 
-## 评价与审核
+## Windows 11 快速启动
 
-买家从已完成订单进入“评价商品与查看审核结果”，对每个订单项提交一次星级与文字。本人可在 `/account/reviews` 查阅待审状态和审核说明。公开的评价及平均星级出现在商品详情页。
-
-升级前备份数据库并核对 `reviews.0001_initial` 后运行 migrate。由管理员将指定审核员加入 `review_moderator` 组，重新登录后进入 `/ops/reviews`。拒绝与隐藏需填写给买家的原因。回滚代码时先停用新入口并保留原始评价和审核记录，反向迁移会删除这些业务数据。
-
-## 站内消息与通知模板
-
-买家在 `/messages` 按订单、客服和系统分类查看通知，单条点击后标记已读，也可按当前服务端水位执行全部已读。水位之后提交的新消息保持未读，历史使用稳定游标加载。订单创建、模拟支付、取消、发货、收货及新评价审核结果由 `process_order_events` 独立消费投递；重复事件不会重复建消息，消费失败可在后续扫描补投。
-
-授权内容运营进入 `/ops/notification-templates` 编辑模板。保存会产生未启用的新版本，只有核对服务端示例预览并启用后，后续事件才使用新模板。管理员为账号分配 `content_operator` 组后重新登录获得入口。`notifications/subscriptions/` 只登记一次微信订阅申请结果，不表示永久授权或实际送达；当前未接入微信发送。
-
-升级前备份并核对 `content.0001_initial`、`reviews.0002_reviewaction_event_id` 和 `notifications.0001_initial`。通知迁移会将启用前的历史订单事件标记为已消费，避免集中补发旧消息；新审核动作才有通知事件标识。回滚代码时先停用消息入口和扫描器，保留消息、序号、模板、订阅结果及消费回执；反向迁移会删除这些记录，不应作为常规代码回滚步骤。
-
-## 分类、筛选与规模数据
-
-授权商品运营在 `/ops/categories` 维护父子分类、排序和启停，分类不能成环；停用父分类会隐藏公开子树。买家在 `/products` 按关键词、分类后代、价格区间和白名单排序查询，筛选保留在URL。首页分类导航使用同一公开树。
-
-`catalog.0004_categoryevent_category_enabled_category_parent_and_more` 为既有分类补充根节点兼容字段，`catalog.0005_product_min_price_and_more` 为商品排序补充最低价回填与索引，升级前备份并审核。最低价在商品创建与SKU调价事务中同步维护，不能用未回填的旧数据推断排序正确。仅在临时演示库显式设置 `MALL_ALLOW_SCALE_SEED=1` 后运行 `manage.py seed_catalog_scale --products 1000 --skus 1 --prefix scale1k`；同前缀重复执行会拒绝，避免重复写入。1000商品功能集与10万商品/30万SKU性能集分别登记，不能据种子生成成功宣称性能达标。专用 `backend/.venv/Scripts/python.exe qa/windows/scale.py` 使用独立临时MariaDB和隔离买家执行10万商品短测；优化前后数据见docs/11§23，不能替代规定硬件和时长的完整性能验收。
-
-## CMS 内容发布与首页
-
-内容运营在 `/ops/cms` 新建 Banner、首页楼层、公告或单页，并在编辑器中维护结构化内容块、图片、推荐商品、展示端和起止时间。保存只生成草稿版本；授权预览不会向游客开放，发布后公开接口才读取对应版本，下线立即关闭公开入口。公开单页路径为 `/pages/{slug}`，公告路径为 `/announcements/{id}`。
-
-首页聚合适配 PC、移动 H5 和小程序内容结构。内容缓存最长60秒，定时版本在下一缓存周期内生效；发布和下线主动清除缓存，推荐商品在每次聚合时重新检查上下架及可售库存。没有已发布首页内容时，首页仍显示真实可售商品。公告可在发布该版本时显式选择站内通知，事件由扫描进程去重投递，不代表微信订阅送达。
-
-升级前备份数据库与媒体，安装包含 `nh3` 的依赖并核对 `content.0002_content_contentrevision_contentaction_and_more`、`content.0003_contentrevision_notify_inbox_contentevent`。图片继续使用真实解码、5MB及像素限制；富文本仅允许白名单标签、属性、HTTPS和站内链接。回滚代码时先停用内容入口并保留内容版本、操作审计及公告事件，反向迁移会删除这些业务数据。
-
-## 客服会话与接待
-
-买家在 `/support` 创建或重开会话，发送中、失败、重试和已发送分别显示；弱网重试沿用原 `client_message_id`。客服回复通过扫描进程联动站内消息。页面使用5秒HTTP增量轮询，后台标签页暂停请求，恢复后继续原游标；已读状态只来自对方真实读水位，不显示推测在线状态。
-
-授权客服进入 `/ops/support`。`support_agent` 组只能处理分配给自己的会话，`support_supervisor` 组可查看待分配队列并分配或接待授权会话。每位买家最多一个活动会话，关闭后只能新建；聊天历史使用稳定游标，读水位只前进。客服只能查看必要订单摘要，不暴露收货地址。
-
-升级前备份并核对 `support.0001_initial`，为客服账号分配对应组后重新登录。回滚代码时先停用客服入口与通知消费，保留会话、消息、读水位和命令回执；反向迁移会删除客服业务记录。Ubuntu原生部署、TLS、备份恢复RPO/RTO、性能及人工签收仍以实际验收记录为准。
-
-## 优惠券使用与运营
-
-买家在 `/coupons` 领券，在 `/account/coupons` 查看券包。结算页显示可减金额与不可用原因；每单最多使用一张，仅抵商品金额。取消待付款订单后，仍在有效期内的券可再次使用。
-
-在已有环境启用 I07 前先备份，核对并应用 `orders.0002_order_coupon_snapshot` 与 `promotions.0001_initial`。由受信任的管理员为营销人员分配 `promotion_operator` 组，重新登录后进入 `/ops/coupons`。先保存草稿，再核对时段、门槛、范围、总量及每人限领数后发布。停止领取只影响后续发放。订单扫描任务同时处理过期未用券。回滚前须处理占券中的待付款订单，保留券账、模板历史、订单快照与幂等回执。
-
-## 订单演示与关单任务
-
-首次启用 I06 前，在目标开发库备份并核对 `catalog.0003_sku_reserved_stock` 和 `orders.0001_initial` 后运行 migrate。在隔离的开发环境中设置 `DEMO_PAYMENT_ENABLED=1` 并重启后端即可演示付款成功或失败。生产 settings 始终禁用模拟支付。通过受信任的管理员为履约人员分配 `order_operator` 组，重新登录后进入 `/ops/orders`。买家在用户中心进入“我的订单与交易记录”。
-
-待付款期限30分钟。Windows 一键启动脚本会另外启动扫描进程；手工启动时在 backend 目录运行：
-
-```powershell
-.\.venv\Scripts\python.exe manage.py process_order_events --watch
-```
-
-Ubuntu 预发安装订单扫描单元。它与 Gunicorn 使用同一套代码、迁移、账号和环境文件。路径与服务账号按实际环境核对：
-
-```bash
-sudo install -m 644 deploy/mall-orders.service.example /etc/systemd/system/mall-orders.service
-sudo install -m 644 deploy/mall-orders.timer.example /etc/systemd/system/mall-orders.timer
-sudo systemctl daemon-reload
-sudo systemctl enable --now mall-orders.timer
-systemctl list-timers mall-orders.timer
-journalctl -u mall-orders.service -n 30
-```
-
-每次扫描先关闭到期订单，再分别投递履约动态、订单通知和评价审核通知。Windows 持续进程与 Ubuntu timer 均按5秒间隔扫描，正常链路目标10秒内到达；高负载与 Ubuntu 实机延时另行登记。异常记录保留并在后续扫描重试，履约投影与通知消费互不回滚。停机恢复后执行一次 `manage.py process_order_events` 即可补扫。回滚应用前先处理待付款订单和已预占库存，备份订单、支付及流水，再停用对应任务；反向迁移会丢失业务记录。
-
-## 运营工作台与原生小程序
-
-运营入口 `/ops` 仅显示权限内真实待办。`access_admin` 可在 `/ops/access` 为用户调整角色，变更需要原因及会话版本、禁止自助修改并撤销目标用户会话；`audit_viewer` 可在 `/ops/audits` 只读查询现有商品、分类、订单、评价、CMS、客服、券和角色事件。新增迁移为 `accounts.0003_roleaction` 与 `audit.0001_initial`。
-
-独立原生小程序位于 `mini/`，采用WXML/WXSS而非Vue DOM。商城账号通过 `auth/mini/login/`、`refresh/`、`logout/` 使用独立会话，Web与mini refresh不能跨协议。页面覆盖商品、分享、购物车、地址、选券下单、订单恢复与模拟支付、评价、消息、CMS和客服。导入微信开发者工具后按 `mini/README.md` 配置本机AppID和HTTPS域名；当前没有真实平台账号、模板或真机结果。运行 `cd mini && npm test` 可执行4项Node适配测试，不替代开发者工具、体验版或真机验收。
-
-## Windows 11 启动
-
-从项目根目录执行；Python 3.12，Node 24（Vite 7最低20.19+/22.12+）。
+准备 Python 3.12、Node 24、MariaDB 和 Redis。可在 Windows 运行 MariaDB，在 WSL2 提供 Redis。从仓库根目录打开 PowerShell，创建开发库和专用数据库用户；SQL 示例中的密码须换成本机值。[数据库初始化示例](deploy/init_db.sql)
 
 ```powershell
 cd backend
-python -m venv .venv
+py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
-Copy-Item .env.example .env
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
-编辑 backend/.env 的数据库和 Redis 连接。不要覆盖已有 .env。MariaDB 为原生 Windows 服务；Redis 可使用 WSL2 原生安装。先在数据库客户端创建 mall_db 和专用用户，参考 deploy/init_db.sql，执行前替换示例密码。PowerShell 不支持 bash 风格的 `< script.sql` 输入重定向，可在 MariaDB 客户端执行 `source E:/siq-mall-platform/deploy/init_db.sql`。
+在本机 `backend/.env` 配置 `DJANGO_SECRET_KEY`、`DB_NAME`、`DB_USER`、`DB_PASSWORD`、`DB_HOST`、`DB_PORT` 和 `REDIS_URL`。已有开发库先备份并审核迁移计划，以下命令从上一步的 `backend` 目录继续。
 
 ```powershell
+.\.venv\Scripts\python.exe manage.py migrate --plan
 .\.venv\Scripts\python.exe manage.py migrate
-.\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000
-```
-
-另一个终端从项目根目录执行：
-
-```powershell
-cd frontend
+cd ..\frontend
 npm ci
-npm run dev
+cd ..
+powershell -ExecutionPolicy Bypass -File deploy\start-dev.ps1
 ```
 
-打开 http://127.0.0.1:5173/ 。Vite 把 /api 代理至 8000。依赖正常 health 返回200；DB/Redis异常返回503且页面显示降级详情。SQLite仅供隔离单测，不能当作MariaDB集成验收。
+首次本地演示如需管理账号，可在 `backend` 用项目 Python 执行 `manage.py createsuperuser`，通过 Django Admin 给独立的演示人员分配相应组。商品进入上架状态后，游客即可从首页或商品列表进入详情。
 
-## 验证
+打开 [本地商城](http://127.0.0.1:5173/) 和 [服务状态页](http://127.0.0.1:5173/status)。脚本同时启动 Django、Vite 和扫描进程。手工运行时分别在 `backend` 执行 `manage.py runserver` 与 `manage.py process_order_events --watch`（用项目虚拟环境的 Python），在 `frontend` 执行 `npm run dev`。健康探针 `/api/v1/health/` 在数据库或缓存依赖异常时返回 HTTP 503。开发模式可打开 [本地 Swagger UI](http://127.0.0.1:8000/api/v1/docs/)。
+
+### 首次运行常见问题
+
+| 现象 | 定位与处理 |
+| --- | --- |
+| 页面打开但服务状态为 503 | 查看状态页与后端日志中的请求 ID，分别检查开发库连接、Redis 地址及服务可达性。 |
+| 能登录但看不到待办或无法发货 | 确认测试账号获授对应业务组，重新登录；发货要求订单已付款。 |
+| 提交成功后站内通知未出现 | 核对扫描进程运行状态和日志。在开发库核对收件账号、事件回执和公告生效窗口。 |
+| 浏览器能访问，小程序真机无法请求 | 真机的回环地址指向手机自身，核对小程序 API 地址、HTTPS 域名与账号配置。[小程序配置](mini/README.md) |
+
+## 如何复验
+
+下列命令均从仓库根目录开始。标准后端 pytest 使用 SQLite 与内存缓存。Windows 集成脚本会在随机端口启动临时 MariaDB，并用本机 Chrome 走用户路径，需先安装 MariaDB 11.8、Chrome 和上述项目依赖。
 
 ```powershell
-cd backend
-.\.venv\Scripts\python.exe manage.py check
+Push-Location backend
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe -m ruff check .
 .\.venv\Scripts\python.exe -m black --check .
-.\.venv\Scripts\python.exe manage.py spectacular --validate --fail-on-warn --file ../docs/openapi.yaml
-cd ..\frontend
-npm run test
-npm run lint
-npm run build
+Pop-Location
+npm --prefix frontend run lint
+npm --prefix frontend test
+npm --prefix frontend run build
+npm --prefix mini test
+node --test qa/acceptance/mini-boundaries.cjs
+.\backend\.venv\Scripts\python.exe qa/windows/smoke.py
 ```
 
-覆盖率排除测试/迁移代码，common 门槛80%。现有单测使用SQLite与内存缓存，真实DB/Redis及Ubuntu部署需另验。requirements为版本范围，生产发布前补精确锁文件与依赖审计。
+| 基线 `17f5b91` 的证据 | 已登记结果 |
+| --- | --- |
+| 后端与数据库 | 后端原有 95 项通过，14 项 MariaDB 专项在 SQLite 跳过，行覆盖率 95.60%。临时 MariaDB 执行 14 项专项及 6 项补充用例，共 20 项通过；这 6 项在 SQLite 也单独通过。 |
+| 客户端 | Web 的 19 项 Vitest、lint、生产构建通过。小程序原有 4 项适配测试和新增 9 项页面测试通过。 |
+| 端到端 | Windows/Chrome 交易、运营、消息、客服流程通过；隔离恢复后四张抽查表计数一致。1000 商品本机串行读取 20 次的 P95 为 0.0630 秒。 |
 
-## Ubuntu 24.04 原生部署
+精确复测命令与环境边界见[独立验收报告](docs/13-independent-acceptance.md)。生产目标是 Ubuntu 24.04 直接部署；发布前仍需实测 TLS、systemd、数据库与媒体异机恢复、规定负载、微信工具与真机，并取得人工验收记录。[部署与回滚手册](docs/14-native-deployment.md)
 
-以下是待预发实测的部署步骤；域名、证书、密码、路径需要按实际环境填写。默认 apt 安装的 MariaDB 为10.11系列，若选11.4/11.8需使用匹配的官方仓库并在开发/预发统一验证，不能假设默认apt安装11.4。
+## 文档导航
 
-```bash
-sudo apt update
-sudo apt install -y nginx mariadb-server redis-server python3.12 python3.12-venv git
-sudo useradd -r -s /usr/sbin/nologin mall
-sudo install -d -o mall -g mall /opt/mall /var/log/mall /var/lib/mall/media
-sudo install -d -o root -g root -m 700 /etc/mall
-```
-
-将已审核代码发布至 /opt/mall（首次空目录可使用git clone；已有目录按版本发布流程处理）。创建数据库专用账号、启用Redis认证，限制两者监听本机；不要直接运行未替换密码的SQL示例。
-
-```bash
-cd /opt/mall/backend
-sudo -u mall python3.12 -m venv .venv
-sudo -u mall .venv/bin/pip install -r requirements.txt
-sudo install -o root -g root -m 600 ../deploy/backend.env.example /etc/mall/backend.env
-sudoedit /etc/mall/backend.env
-```
-
-环境文件是 systemd EnvironmentFile 格式，替换全部占位符；DJANGO_SETTINGS_MODULE=config.settings.prod，DJANGO_ENV=production。不要同时保留含生产凭据的 backend/.env。systemd由root读取600配置，再以mall运行程序。
-
-迁移、静态收集和应用服务使用同一个环境文件，避免manage.py默认加载dev配置：
-
-```bash
-sudo systemd-run --wait --pipe --collect --uid=mall --working-directory=/opt/mall/backend --property=EnvironmentFile=/etc/mall/backend.env /opt/mall/backend/.venv/bin/python manage.py check --deploy
-sudo systemd-run --wait --pipe --collect --uid=mall --working-directory=/opt/mall/backend --property=EnvironmentFile=/etc/mall/backend.env /opt/mall/backend/.venv/bin/python manage.py migrate --noinput
-sudo systemd-run --wait --pipe --collect --uid=mall --working-directory=/opt/mall/backend --property=EnvironmentFile=/etc/mall/backend.env /opt/mall/backend/.venv/bin/python manage.py collectstatic --noinput
-```
-
-check --deploy 的告警逐条登记；SSL重定向由Nginx完成的应用层告警需以实际HTTP→HTTPS检查证明。前端在经过验证的构建机用 npm ci && npm run build，将 frontend/dist 上传同一路径；服务器不必安装Node。
-
-在域名解析完成、有效TLS证书已安装后，编辑并安装部署模板：
-
-```bash
-sudo cp /opt/mall/deploy/mall-gunicorn.service.example /etc/systemd/system/mall-gunicorn.service
-sudo cp /opt/mall/deploy/nginx.mall.conf.example /etc/nginx/sites-available/mall.conf
-sudoedit /etc/nginx/sites-available/mall.conf
-sudo ln -s /etc/nginx/sites-available/mall.conf /etc/nginx/sites-enabled/mall.conf
-sudo nginx -t
-sudo systemctl daemon-reload
-sudo systemctl enable --now mariadb redis-server mall-gunicorn
-sudo systemctl reload nginx
-curl -f https://你的域名/api/v1/health/
-sudo journalctl -u mall-gunicorn -n 100 --no-pager
-```
-
-证书路径必须真实存在，否则nginx -t不会通过；证书签发、续期和防火墙按部署环境配置并记录。验证 /admin/、首页深链接、HTTP重定向和503降级；生产 schema/docs应404。基础阶段不启动尚未实现的Celery服务。
-
-发布前备份数据库与媒体，并在隔离库实测恢复；保留上一版代码与dist。数据库采用兼容迁移，回滚前核对迁移兼容性，不能仅切换代码后声称回滚成功。详细RPO/RTO与审查门槛见架构文档。
+| 读者任务 | 文档 |
+| --- | --- |
+| 了解技术与产品设计 | [01 开发架构](docs/01-architecture.md) · [06 移动与微信设计](docs/06-mobile-wechat-design.md) · [08 页面与权限](docs/08-product-and-experience-spec.md) |
+| 实现功能或联调 | [07 开发交接](docs/07-predevelopment-handoff.md) · [09 规则与数据](docs/09-domain-and-data-spec.md) · [10 API 使用说明](docs/10-target-api-contract.md) · [OpenAPI](docs/openapi.yaml) · [协作约定](AGENTS.md) |
+| 按任务复验与签收 | [02 迭代计划](docs/02-iteration-plan.md) · [11 验收台账](docs/11-readiness-and-acceptance.md) · [12 总验收](docs/12-final-acceptance.md) · [13 独立复验](docs/13-independent-acceptance.md) |
+| 查看演进过程 | [03 I01 原始登记](docs/03-iteration-01-acceptance.md) · [04 早期工程审查](docs/04-project-review.md) · [05 基础框架复验](docs/05-review-validation-2026-11-06.md) |
+| 本地运行及发布演练 | [小程序指南](mini/README.md) · [14 Ubuntu 原生部署](docs/14-native-deployment.md) |

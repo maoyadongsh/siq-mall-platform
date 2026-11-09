@@ -213,7 +213,12 @@ SPECTACULAR_SETTINGS = {
         "NoticeTypeEnum": ["order", "support", "system"],
     },
     "TITLE": "SIQ优选商城 API",
-    "DESCRIPTION": "SIQ优选商城前后端分离接口文档（/api/v1/）",
+    "DESCRIPTION": (
+        "SIQ 优选商城的 PC、H5、原生小程序及运营工作台共用 /api/v1/。"
+        "交易由服务端核价，演示支付仅在隔离环境开放。"
+        "下单与模拟支付使用 Idempotency-Key，全部已读使用列表签发的 read_watermark。"
+        "Web 刷新采用 Cookie 与 CSRF，小程序刷新使用独立商城会话。"
+    ),
     "VERSION": APP_VERSION,
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,

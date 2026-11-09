@@ -1,6 +1,6 @@
 # SIQ优选商城开发架构文档
 
-版本：v2.2｜日期：2026-11-06｜状态：AI 修订稿，待人工审核。
+文档基线 2026-11-09 · 实现版本 `17f5b91` · 人工审核待登记。
 本文仅定义需求与技术架构，不包含迭代排期。实施顺序见《02-iteration-plan.md》。
 
 设计交付入口见[07](07-predevelopment-handoff.md)；页面/权限、规则/数据、目标接口分别见08–10。I01–I11的可本地实现已按02/10累积交付，运营审计、分类规模功能及原生小程序源码已补齐；真实Ubuntu、微信平台、性能与人工验收仍按11逐项登记。验证证据见[11登记](11-readiness-and-acceptance.md)，不能以历史报告或构建成功推断当前已通过。
@@ -36,14 +36,14 @@
 | 开发系统 | Windows 11 | Python venv；PowerShell；Redis 可用 WSL2 原生安装 |
 | 生产系统 | Ubuntu 24.04 LTS | 直接部署，禁止引入 Docker/Kubernetes |
 | 前端 | Vue 3.5、Vite 7、Router 4、Pinia 3、Axios、SCSS | 当前 JS；新业务逐步引入 TypeScript 和契约类型 |
-| 微信小程序客户端 | 独立构建/发布，原生或跨端方案待能力验证 | 不直接复用Vue DOM组件；共用后端业务契约，平台能力独立适配 |
+| 微信小程序客户端 | 独立原生 JavaScript、WXML、WXSS | 不直接复用Vue DOM组件；共用后端业务契约，平台能力独立适配 |
 | UI | Element Plus 按需导入 | 后台优先；商城使用独立品牌组件 |
 | Node | 构建使用 Node 24，经锁文件验证 | Vite 7 最低要求 20.19+ 或 22.12+；不写笼统的 ≥20 |
 | 后端 | Python 3.12、Django 5.2 LTS、DRF 3.16 | HTTP API + services 事务层 + selectors 查询层 |
-| 鉴权 | SimpleJWT | Bearer access；refresh 轮换与黑名单 |
-| 数据库 | MariaDB，MySQL 协议 | Ubuntu 默认源为 10.11；本机原记录为 11.8；发布前固定同一系列并验证 |
+| 鉴权 | SimpleJWT | Bearer access、AuthSession 与 refresh 轮换；Web 和 mini 独立校验 |
+| 数据库 | MariaDB，MySQL 协议 | Windows 临时实例按 11.8 系列验证；发布前固定开发、预发与生产所用系列并审核差异 |
 | 缓存 | Redis 7、django-redis | 热点缓存、限流；不作为库存/券的唯一事实来源 |
-| 异步 | Celery + Redis | 仅异步业务启用；Windows 开发可使用 WSL2 worker |
+| 异步 | 数据库 Outbox + Django 管理命令 | Windows 使用持续扫描进程，Ubuntu 模板使用 systemd timer |
 | 部署 | Nginx + Gunicorn + systemd | Gunicorn 只监听 127.0.0.1:8001；TLS 在 Nginx 终止 |
 
 MariaDB 与 MySQL 的协议兼容不等于 JSON、排序规则、条件索引、执行计划完全相同。若声明支持 MySQL，应增加 MySQL 8 的迁移与关键事务集成测试。PyMySQL 当前可用，但采用 MySQLdb 兼容入口，Django 更新必须验证驱动兼容性。
@@ -58,17 +58,25 @@ flowchart LR
   S --> D[(MariaDB)]
   A --> R[(Redis 缓存)]
   D --> O[Outbox 事件扫描]
-  O --> W[Celery worker]
+  O --> W[process_order_events]
   W --> D
 ```
 
 模块边界：视图负责 HTTP 与序列化，services 负责业务不变量与事务，selectors 负责查询。订单保存商品、价格、优惠、地址快照，避免历史订单随主数据变化。跨模块写操作调用明确的服务接口；不以 signal 隐藏关键交易动作。
 
+### 2.1 实现入口与技术取舍
+
+| 路径 | 设计选择 | 检查方式 |
+| --- | --- | --- |
+| 试算到成交 | Quote 是有期限的报价；Order 保存金额和快照，数据库约束报价与订单一一对应。重试以账号、购买意图和命令幂等键恢复。 | [订单服务](../backend/orders/services.py) 与 [MariaDB 竞争用例](../backend/orders/tests/test_races.py) |
+| 列表最低价排序 | SKU 调价与商品最低价同步写入。读取路径可直接按商品字段排序，索引选择仍由数据库执行计划决定。 | [商品模型](../backend/catalog/models.py) 与 [10 万商品短测](../qa/windows/scale.py) |
+| 消息中心及运营审计 | 消息按收件人序号固定快照；跨域审计先在数据库筛选、联合排序，分页后取详情。两种列表分别服务持续到达的新消息和按条件回溯历史。 | [通知服务](../backend/notifications/services.py) 与 [审计视图](../backend/audit/api.py) |
+
 ## 3. 身份、权限与会话
 
-本节浏览器Cookie目标方案适用于PC/H5。小程序商城会话、外部身份映射和跨端账号绑定按《移动H5与微信小程序联合设计》§3执行，不能把微信平台登录态等同于商城登录态，也不能按昵称/头像自动合并用户。
+浏览器 Cookie 协议适用于 PC/H5。小程序商城会话、外部身份映射和跨端账号绑定按《移动H5与微信小程序联合设计》§3执行，不能把微信平台登录态等同于商城登录态，也不能按昵称/头像自动合并用户。
 
-现有数据库已经使用 Django 默认 User，不能直接改 AUTH_USER_MODEL 后运行 migrate。当前低风险路径是保留 auth.User，用一对一 Profile 保存唯一手机号、昵称等字段，并以认证后端支持手机号登录。若人工决定采用自定义 User，必须在独立新库完成初始迁移、数据搬迁和回滚演练，不能清空现有数据库来绕过问题。
+现有数据库已经使用 Django 默认 User，不能直接改 AUTH_USER_MODEL 后运行 migrate。项目保留 auth.User，用一对一 Profile 保存唯一手机号、昵称等字段，并以认证后端支持手机号登录。若人工决定采用自定义 User，必须在独立新库完成初始迁移、数据搬迁和回滚演练，不能清空现有数据库来绕过问题。
 
 | 角色 | 权限范围 |
 | --- | --- |
@@ -80,7 +88,7 @@ flowchart LR
 
 使用 Django Group/Permission 配合对象范围过滤；is_staff 不等于所有运营业务权限。访问他人对象返回 404；无功能权限返回 403。禁止只依靠前端隐藏按钮。
 
-当前骨架 access 2h、refresh 7d，分别存 sessionStorage/localStorage，属于演示实现。商业目标为 access 15min 存内存，refresh 放 Secure/HttpOnly/SameSite Cookie，配套 CSRF 令牌及 Origin 校验；不能只改存储位置而遗漏后端刷新协议。跨标签刷新需协调，防止 refresh 轮换冲突。改密、禁用与退出全端要定义 access 撤销策略（会话版本/撤销记录），仅拉黑 refresh 不代表现有 access 立即失效。
+Web access 默认有效 15 分钟，保存在内存；refresh 默认有效 7 天，使用 HttpOnly、SameSite=Lax Cookie，生产启用 Secure。浏览器刷新有 CSRF 与来源校验，跨标签协调轮换。小程序独立保存商城会话，刷新返回 JSON。账号停用、角色变更或主动撤销后，服务端按会话状态重新校验。
 
 ## 4. 交易一致性与状态机
 
@@ -90,7 +98,7 @@ flowchart LR
 
 `payable = goods_amount + freight_amount - discount_amount`，每个金额非负，应付不低于零。货币默认为 CNY，金额用 Decimal(12,2)，JSON 返回十进制字符串；前端禁止用浮点计算最终应付。优惠分摊使用确定性尾差分配，明细分摊之和等于订单优惠。
 
-下单在同一事务中：锁定涉及的 SKU（按 ID 排序）→ 条件扣库存 → 占用券 → 写订单与地址/商品快照 → 写事件。数据库死锁有限重试，且使用原幂等键。库存流水以业务号唯一，取消/超时只补回一次；库存不足返回 409。
+下单在同一事务中：按主键顺序锁定相关商品，随后按主键顺序锁定 SKU→ 条件扣库存 → 占用券 → 写订单与地址/商品快照 → 写事件。数据库死锁有限重试，且使用原幂等键。库存流水以业务号唯一，取消/超时只补回一次；库存不足返回 409。
 
 ### 4.2 幂等
 
@@ -113,7 +121,7 @@ X-Request-Id 仅用于链路追踪，不作为业务幂等键。下单、领券�
 
 ### 4.4 异步可靠性
 
-交易与 Outbox 事件同事务提交；worker 至少一次投递，消费者以 `(event_id, consumer)` 去重。on_commit 可用于快速唤醒，但定时扫描数据库兜底，避免提交后进程退出导致事件丢失。关单以数据库 expires_at 为依据，单一 beat 调度 + 可重复执行任务。Redis broker 与缓存使用不同实例或明确容量隔离；仅不同逻辑库不能隔离内存淘汰风险。
+订单写入与 Event 在同一数据库事务内提交。process_order_events 关闭过期待付款订单，将事件投影为履约动态，并单独消费订单、评价、公告和客服事件生成站内通知。消费者在写入结果的同一事务内保存回执，下一轮可补扫失败项。公告扫描仅选择当前已发布且处于生效窗口的版本，发送前锁定内容并复核。Windows 和 Ubuntu 模板都以约 5 秒为扫描周期。
 
 ## 5. 接口契约
 
@@ -151,11 +159,11 @@ X-Request-Id 仅用于链路追踪，不作为业务幂等键。下单、领券�
 | 客服 | POST conversations/、conversations/{id}/messages/；GET conversations/{id}/messages/ |
 | 运营 | /ops/ 下独立权限的商品、订单、券、CMS、客服接口 |
 
-除标记现有的基础路由，其余均为目标契约。当前openapi.yaml已从实际基础路由重新生成并校验，仅包含health/refresh；认证草稿与10中的目标路径不视为实现证据。OpenAPI 必须描述请求、信封、分页及异常，不以“Swagger 页面能打开”代替接口契约完整性。
+本表列举已实现入口。完整方法、字段及响应见[OpenAPI](openapi.yaml)，跨端鉴权、地址编辑完整字段及幂等重试示例见[联调说明](10-target-api-contract.md)。
 
 ## 6. 字段与命名规范
 
-Python / JSON / 数据表字段 snake_case；类 PascalCase；常量 UPPER_SNAKE_CASE；Vue 组件 PascalCase.vue，composable useXxx，内部 JS 变量 camelCase。数据库表按模块+单数实体命名，例如 order_order_item。
+Python / JSON / 数据表字段 snake_case；类 PascalCase；常量 UPPER_SNAKE_CASE；Vue 组件 PascalCase.vue，composable useXxx，内部 JS 变量 camelCase。物理表沿用 Django app/model 命名，例如 orders_orderitem；对外接口保持复数资源路径。
 
 | 字段 | 规则 |
 | --- | --- |
@@ -190,7 +198,7 @@ Python / JSON / 数据表字段 snake_case；类 PascalCase；常量 UPPER_SNAKE
 
 设计 token 包含颜色、字号、间距、圆角、阴影、动效；按 375/768/1440px 验证，无横向溢出。键盘可操作，焦点可见，表单标签明确，错误不只依赖颜色；金额与按钮层级突出。首页图片明确宽高，首屏主图优先加载，列表图懒加载。
 
-当前仅服务状态页，不能认定已经达到商业商城视觉效果。先形成首页、商品详情、结算、订单、运营订单页的可审核设计稿，再实现真实业务。
+商城、响应式结算与订单详情使用统一品牌色和金额层次；运营工作台围绕待办与对象权限组织。真实下单、失败重试和审核流程均有浏览器记录。视觉与可访问性的人审标准详见[页面规格](08-product-and-experience-spec.md)。
 
 ## 8. 运维与工程要求
 

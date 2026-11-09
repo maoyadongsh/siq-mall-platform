@@ -1,8 +1,9 @@
 openapi: 3.0.3
 info:
   title: SIQ优选商城 API
-  version: 1.0.0
-  description: SIQ优选商城前后端分离接口文档（/api/v1/）
+  version: 1.1.0
+  description: SIQ 优选商城的 PC、H5、原生小程序及运营工作台共用 /api/v1/。交易由服务端核价，演示支付仅在隔离环境开放。下单与模拟支付使用
+    Idempotency-Key，全部已读使用列表签发的 read_watermark。Web 刷新采用 Cookie 与 CSRF，小程序刷新使用独立商城会话。
 paths:
   /api/v1/auth/csrf/:
     get:
