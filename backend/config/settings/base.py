@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "catalog.apps.CatalogConfig",
     "cart",
+    "orders.apps.OrdersConfig",
 ]
 
 MIDDLEWARE = [
@@ -274,3 +275,5 @@ LOGGING = {
 CART_BASE_FREIGHT = Decimal("8.00")
 CART_FREE_SHIPPING_THRESHOLD = Decimal("129.00")
 CART_SHIPPING_VERSION = "mainland-v1"
+
+DEMO_PAYMENT_ENABLED = False

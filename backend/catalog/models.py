@@ -44,6 +44,7 @@ class Sku(models.Model):
         max_digits=12, decimal_places=2, validators=[MinValueValidator(0)]
     )
     available_stock = models.PositiveIntegerField()
+    reserved_stock = models.PositiveIntegerField(default=0)
 
     class Meta:
         constraints = [

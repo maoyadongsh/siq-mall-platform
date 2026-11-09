@@ -143,10 +143,14 @@ const assert = require('node:assert/strict')
     await shop.getByRole('link', { name: '登录并合并购物车' }).click()
     await shop.locator('[name=identifier]').fill('accept_operator')
     await shop.locator('[name=password]').fill(process.env.SIQ_TEST_PASSWORD)
-    await shop.route('**/carts/merge/', async (route) => {
-      await route.fetch()
-      await route.abort('connectionreset')
-    }, { times: 1 })
+    await shop.route(
+      '**/carts/merge/',
+      async (route) => {
+        await route.fetch()
+        await route.abort('connectionreset')
+      },
+      { times: 1 },
+    )
     await shop.locator('[type=submit]').click()
     await shop.getByRole('button', { name: '重新核对并合并' }).click()
     await shop.getByRole('link', { name: /结算预览/ }).waitFor()
@@ -165,6 +169,59 @@ const assert = require('node:assert/strict')
     await shop.getByText('¥0.00', { exact: true }).waitFor()
     await shop.getByText('¥129.00', { exact: true }).last().waitFor()
     console.log('PASS guest cart -> sign in -> merge -> repriced checkout')
+    await shop.route(
+      '**/api/v1/orders/',
+      async (route) => {
+        assert.equal(route.request().method(), 'POST')
+        const response = await route.fetch()
+        assert.equal(response.status(), 201)
+        await route.abort('connectionreset')
+      },
+      { times: 1 },
+    )
+    await shop.getByRole('button', { name: '确认金额并提交订单' }).click()
+    await shop.getByRole('button', { name: '找回上次提交的订单' }).click()
+    await shop.getByRole('heading', { name: '待付款', exact: true }).waitFor()
+    const no = new URL(shop.url()).pathname.split('/').pop()
+    await shop.getByRole('button', { name: '进入模拟支付' }).click()
+    await shop.getByRole('button', { name: '模拟付款失败' }).click()
+    await shop.getByText('上次模拟付款失败', { exact: false }).waitFor()
+    await shop.getByRole('button', { name: '进入模拟支付' }).click()
+    await shop.getByRole('button', { name: '模拟付款成功' }).click()
+    await shop.getByRole('heading', { name: '待发货', exact: true }).waitFor()
+    await page.goto(origin + '/ops/orders')
+    await page.getByLabel('订单号', { exact: true }).fill(no)
+    await page.getByRole('button', { name: '查询', exact: true }).click()
+    await page.getByRole('link', { name: '查看订单' }).click()
+    await page.getByLabel('承运商').fill('演示物流')
+    await page.getByLabel('物流单号').fill('DEMO-SMOKE')
+    await page.getByRole('button', { name: '确认整单发货' }).click()
+    await page.getByRole('heading', { name: '待收货', exact: true }).waitFor()
+    await shop.reload()
+    await shop.getByRole('button', { name: '确认收货', exact: true }).click()
+    await shop.getByRole('button', { name: '已收到商品，完成订单' }).click()
+    await shop.getByRole('heading', { name: '已完成', exact: true }).waitFor()
+    await shop.goto(origin + '/account')
+    await shop.getByRole('link', { name: '我的订单与交易记录' }).click()
+    assert.equal(
+      await shop
+        .getByRole('link', { name: '查看订单' })
+        .waitFor()
+        .then(() => shop.getByRole('link', { name: '查看订单' }).count()),
+      1,
+    )
+    console.log(
+      'PASS lost order response -> recover -> failed payment -> retry -> ship -> receive -> history',
+    )
+    await shop.goto(origin)
+    await shop.getByRole('link', { name: '查看规格' }).click()
+    await shop.getByRole('button', { name: '青绿' }).click()
+    await shop.getByRole('button', { name: '加入购物车' }).click()
+    await shop.getByText('已加入购物车', { exact: true }).waitFor()
+    await shop.getByRole('link', { name: '查看购物车' }).click()
+    await shop.getByRole('link', { name: /结算预览/ }).click()
+    await shop.getByRole('button', { name: '确认金额并提交订单' }).click()
+    await shop.getByRole('heading', { name: '待付款', exact: true }).waitFor()
   } finally {
     await browser.close()
   }

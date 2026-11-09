@@ -38,3 +38,5 @@ LOGGING["handlers"]["console"]["formatter"] = "json"  # noqa: F405
 LOGGING["root"]["handlers"] = ["console"]  # noqa: F405
 for logger_config in LOGGING["loggers"].values():  # noqa: F405
     logger_config["handlers"] = ["console"]
+
+DEMO_PAYMENT_ENABLED = False

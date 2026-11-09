@@ -107,6 +107,7 @@ def run_suite(work):
                 "users/tests/test_address_races.py",
                 "catalog/tests/test_stock_races.py",
                 "cart/tests/test_race.py",
+                "orders/tests/test_races.py",
                 "--no-cov",
             ]
         )
@@ -116,7 +117,7 @@ def run_suite(work):
                 "manage.py",
                 "shell",
                 "-c",
-                "import os; from django.contrib.auth.models import User,Group; user=User.objects.create_user('accept_operator',password=os.environ['SIQ_TEST_PASSWORD']); user.groups.add(Group.objects.get(name='catalog_operator'))",
+                "import os; from django.contrib.auth.models import User,Group; user=User.objects.create_user('accept_operator',password=os.environ['SIQ_TEST_PASSWORD']); user.groups.add(Group.objects.get(name='catalog_operator'),Group.objects.get(name='order_operator'))",
             ]
         )
         start(
@@ -150,6 +151,50 @@ def run_suite(work):
             check=True,
             timeout=150,
         )
+        # Advance only the pending fixture's deadline inside this newly provisioned database.
+        with pymysql.connect(
+            host="127.0.0.1",
+            port=db_port,
+            user="root",
+            password=password,
+            database="siq_accept",
+            autocommit=True,
+        ) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE orders_order SET expires_at=UTC_TIMESTAMP(6)+INTERVAL 3 SECOND WHERE status='pending'"
+                )
+                assert cursor.rowcount == 1
+                worker = subprocess.Popen(
+                    [sys.executable, "manage.py", "process_order_events", "--watch"],
+                    cwd=BACKEND,
+                    env=env,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                )
+                processes.append(worker)
+                deadline = time.monotonic() + 93
+                while time.monotonic() < deadline:
+                    cursor.execute(
+                        "SELECT TIMESTAMPDIFF(MICROSECOND,o.expires_at,e.occurred_at)/1000000 FROM orders_order o JOIN orders_event e ON e.order_id=o.id WHERE o.status='canceled' AND e.reason='timeout' AND e.delivered_at IS NOT NULL"
+                    )
+                    result = cursor.fetchone()
+                    if result:
+                        assert 0 <= result[0] <= 90
+                        cursor.execute(
+                            "SELECT COUNT(*) FROM orders_stockmovement WHERE kind='release'"
+                        )
+                        assert cursor.fetchone()[0] == 1
+                        print(
+                            f"PASS worker timeout, single release, outbox delivered; close lag {result[0]} seconds"
+                        )
+                        break
+                    if worker.poll() is not None:
+                        raise RuntimeError("order worker exited")
+                    time.sleep(0.5)
+                else:
+                    raise TimeoutError(
+                        "pending order not closed and delivered within deadline"
+                    )
     finally:
         for process in reversed(processes):
             process.terminate()

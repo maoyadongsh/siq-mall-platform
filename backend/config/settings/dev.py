@@ -21,3 +21,5 @@ TERMS_VERSION = "demo-v1"
 DATABASES["default"]["CONN_MAX_AGE"] = 0  # noqa: F405
 
 CORS_ALLOW_ALL_ORIGINS = False
+
+DEMO_PAYMENT_ENABLED = os.getenv("DEMO_PAYMENT_ENABLED") == "1"

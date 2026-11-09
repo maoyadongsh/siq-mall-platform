@@ -79,6 +79,7 @@ async function signOut() {
       </el-descriptions-item>
     </el-descriptions>
     <div class="account-card__actions">
+      <router-link class="account-card__address" to="/orders">我的订单与交易记录</router-link>
       <router-link class="account-card__address" to="/account/addresses">管理收货地址</router-link>
       <el-button class="account-card__logout" :loading="loading" @click="signOut">
         退出登录

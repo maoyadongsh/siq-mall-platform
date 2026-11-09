@@ -4,7 +4,31 @@ import { fetchAddresses } from '@/api/addresses'
 import { getCart, quote } from '@/api/cart'
 
 import { useUserStore } from '@/stores/user'
+import { useRouter } from 'vue-router'
+import { pendingCommand, submitCommand } from '@/api/orders'
+const router = useRouter()
 const user = useUserStore()
+const submitting = ref(false)
+const recovery = ref(pendingCommand('order.create', 'checkout'))
+async function place() {
+  if (submitting.value || (!recovery.value && (!result.value || expired.value))) return
+  submitting.value = true
+  error.value = ''
+  try {
+    const data = recovery.value?.data || {
+      intent_id: crypto.randomUUID(),
+      quote_id: result.value.quote_id,
+    }
+    const order = await submitCommand('order.create', 'checkout', '/orders/', data)
+    await router.push('/orders/' + order.order_no)
+  } catch (e) {
+    recovery.value = pendingCommand('order.create', 'checkout')
+    if (!recovery.value) result.value = null
+    error.value = e.message
+  } finally {
+    submitting.value = false
+  }
+}
 const addresses = ref([]),
   selected = ref(''),
   result = ref(null),
@@ -53,7 +77,7 @@ async function refresh() {
   }
 }
 onMounted(() => {
-  refresh()
+  if (!recovery.value) refresh()
   timer = setInterval(() => {
     now.value = Date.now()
   }, 1000)
@@ -68,14 +92,14 @@ onUnmounted(() => {
     <router-link to="/cart">返回购物车</router-link>
     <h1>结算预览</h1>
     <label v-if="addresses.length">收货地址
-      <select v-model="selected" @change="refresh">
+      <select v-model="selected" :disabled="submitting || !!recovery" @change="refresh">
         <option v-for="a in addresses" :key="a.id" :value="a.id">
           {{ a.recipient }} · {{ a.province }}{{ a.city }}{{ a.district }}{{ a.detail }}
         </option>
       </select></label>
     <p v-if="loading">正在核对价格与库存…</p>
     <p v-else-if="error" role="alert">{{ error }}</p>
-    <p v-else-if="!addresses.length">
+    <p v-else-if="!recovery && !addresses.length">
       请先添加收货地址。 <router-link to="/account/addresses">管理地址</router-link>
     </p>
     <article v-if="result">
@@ -100,7 +124,11 @@ onUnmounted(() => {
         }}
       </p>
     </article>
-    <button :disabled="loading" @click="refresh">重新试算</button>
+    <button v-if="recovery" :disabled="submitting" @click="place">找回上次提交的订单</button>
+    <button v-else-if="result" :disabled="expired || loading || submitting" @click="place">
+      确认金额并提交订单
+    </button>
+    <button v-if="!recovery" :disabled="loading || submitting" @click="refresh">重新试算</button>
   </section>
 </template>
 <style src="../catalog/catalog.css"></style>

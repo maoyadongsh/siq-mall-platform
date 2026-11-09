@@ -11,6 +11,29 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         {
+          path: 'orders',
+          component: () => import('@/views/orders/OrderList.vue'),
+          meta: { title: '我的订单', requiresAuth: true },
+        },
+        {
+          path: 'orders/:no',
+          component: () => import('@/views/orders/OrderDetail.vue'),
+          props: true,
+          meta: { title: '订单详情', requiresAuth: true },
+        },
+        {
+          path: 'ops/orders',
+          component: () => import('@/views/orders/OrderList.vue'),
+          props: { ops: true },
+          meta: { title: '订单履约', requiresAuth: true, fulfill: true },
+        },
+        {
+          path: 'ops/orders/:no',
+          component: () => import('@/views/orders/OrderDetail.vue'),
+          props: (r) => ({ no: r.params.no, ops: true }),
+          meta: { title: '订单履约详情', requiresAuth: true, fulfill: true },
+        },
+        {
           path: 'cart',
           component: () => import('@/views/cart/CartView.vue'),
           meta: { title: '购物车' },
@@ -92,6 +115,7 @@ router.beforeEach(async (to) => {
   if (!userStore.isLoggedIn) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
+  if (to.meta.fulfill && !userStore.profile?.can_fulfill_orders) return { name: 'account' }
   if (to.meta.catalogPermission && !userStore.profile?.can_manage_catalog)
     return { name: 'account' }
   return true

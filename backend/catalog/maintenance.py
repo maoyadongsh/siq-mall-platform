@@ -164,7 +164,7 @@ def adjust_stock(actor, pk, key, data):
         raise BusinessError(
             ErrorCode.STOCK_NOT_ENOUGH, "扣减数量超过当前可售库存", http_status=409
         )
-    if after > 2147483647:
+    if after + sku.reserved_stock > 2147483647:
         raise invalid("库存超出上限")
     row, created = StockAdjustment.objects.get_or_create(
         actor=actor,

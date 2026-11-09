@@ -20,6 +20,13 @@ onMounted(() => userStore.restoreSession())
         >
           商品管理
         </router-link>
+        <router-link
+          v-if="userStore.profile?.can_fulfill_orders"
+          class="mall-layout__link"
+          to="/ops/orders"
+        >
+          订单履约
+        </router-link>
         <router-link v-if="userStore.isLoggedIn" class="mall-layout__link" to="/account">
           我的账号
         </router-link>

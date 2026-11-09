@@ -234,3 +234,9 @@ PATCH ops/skus/{id}/ 接收 label 或 price，附 SKU expected_version 和 reaso
 ### I05 Web 购物车与试算（2026-11-09）
 
 carts/items/、carts/items/{id}/、carts/merge/ 和 checkout/quote/ 已接入，字段见生成的 openapi.yaml。累加与游客合并以账号、操作类型和 UUID 幂等键定位首次结果；合并失败的 SKU 返回原请求数量与原因。PATCH/DELETE 使用购物项版本。试算按实时价格、库存及本人有效收货地区执行，演示运费8.00、商品小计满129.00免运，报价有效5分钟。试算时不占库存。非空券ID及客户端自填应付金额均拒绝。
+
+### I06 Web 订单与演示支付（2026-11-09）
+
+第4节列出的 orders、payments、operations 与第6节 ops/orders 接口已接入，具体请求/响应见 openapi.yaml。业务号、报价及 intent 使用 UUID。各写接口验证 Idempotency-Key。短事务按用户串行写入，GET operations 仅返回已提交记录，读到404时仍须使用原意图与原键重试。锁竞争重试耗尽返回409、10009及Retry-After。下单响应未知时可用 orders/by-intent 找回订单。取消/超时释放可售库存，成功付款仅消耗预占。订单事件及其消费记录分别与业务和投影写入同事务。GET ops/order-activities/ 返回授权履约人员最近20条已投递动态。
+
+I06 的配送与金额从服务端重算。订单四项金额以Decimal(12,2)保存并校验应付公式。商品、单价、主图、配送地址与履约记录按订单展示。不同于未来含券版本，本阶段优惠额为0。Windows 使用同一管理命令持续扫描，Ubuntu 使用 systemd timer 扫描数据库 Outbox。Celery 投递与订阅通知留给后续消费者；当前演示运行无需新增消息代理。

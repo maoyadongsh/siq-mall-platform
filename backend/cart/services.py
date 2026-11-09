@@ -160,8 +160,7 @@ def modify(user, pk, data, remove=False):
     return result
 
 
-@transaction.atomic
-def quote(user, data):
+def calculate_quote(user, data):
     address = get_object_or_404(Address, user=user, pk=data["address_id"])
     code = address.region_code
     if (
@@ -234,17 +233,20 @@ def quote(user, data):
         "selected_coupon": None,
         "unavailable_coupons": [],
     }
+    snapshot = {
+        "items": lines,
+        **amounts,
+        "address_summary": {"id": str(address.pk), "version": address.version},
+        "shipping_version": settings.CART_SHIPPING_VERSION,
+        "shipping_threshold": str(settings.CART_FREE_SHIPPING_THRESHOLD),
+        "base_freight": str(settings.CART_BASE_FREIGHT),
+    }
+    return body, snapshot, address
+
+
+@transaction.atomic
+def quote(user, data):
+    body, snapshot, _ = calculate_quote(user, data)
     expires = timezone.now() + timedelta(minutes=5)
-    record = Quote.objects.create(
-        user=user,
-        expires_at=expires,
-        snapshot={
-            "items": lines,
-            **amounts,
-            "address_summary": {"id": str(address.pk), "version": address.version},
-            "shipping_version": settings.CART_SHIPPING_VERSION,
-            "shipping_threshold": str(settings.CART_FREE_SHIPPING_THRESHOLD),
-            "base_freight": str(settings.CART_BASE_FREIGHT),
-        },
-    )
+    record = Quote.objects.create(user=user, expires_at=expires, snapshot=snapshot)
     return {**body, "quote_id": str(record.pk), "expires_at": expires.isoformat()}

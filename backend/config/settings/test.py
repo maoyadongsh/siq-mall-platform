@@ -27,3 +27,5 @@ SESSION_COOKIE_SECURE = False
 LOGGING["root"]["handlers"] = ["console"]  # noqa: F405
 LOGGING["root"]["level"] = "WARNING"  # noqa: F405
 LOGGING["handlers"]["console"]["formatter"] = "console"  # noqa: F405
+
+DEMO_PAYMENT_ENABLED = True

@@ -23,6 +23,7 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserSummarySerializer(serializers.Serializer):
+    can_fulfill_orders = serializers.BooleanField()
     can_manage_catalog = serializers.BooleanField()
     id = serializers.CharField()
     username = serializers.CharField()

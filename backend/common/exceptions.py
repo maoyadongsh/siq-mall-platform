@@ -72,12 +72,16 @@ def api_exception_handler(exc, context):
     """DRF 全局异常处理器：所有异常输出统一结构，5xx 只记录日志不暴露细节。"""
     if isinstance(exc, BusinessError):
         logger.info("业务异常 code=%s message=%s", exc.code, exc.message)
-        return api_response(
+        response = api_response(
             code=exc.code,
             message=exc.message,
             errors=exc.errors,
             http_status=exc.http_status,
         )
+
+        if exc.code == ErrorCode.OPERATION_BUSY:
+            response["Retry-After"] = "1"
+        return response
 
     response = drf_exception_handler(exc, context)
     if response is None:

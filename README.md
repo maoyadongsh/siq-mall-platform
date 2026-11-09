@@ -3,7 +3,7 @@
 Vue 3 + Django 5.2/DRF + JWT + MariaDB + Redis 在线电商工程。
 Web 已接入身份、资料地址和首批商品运营功能。商城首页为商品列表，服务状态页位于 `/status`。授权运营人员可在 `/ops/products` 保存多规格商品草稿并上下架。环境为 Windows 11 开发、Ubuntu 24.04 原生部署。
 
-买家可以从商品详情加购，在 `/cart` 合并游客选择、改量、移除和选中商品，再到 `/checkout` 选择地址并试算。游客清单使用当前标签页的 sessionStorage；账号购物车由服务端保存。首次启用前在目标开发库核对并应用 `cart.0001_initial` 迁移。报价有效5分钟，创建订单与模拟支付在I06接入。
+买家可以从商品详情加购，在 `/cart` 合并游客选择、改量、移除和选中商品，再到 `/checkout` 选择地址并试算。游客清单使用当前标签页的 sessionStorage；账号购物车由服务端保存。首次启用前在目标开发库核对并应用 `cart.0001_initial` 迁移。报价有效5分钟。买家确认后创建订单，可从 /orders 找回待付款订单或查看履约进度。
 
 开发入口见[设计交付总览](docs/07-predevelopment-handoff.md)和[AGENTS](AGENTS.md)。验收进度见[开发登记](docs/11-readiness-and-acceptance.md)。
 
@@ -27,6 +27,29 @@ Web 已接入身份、资料地址和首批商品运营功能。商城首页为�
 | [本轮验证登记](docs/05-review-validation-2026-11-06.md) | 2026-11-06实际执行与待验收项 |
 | [历史验收记录](docs/03-iteration-01-acceptance.md) | 旧版记录，不能替代本轮验证 |
 | [OpenAPI](docs/openapi.yaml) | 按当前实际路由生成并校验；未实现目标契约见10 |
+
+## 订单演示与关单任务
+
+首次启用 I06 前，在目标开发库备份并核对 `catalog.0003_sku_reserved_stock` 和 `orders.0001_initial` 后运行 migrate。在隔离的开发环境中设置 `DEMO_PAYMENT_ENABLED=1` 并重启后端即可演示付款成功或失败。生产 settings 始终禁用模拟支付。通过受信任的管理员为履约人员分配 `order_operator` 组，重新登录后进入 `/ops/orders`。买家在用户中心进入“我的订单与交易记录”。
+
+待付款期限30分钟。Windows 一键启动脚本会另外启动扫描进程；手工启动时在 backend 目录运行：
+
+```powershell
+.\.venv\Scripts\python.exe manage.py process_order_events --watch
+```
+
+Ubuntu 预发安装订单扫描单元。它与 Gunicorn 使用同一套代码、迁移、账号和环境文件。路径与服务账号按实际环境核对：
+
+```bash
+sudo install -m 644 deploy/mall-orders.service.example /etc/systemd/system/mall-orders.service
+sudo install -m 644 deploy/mall-orders.timer.example /etc/systemd/system/mall-orders.timer
+sudo systemctl daemon-reload
+sudo systemctl enable --now mall-orders.timer
+systemctl list-timers mall-orders.timer
+journalctl -u mall-orders.service -n 30
+```
+
+每次扫描先关闭到期订单再投递履约动态。异常记录保留并在后续扫描重试。停机恢复后执行一次 `manage.py process_order_events` 即可补扫。回滚应用前先处理待付款订单和已预占库存，备份订单、支付及流水，再停用对应任务；反向迁移会丢失业务记录。
 
 ## Windows 11 启动
 
