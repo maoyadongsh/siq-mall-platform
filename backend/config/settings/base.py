@@ -70,6 +70,8 @@ INSTALLED_APPS = [
     "catalog.apps.CatalogConfig",
     "cart",
     "reviews.apps.ReviewsConfig",
+    "content.apps.ContentConfig",
+    "notifications.apps.NotificationsConfig",
     "promotions.apps.PromotionsConfig",
     "orders.apps.OrdersConfig",
 ]
@@ -203,7 +205,11 @@ MALL_CSRF_COOKIE_NAME = "mall_csrf"
 CSRF_TRUSTED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "")
 
 SPECTACULAR_SETTINGS = {
-    "ENUM_NAME_OVERRIDES": {"CouponScopeEnum": ["all", "products"]},
+    "ENUM_NAME_OVERRIDES": {
+        "CouponScopeEnum": ["all", "products"],
+        "CouponTypeEnum": ["fixed", "percentage"],
+        "NoticeTypeEnum": ["order", "support", "system"],
+    },
     "TITLE": "SIQ优选商城 API",
     "DESCRIPTION": "SIQ优选商城前后端分离接口文档（/api/v1/）",
     "VERSION": APP_VERSION,

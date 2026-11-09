@@ -321,6 +321,35 @@ const assert = require('node:assert/strict')
     console.log(
       'PASS review lost response -> retry -> moderator publishes low rating -> public score -> hide -> buyer reason',
     )
+
+    await page.goto(origin + '/ops/notification-templates')
+    await page.setViewportSize({ width: 1440, height: 900 })
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
+    await page.locator('.template-list button').filter({ hasText: 'order.paid' }).first().click()
+    await page.getByLabel('标题', { exact: true }).fill('支付成功提醒 {order_no}')
+    await page.getByLabel('正文', { exact: true }).fill('订单 {order_no} 已完成模拟支付，请查看履约动态。')
+    await page.getByRole('button', { name: '保存为新版本' }).click()
+    await page.getByRole('button', { name: '启用此版本' }).click()
+    await page.getByText('新版本已启用，后续事件将使用此模板。', { exact: true }).waitFor()
+    console.log('PASS notification template draft -> server preview -> activate')
+
+    await shop.goto(origin + '/messages')
+    await shop
+      .getByRole('heading', { name: '评价审核结果已更新' })
+      .nth(1)
+      .waitFor({ timeout: 40000 })
+    await shop.getByRole('button', { name: '全部已读' }).click()
+    await shop.getByText(/已处理 \d+ 条消息/).waitFor()
+    await shop.reload()
+    assert.equal(await shop.getByRole('button', { name: '查看并标为已读' }).count(), 0)
+    await shop.getByRole('button', { name: '订单', exact: true }).click()
+    for (const width of [1440, 375]) {
+      await shop.setViewportSize({ width, height: 844 })
+      assert.equal(await shop.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
+    }
+    await shop.getByRole('button', { name: '查看关联内容' }).first().click()
+    await shop.waitForURL(/\/orders\//)
+    console.log('PASS inbox order/review delivery -> read all -> business target')
   } finally {
     await browser.close()
   }

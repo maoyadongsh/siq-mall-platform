@@ -57,6 +57,8 @@ class ErrorCode:
 
     # 通知
     NOTICE_NOT_FOUND = 80001
+    TEMPLATE_INVALID = 80002
+    NOTICE_CURSOR_INVALID = 80003
 
     # CMS / 客服
     CONTENT_OFFLINE = 90001

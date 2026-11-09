@@ -252,3 +252,14 @@ checkout/quote/ 接受一个可空 user_coupon_id。响应包含 available_coupo
 reviews/ 的 POST 验证登录买家、本人已完成订单项、1–5星及去首尾空白后的1–500字。重复业务提交409，同键同参重放201；该订单项有评价后不能再修改原文。users/me/reviews/ 可按 order_no 筛选本人记录。ops/reviews/ 要求 reviews.moderate，支持 status、product_id 与页码；队列仅返回核查所需商品、订单项、数量、状态与审核信息。moderate/ 要求 Idempotency-Key 和 expected_version，拒绝/隐藏的原因必填，冲突返回409。审核动作及版本同事务留痕。
 
 products/{id}/reviews/ 公开在售商品已通过的评价，返回页码分页结构，data.rating_summary.count 和 average 计算自所有已公开项。average 为保留一位小数的字符串；无公开评价时为null。公开作者统一标识为“已购用户”，订单号、用户标识、收货资料与审核原因不进入公开响应。
+
+
+### I09 站内通知（2026-11-09）
+
+`notifications/`、`notifications/unread-count/`、`notifications/read/` 与 `notifications/subscriptions/` 已接入，实际信封和字段以重新生成的 `openapi.yaml` 为准。通知列表使用绑定用户与分类的签名游标，按 `(recipient_seq,id)` 倒序翻历史；响应同时给出有时效、带用户与分类签名的 `read_watermark`。全部已读只更新该水位以内的未读事实，按ID已读最多100项，接口不读取或返回他人的消息。
+
+订单事件与评价审核事件分别保留独立消费回执，回执、通知与收件人序号在同一事务提交。`process_order_events` 的履约动态投递和通知投递互不复用完成标记；一个消费者失败不会撤销另一个投影。持续扫描与 Ubuntu timer 的目标间隔均为5秒，正常链路目标为10秒内到达，实测值登记在11。启用通知迁移前的历史订单事件只补消费回执，不 retroactive 建消息。
+
+`ops/notification-templates/` 要求 `content.publish`（运营组 `content_operator`）。PATCH 以 `expected_version` 创建未启用的新版本，不改变当前线上模板；activate 同时校验目标版本和当前启用版本，并要求 `Idempotency-Key`。标题与正文只支持事件白名单变量，缺少变量时消费者显式失败并等待配置修复后补投，不发送半成品。
+
+订阅结果接口按用户、平台和 `client_event_id` 去重，返回 `delivery_status=not_sent`。accept 只代表一次授权结果，不是永久许可或实际送达证明；当前没有真实微信模板配置、发送接口或送达回执。

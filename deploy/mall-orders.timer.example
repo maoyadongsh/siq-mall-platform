@@ -1,9 +1,9 @@
 [Unit]
-Description=Scan pending orders every 30 seconds
+Description=Scan pending orders and notifications every 5 seconds
 
 [Timer]
 OnBootSec=10s
-OnUnitInactiveSec=30s
+OnUnitInactiveSec=5s
 AccuracySec=1s
 
 [Install]

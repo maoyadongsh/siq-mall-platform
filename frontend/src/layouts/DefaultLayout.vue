@@ -1,9 +1,51 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { unreadNotifications } from '@/api/notifications'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
-onMounted(() => userStore.restoreSession())
+const unread = ref(0)
+let timer
+
+async function refreshUnread() {
+  if (!userStore.isLoggedIn) {
+    unread.value = 0
+    return
+  }
+  try {
+    const data = await unreadNotifications()
+    unread.value = data.total
+  } catch {
+    return
+  }
+}
+
+function startPolling() {
+  clearInterval(timer)
+  refreshUnread()
+  if (userStore.isLoggedIn) {
+    timer = setInterval(() => {
+      if (document.visibilityState === 'visible') refreshUnread()
+    }, 60000)
+  }
+}
+
+function visible() {
+  if (document.visibilityState === 'visible') refreshUnread()
+}
+
+watch(() => userStore.isLoggedIn, startPolling)
+onMounted(async () => {
+  await userStore.restoreSession()
+  startPolling()
+  window.addEventListener('siq:notifications-changed', refreshUnread)
+  document.addEventListener('visibilitychange', visible)
+})
+onBeforeUnmount(() => {
+  clearInterval(timer)
+  window.removeEventListener('siq:notifications-changed', refreshUnread)
+  document.removeEventListener('visibilitychange', visible)
+})
 </script>
 
 <template>
@@ -41,6 +83,18 @@ onMounted(() => userStore.restoreSession())
           to="/ops/reviews"
         >
           评价审核
+        </router-link>
+        <router-link
+          v-if="userStore.profile?.can_publish_content"
+          class="mall-layout__link"
+          to="/ops/notification-templates"
+        >
+          通知模板
+        </router-link>
+        <router-link v-if="userStore.isLoggedIn" class="mall-layout__link" to="/messages">
+          消息<span v-if="unread" class="mall-layout__badge" :aria-label="unread + '条未读消息'">{{
+            unread > 99 ? '99+' : unread
+          }}</span>
         </router-link>
         <router-link v-if="userStore.isLoggedIn" class="mall-layout__link" to="/account">
           我的账号
@@ -96,6 +150,19 @@ onMounted(() => userStore.restoreSession())
 }
 .mall-layout__link:hover {
   color: var(--mall-color-primary);
+}
+.mall-layout__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  min-height: 20px;
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 10px;
+  color: #fff;
+  background: var(--mall-color-primary);
+  font-size: 12px;
 }
 .mall-layout__main {
   flex: 1;

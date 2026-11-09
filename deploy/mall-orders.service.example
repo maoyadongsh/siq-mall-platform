@@ -1,5 +1,5 @@
 [Unit]
-Description=Expire pending orders and deliver order events
+Description=Expire pending orders and deliver order events and inbox notifications
 After=network.target mariadb.service
 
 [Service]

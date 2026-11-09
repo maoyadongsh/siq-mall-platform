@@ -11,6 +11,16 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         {
+          path: 'messages',
+          component: () => import('@/views/notifications/MessageCenter.vue'),
+          meta: { title: '消息中心', requiresAuth: true },
+        },
+        {
+          path: 'ops/notification-templates',
+          component: () => import('@/views/notifications/OpsTemplates.vue'),
+          meta: { title: '通知模板', requiresAuth: true, contentPermission: true },
+        },
+        {
           path: 'orders/:no/review',
           component: () => import('@/views/reviews/OrderReview.vue'),
           props: true,
@@ -153,6 +163,8 @@ router.beforeEach(async (to) => {
     return { name: 'account' }
   if (to.meta.fulfill && !userStore.profile?.can_fulfill_orders) return { name: 'account' }
   if (to.meta.catalogPermission && !userStore.profile?.can_manage_catalog)
+    return { name: 'account' }
+  if (to.meta.contentPermission && !userStore.profile?.can_publish_content)
     return { name: 'account' }
   return true
 })

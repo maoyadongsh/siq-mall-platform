@@ -47,6 +47,7 @@ class Review(models.Model):
 
 
 class ReviewAction(models.Model):
+    event_id = models.UUIDField(null=True, unique=True)
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     operation = models.CharField(max_length=12)
     key = models.UUIDField()

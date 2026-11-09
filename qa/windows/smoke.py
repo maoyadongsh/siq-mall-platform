@@ -110,6 +110,7 @@ def run_suite(work):
                 "orders/tests/test_races.py",
                 "promotions/tests/test_races.py",
                 "reviews/tests/test_races.py",
+                "notifications/tests/test_races.py",
                 "--no-cov",
             ]
         )
@@ -119,7 +120,7 @@ def run_suite(work):
                 "manage.py",
                 "shell",
                 "-c",
-                "import os; from django.contrib.auth.models import User,Group; user=User.objects.create_user('accept_operator',password=os.environ['SIQ_TEST_PASSWORD']); user.groups.add(Group.objects.get(name='catalog_operator'),Group.objects.get(name='order_operator'),Group.objects.get(name='promotion_operator')); moderator=User.objects.create_user('accept_moderator',password=os.environ['SIQ_TEST_PASSWORD']); moderator.groups.add(Group.objects.get(name='review_moderator'))",
+                "import os; from django.contrib.auth.models import User,Group; user=User.objects.create_user('accept_operator',password=os.environ['SIQ_TEST_PASSWORD']); user.groups.add(Group.objects.get(name='catalog_operator'),Group.objects.get(name='order_operator'),Group.objects.get(name='promotion_operator'),Group.objects.get(name='content_operator')); moderator=User.objects.create_user('accept_moderator',password=os.environ['SIQ_TEST_PASSWORD']); moderator.groups.add(Group.objects.get(name='review_moderator'))",
             ]
         )
         start(
@@ -146,12 +147,19 @@ def run_suite(work):
             FRONTEND,
             web_port,
         )
+        worker = subprocess.Popen(
+            [sys.executable, "manage.py", "process_order_events", "--watch"],
+            cwd=BACKEND,
+            env=env,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+        processes.append(worker)
         subprocess.run(
             ["node", "e2e/acceptance.cjs"],
             cwd=FRONTEND,
             env=env,
             check=True,
-            timeout=150,
+            timeout=240,
         )
         # Advance only the pending fixture's deadline inside this newly provisioned database.
         with pymysql.connect(
@@ -164,16 +172,22 @@ def run_suite(work):
         ) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
+                    "SELECT MAX(TIMESTAMPDIFF(MICROSECOND,e.occurred_at,n.created_at)/1000000) FROM orders_event e JOIN notifications_notification n ON n.event_id=e.event_id WHERE e.kind='order.paid'"
+                )
+                notification_lag = cursor.fetchone()[0]
+                assert notification_lag is not None and 0 <= notification_lag <= 10
+                cursor.execute(
+                    "SELECT COUNT(*),COUNT(DISTINCT user_id,event_id,type) FROM notifications_notification"
+                )
+                notice_counts = cursor.fetchone()
+                assert notice_counts[0] == notice_counts[1]
+                print(
+                    f"PASS notification max paid-event lag {notification_lag} seconds; no duplicate notices"
+                )
+                cursor.execute(
                     "UPDATE orders_order SET expires_at=UTC_TIMESTAMP(6)+INTERVAL 3 SECOND WHERE status='pending'"
                 )
                 assert cursor.rowcount == 1
-                worker = subprocess.Popen(
-                    [sys.executable, "manage.py", "process_order_events", "--watch"],
-                    cwd=BACKEND,
-                    env=env,
-                    creationflags=subprocess.CREATE_NO_WINDOW,
-                )
-                processes.append(worker)
                 deadline = time.monotonic() + 93
                 while time.monotonic() < deadline:
                     cursor.execute(

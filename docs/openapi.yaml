@@ -588,6 +588,226 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
           description: ''
+  /api/v1/notifications/:
+    get:
+      operationId: api_v1_notifications_retrieve
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - order
+          - support
+          - system
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoticePageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/notifications/read/:
+    post:
+      operationId: api_v1_notifications_read_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReadInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReadInputRequest'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/notifications/subscriptions/:
+    post:
+      operationId: api_v1_notifications_subscriptions_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubscriptionInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubscriptionInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/notifications/unread-count/:
+    get:
+      operationId: api_v1_notifications_unread_count_retrieve
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnreadResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/v1/operations/{operation}/{token}/:
     get:
       operationId: api_v1_operations_retrieve
@@ -1016,6 +1236,241 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetResponse'
+          description: ''
+  /api/v1/ops/notification-templates/:
+    get:
+      operationId: operator_notification_template_list
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplatePageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/notification-templates/{id}/:
+    get:
+      operationId: operator_notification_template_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTemplateResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+    patch:
+      operationId: api_v1_ops_notification_templates_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTemplateVersionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTemplateVersionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTemplateVersionRequest'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTemplateResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/notification-templates/{id}/activate/:
+    post:
+      operationId: api_v1_ops_notification_templates_activate_create
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateActivateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TemplateActivateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TemplateActivateRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationTemplateResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
           description: ''
   /api/v1/ops/order-activities/:
     get:
@@ -2982,17 +3437,16 @@ components:
           maxLength: 150
         delta:
           type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
+          maximum: 2147483647
+          minimum: -2147483648
         before:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 4294967295
           minimum: 0
           format: int64
         after:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 4294967295
           minimum: 0
           format: int64
         reason:
@@ -3064,12 +3518,12 @@ components:
           default: ready
         width:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 4294967295
           minimum: 0
           format: int64
         height:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 4294967295
           minimum: 0
           format: int64
       required:
@@ -3209,6 +3663,19 @@ components:
       - sku_label
       - status
       - version
+    ByType:
+      type: object
+      properties:
+        order:
+          type: integer
+        support:
+          type: integer
+        system:
+          type: integer
+      required:
+      - order
+      - support
+      - system
     CancelRequest:
       type: object
       properties:
@@ -3348,6 +3815,14 @@ components:
       description: |-
         * `all` - all
         * `products` - products
+    CouponTypeEnum:
+      enum:
+      - fixed
+      - percentage
+      type: string
+      description: |-
+        * `fixed` - fixed
+        * `percentage` - percentage
     CreateRequest:
       type: object
       properties:
@@ -3453,7 +3928,7 @@ components:
           minLength: 1
           maxLength: 80
         type:
-          $ref: '#/components/schemas/TypeEnum'
+          $ref: '#/components/schemas/CouponTypeEnum'
         threshold_amount:
           type: string
           format: decimal
@@ -3798,6 +4273,157 @@ components:
       required:
       - action
       - expected_version
+    Notice:
+      type: object
+      properties:
+        id:
+          type: string
+        recipient_seq:
+          type: string
+        type:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        target_type:
+          type: string
+        target_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        is_read:
+          type: boolean
+        read_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - body
+      - created_at
+      - id
+      - is_read
+      - read_at
+      - recipient_seq
+      - target_id
+      - target_type
+      - title
+      - type
+    NoticePage:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notice'
+        next_cursor:
+          type: string
+          nullable: true
+        has_more:
+          type: boolean
+        read_watermark:
+          type: string
+      required:
+      - has_more
+      - next_cursor
+      - read_watermark
+      - results
+    NoticePageResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/NoticePage'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    NoticeTypeEnum:
+      enum:
+      - order
+      - support
+      - system
+      type: string
+      description: |-
+        * `order` - order
+        * `support` - support
+        * `system` - system
+    NotificationTemplateData:
+      type: object
+      properties:
+        id:
+          type: string
+        event_type:
+          type: string
+        channel:
+          type: string
+        version:
+          type: integer
+        title:
+          type: string
+        body:
+          type: string
+        variables:
+          type: array
+          items:
+            type: string
+        enabled:
+          type: boolean
+        active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        supported_variables:
+          type: array
+          items:
+            type: string
+        preview:
+          $ref: '#/components/schemas/Preview'
+      required:
+      - active
+      - body
+      - channel
+      - created_at
+      - enabled
+      - event_type
+      - id
+      - preview
+      - supported_variables
+      - title
+      - variables
+      - version
+    NotificationTemplateResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/NotificationTemplateData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     OpResponse:
       type: object
       properties:
@@ -4212,7 +4838,7 @@ components:
           minLength: 1
           maxLength: 80
         type:
-          $ref: '#/components/schemas/TypeEnum'
+          $ref: '#/components/schemas/CouponTypeEnum'
         threshold_amount:
           type: string
           format: decimal
@@ -4293,6 +4919,27 @@ components:
           type: string
           minLength: 1
           maxLength: 50
+    PatchedTemplateVersionRequest:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        body:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        variables:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 40
+          maxItems: 20
     PatchedUpdateRequest:
       type: object
       properties:
@@ -4397,6 +5044,16 @@ components:
       - challenge_id
       - code
       - phone
+    Preview:
+      type: object
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+      required:
+      - body
+      - title
     ProductListResponse:
       type: object
       properties:
@@ -4433,7 +5090,7 @@ components:
           $ref: '#/components/schemas/ProductOutputStatusEnum'
         version:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 4294967295
           minimum: 0
           format: int64
         skus:
@@ -4524,6 +5181,11 @@ components:
       - message
       - request_id
       - timestamp
+    ProviderEnum:
+      enum:
+      - wechat_mini
+      type: string
+      description: '* `wechat_mini` - wechat_mini'
     PublicListResponse:
       type: object
       properties:
@@ -4716,6 +5378,53 @@ components:
       - message
       - request_id
       - timestamp
+    ReadInputRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 100
+        watermark:
+          type: string
+          minLength: 1
+        type:
+          $ref: '#/components/schemas/NoticeTypeEnum'
+    ReadResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/ReadResult'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    ReadResult:
+      type: object
+      properties:
+        total:
+          type: integer
+        by_type:
+          $ref: '#/components/schemas/ByType'
+        updated_count:
+          type: integer
+      required:
+      - by_type
+      - total
+      - updated_count
     ReasonEnum:
       enum:
       - user_changed_mind
@@ -4831,6 +5540,18 @@ components:
       - quantity
       - reason
       - sku_id
+    ResultEnum:
+      enum:
+      - accept
+      - reject
+      - failed
+      - unavailable
+      type: string
+      description: |-
+        * `accept` - accept
+        * `reject` - reject
+        * `failed` - failed
+        * `unavailable` - unavailable
     RoleListResponse:
       type: object
       properties:
@@ -4960,12 +5681,12 @@ components:
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
         available_stock:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 4294967295
           minimum: 0
           format: int64
         version:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 4294967295
           minimum: 0
           format: int64
       required:
@@ -4993,6 +5714,72 @@ components:
       - content
       - order_item_id
       - rating
+    SubscriptionData:
+      type: object
+      properties:
+        id:
+          type: string
+        provider:
+          type: string
+        template_key:
+          type: string
+        result:
+          type: string
+        client_event_id:
+          type: string
+          format: uuid
+        recorded_at:
+          type: string
+          format: date-time
+        delivery_status:
+          type: string
+      required:
+      - client_event_id
+      - delivery_status
+      - id
+      - provider
+      - recorded_at
+      - result
+      - template_key
+    SubscriptionInputRequest:
+      type: object
+      properties:
+        provider:
+          $ref: '#/components/schemas/ProviderEnum'
+        template_key:
+          type: string
+          minLength: 1
+          pattern: ^[A-Za-z0-9_.:-]{1,100}$
+        result:
+          $ref: '#/components/schemas/ResultEnum'
+        client_event_id:
+          type: string
+          format: uuid
+      required:
+      - client_event_id
+      - provider
+      - result
+      - template_key
+    SubscriptionResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/SubscriptionData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     Summary:
       type: object
       properties:
@@ -5004,6 +5791,18 @@ components:
       required:
       - average
       - count
+    TemplateActivateRequest:
+      type: object
+      properties:
+        version:
+          type: integer
+          minimum: 1
+        expected_version:
+          type: integer
+          minimum: 1
+      required:
+      - expected_version
+      - version
     TemplateData:
       type: object
       properties:
@@ -5101,6 +5900,47 @@ components:
       - message
       - request_id
       - timestamp
+    TemplatePage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page_size:
+          type: integer
+        page:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationTemplateData'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    TemplatePageResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/TemplatePage'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     TemplateResponse:
       type: object
       properties:
@@ -5150,17 +5990,41 @@ components:
           minLength: 1
       required:
       - refresh
-    TypeEnum:
-      enum:
-      - fixed
-      - percentage
-      type: string
-      description: |-
-        * `fixed` - fixed
-        * `percentage` - percentage
+    Unread:
+      type: object
+      properties:
+        total:
+          type: integer
+        by_type:
+          $ref: '#/components/schemas/ByType'
+      required:
+      - by_type
+      - total
+    UnreadResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/Unread'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     UserSummary:
       type: object
       properties:
+        can_publish_content:
+          type: boolean
         can_moderate_reviews:
           type: boolean
         can_manage_promotions:
@@ -5186,6 +6050,7 @@ components:
       - can_manage_catalog
       - can_manage_promotions
       - can_moderate_reviews
+      - can_publish_content
       - has_verified_phone
       - id
       - nickname

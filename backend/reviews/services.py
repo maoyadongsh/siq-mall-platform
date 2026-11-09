@@ -1,5 +1,6 @@
 import hashlib
 import json
+from uuid import uuid4
 from decimal import Decimal, ROUND_HALF_UP
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -146,6 +147,7 @@ def write(actor, operation, key, target_id, data):
             ]
         )
     ReviewAction.objects.create(
+        event_id=uuid4(),
         actor=actor,
         operation=operation,
         key=key,
