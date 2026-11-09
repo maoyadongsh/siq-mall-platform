@@ -5,6 +5,7 @@
 """
 
 import os
+from decimal import Decimal
 from datetime import timedelta
 from pathlib import Path
 
@@ -67,6 +68,7 @@ INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
     "users.apps.UsersConfig",
     "catalog.apps.CatalogConfig",
+    "cart",
 ]
 
 MIDDLEWARE = [
@@ -268,3 +270,7 @@ LOGGING = {
         },
     },
 }
+
+CART_BASE_FREIGHT = Decimal("8.00")
+CART_FREE_SHIPPING_THRESHOLD = Decimal("129.00")
+CART_SHIPPING_VERSION = "mainland-v1"

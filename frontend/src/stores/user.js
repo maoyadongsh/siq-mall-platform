@@ -8,6 +8,8 @@ const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 const LOCK_KEY = 'mall_session_refresh_lock'
 const LOGOUT_KEY = 'mall_session_logout_at'
 
+let restorePending = null
+
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -80,14 +82,16 @@ export const useUserStore = defineStore('user', {
     },
 
     async restoreSession() {
+      if (restorePending) return restorePending
       if (this.restoreAttempted) return
       this.restoreAttempted = true
       if (!this.hasRefreshSession) return
-      try {
-        await this.refreshAccessToken()
-      } catch {
-        this.clear()
-      }
+      restorePending = this.refreshAccessToken()
+        .catch(() => this.clear())
+        .finally(() => {
+          restorePending = null
+        })
+      return restorePending
     },
 
     async refreshAccessToken() {

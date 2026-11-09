@@ -106,6 +106,7 @@ def run_suite(work):
                 "--ds=siq_accept_settings",
                 "users/tests/test_address_races.py",
                 "catalog/tests/test_stock_races.py",
+                "cart/tests/test_race.py",
                 "--no-cov",
             ]
         )

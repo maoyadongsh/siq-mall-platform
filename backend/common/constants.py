@@ -30,6 +30,7 @@ class ErrorCode:
     CATEGORY_NOT_FOUND = 30003
 
     # 购物车 / 订单
+    CART_LIMIT = 40008
     CART_EMPTY = 40001
     ORDER_NOT_FOUND = 40002
     ORDER_STATUS_INVALID = 40003

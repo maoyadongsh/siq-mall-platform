@@ -1,12 +1,13 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElCard } from 'element-plus'
 import 'element-plus/es/components/card/style/css'
 
 import AuthForm from '@/components/auth/AuthForm.vue'
 import { useUserStore } from '@/stores/user'
 
+const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
@@ -19,7 +20,12 @@ async function submit(payload) {
       password: payload.password,
       accepted_terms_version: payload.accepted_terms_version,
     })
-    await router.push('/account')
+    const target = route.query.redirect
+    await router.push(
+      typeof target === 'string' && target.startsWith('/') && !target.startsWith('//')
+        ? target
+        : '/account',
+    )
   } finally {
     loading.value = false
   }
@@ -30,7 +36,11 @@ async function submit(payload) {
   <el-card class="auth-card" shadow="never">
     <template #header><h1>注册</h1></template>
     <AuthForm mode="register" :loading="loading" @submit="submit" />
-    <p class="auth-card__hint">已有账号？<router-link to="/login">返回登录</router-link></p>
+    <p class="auth-card__hint">
+      已有账号？<router-link :to="{ path: '/login', query: { redirect: route.query.redirect } }">
+        返回登录
+      </router-link>
+    </p>
   </el-card>
 </template>
 

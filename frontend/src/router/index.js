@@ -11,6 +11,16 @@ const router = createRouter({
       component: DefaultLayout,
       children: [
         {
+          path: 'cart',
+          component: () => import('@/views/cart/CartView.vue'),
+          meta: { title: '购物车' },
+        },
+        {
+          path: 'checkout',
+          component: () => import('@/views/cart/CheckoutView.vue'),
+          meta: { title: '结算预览', requiresAuth: true },
+        },
+        {
           path: '',
           name: 'home',
           component: () => import('@/views/catalog/CatalogList.vue'),

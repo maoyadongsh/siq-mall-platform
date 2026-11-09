@@ -32,7 +32,13 @@ async function submit(credentials) {
   <el-card class="auth-card" shadow="never">
     <template #header><h1>登录</h1></template>
     <AuthForm mode="login" :loading="loading" @submit="submit" />
-    <p class="auth-card__hint">还没有账号？<router-link to="/register">立即注册</router-link></p>
+    <p class="auth-card__hint">
+      还没有账号？<router-link
+        :to="{ path: '/register', query: { redirect: route.query.redirect } }"
+      >
+        立即注册
+      </router-link>
+    </p>
   </el-card>
 </template>
 

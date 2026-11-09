@@ -230,3 +230,7 @@ Content-Type: application/json
 运营权限沿用 catalog.manage_catalog。GET/PATCH ops/products/{id}/ 获取或修改标题、分类、描述、cover_id，写入带商品 expected_version。POST ops/media/ 接收 multipart 的 file，返回 ready 资源标识与规范化主图 URL。公开商品的可选 cover_url 为空时使用原布局。每件商品本阶段展示一张主图。
 
 PATCH ops/skus/{id}/ 接收 label 或 price，附 SKU expected_version 和 reason。POST ops/skus/{id}/stock-adjustments/ 使用 SKU 版本、整数 delta、reason 和 UUID 格式的 Idempotency-Key。成功201返回流水 id、sku_id、操作者快照、调整前后数量、原因与时间。同一操作者原键原参数重放首次流水，同键不同参数409。GET 同路径以页码分页倒序查看人工调整历史。起始库存可见创建草稿时的审计快照。
+
+### I05 Web 购物车与试算（2026-11-09）
+
+carts/items/、carts/items/{id}/、carts/merge/ 和 checkout/quote/ 已接入，字段见生成的 openapi.yaml。累加与游客合并以账号、操作类型和 UUID 幂等键定位首次结果；合并失败的 SKU 返回原请求数量与原因。PATCH/DELETE 使用购物项版本。试算按实时价格、库存及本人有效收货地区执行，演示运费8.00、商品小计满129.00免运，报价有效5分钟。试算时不占库存。非空券ID及客户端自填应付金额均拒绝。

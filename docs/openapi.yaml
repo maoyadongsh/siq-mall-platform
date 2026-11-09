@@ -291,6 +291,167 @@ paths:
               schema:
                 $ref: '#/components/schemas/EmptyResponse'
           description: ''
+  /api/v1/carts/items/:
+    get:
+      operationId: cart_items_list
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+          description: ''
+    post:
+      operationId: api_v1_carts_items_create
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LineRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LineRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LineRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponse'
+          description: ''
+  /api/v1/carts/items/{id}/:
+    patch:
+      operationId: api_v1_carts_items_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateRequest'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponse'
+          description: ''
+    delete:
+      operationId: api_v1_carts_items_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deleted'
+          description: ''
+  /api/v1/carts/merge/:
+    post:
+      operationId: api_v1_carts_merge_create
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BasketRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BasketRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BasketRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MergeResponse'
+          description: ''
+  /api/v1/checkout/quote/:
+    post:
+      operationId: api_v1_checkout_quote_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/QuoteInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/QuoteInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteResponse'
+          description: ''
   /api/v1/health/:
     get:
       operationId: api_v1_health_retrieve
@@ -1166,6 +1327,47 @@ components:
       - message
       - request_id
       - timestamp
+    BasketRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineRequest'
+      required:
+      - items
+    CartData:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+        version:
+          type: integer
+      required:
+      - items
+      - version
+    CartResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/CartData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     Checks:
       type: object
       properties:
@@ -1191,6 +1393,26 @@ components:
         data:
           type: object
           additionalProperties: {}
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    Deleted:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          nullable: true
       required:
       - code
       - data
@@ -1357,6 +1579,81 @@ components:
       - message
       - request_id
       - timestamp
+    Item:
+      type: object
+      properties:
+        id:
+          type: string
+        sku_id:
+          type: string
+        product_id:
+          type: string
+        title:
+          type: string
+        label:
+          type: string
+        current_price:
+          type: string
+        quantity:
+          type: integer
+        version:
+          type: integer
+        selected:
+          type: boolean
+        available:
+          type: boolean
+        available_stock:
+          type: integer
+        unavailable_reason:
+          type: string
+      required:
+      - available
+      - available_stock
+      - current_price
+      - id
+      - label
+      - product_id
+      - quantity
+      - selected
+      - sku_id
+      - title
+      - unavailable_reason
+      - version
+    ItemResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/Item'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    LineRequest:
+      type: object
+      properties:
+        sku_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+        quantity:
+          type: integer
+          maximum: 99
+          minimum: 1
+      required:
+      - quantity
+      - sku_id
     LoginRequest:
       type: object
       properties:
@@ -1386,6 +1683,46 @@ components:
           format: binary
       required:
       - file
+    MergeResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/Merged'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    Merged:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+        version:
+          type: integer
+        adjustments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rejected'
+        requires_confirmation:
+          type: boolean
+      required:
+      - adjustments
+      - items
+      - requires_confirmation
+      - version
     PasswordChangeRequest:
       type: object
       properties:
@@ -1483,6 +1820,18 @@ components:
           type: string
           minLength: 1
           maxLength: 50
+    PatchedUpdateRequest:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        quantity:
+          type: integer
+          maximum: 99
+          minimum: 1
+        selected:
+          type: boolean
     PatchedVariantEditRequest:
       type: object
       properties:
@@ -1656,6 +2005,112 @@ components:
         * `register` - register
         * `password_reset` - password_reset
         * `phone_bind` - phone_bind
+    QuoteData:
+      type: object
+      properties:
+        quote_id:
+          type: string
+          format: uuid
+        expires_at:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuoteLine'
+        goods_amount:
+          type: string
+        freight_amount:
+          type: string
+        discount_amount:
+          type: string
+        payable_amount:
+          type: string
+        currency:
+          type: string
+        address_summary:
+          type: object
+          additionalProperties: {}
+        selected_coupon:
+          nullable: true
+        unavailable_coupons:
+          type: array
+          items: {}
+      required:
+      - address_summary
+      - currency
+      - discount_amount
+      - expires_at
+      - freight_amount
+      - goods_amount
+      - items
+      - payable_amount
+      - quote_id
+      - selected_coupon
+      - unavailable_coupons
+    QuoteInputRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineRequest'
+        address_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+        user_coupon_id:
+          type: integer
+          nullable: true
+      required:
+      - address_id
+      - items
+    QuoteLine:
+      type: object
+      properties:
+        sku_id:
+          type: string
+        title:
+          type: string
+        label:
+          type: string
+        quantity:
+          type: integer
+        unit_price:
+          type: string
+        line_amount:
+          type: string
+        discount_allocated:
+          type: string
+      required:
+      - discount_allocated
+      - label
+      - line_amount
+      - quantity
+      - sku_id
+      - title
+      - unit_price
+    QuoteResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/QuoteData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
     RefreshData:
       type: object
       properties:
@@ -1750,6 +2205,19 @@ components:
       - accepted_terms_version
       - password
       - username
+    Rejected:
+      type: object
+      properties:
+        sku_id:
+          type: string
+        quantity:
+          type: integer
+        reason:
+          type: string
+      required:
+      - quantity
+      - reason
+      - sku_id
     RoleListResponse:
       type: object
       properties:

@@ -12,6 +12,7 @@ onMounted(() => userStore.restoreSession())
       <div class="mall-layout__brand">SIQ优选商城</div>
       <nav class="mall-layout__nav">
         <router-link class="mall-layout__link" to="/">首页</router-link>
+        <router-link class="mall-layout__link" to="/cart">购物车</router-link>
         <router-link
           v-if="userStore.profile?.can_manage_catalog"
           class="mall-layout__link"
