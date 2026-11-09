@@ -1,5 +1,6 @@
 """Run the address/catalog smoke suite with a disposable local MariaDB instance."""
 
+import json
 import os
 import secrets
 import socket
@@ -7,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib.request
 from pathlib import Path
 
 import pymysql
@@ -48,6 +50,7 @@ def run_suite(work):
         "PYTHONPATH": str(Path(__file__).resolve().parent),
         "PYTHONUTF8": "1",
         "DJANGO_SETTINGS_MODULE": "siq_accept_settings",
+        "MALL_ALLOW_SCALE_SEED": "1",
         "SIQ_TEST_PASSWORD": password,
         "SIQ_TEST_MEDIA_ROOT": str(work / "media"),
         "SIQ_TEST_PORT": str(db_port),
@@ -216,6 +219,42 @@ def run_suite(work):
                 worker.terminate()
                 worker.wait(timeout=10)
                 processes.remove(worker)
+                django(
+                    [
+                        "manage.py",
+                        "seed_catalog_scale",
+                        "--products",
+                        "1000",
+                        "--skus",
+                        "1",
+                        "--prefix",
+                        "scale1k",
+                    ]
+                )
+                cursor.execute("SELECT id FROM catalog_category WHERE name='scale1k-root'")
+                scale_root = cursor.fetchone()[0]
+                durations = []
+                for _ in range(20):
+                    started = time.monotonic()
+                    with urllib.request.urlopen(
+                        f"http://127.0.0.1:{api_port}/api/v1/products/?category={scale_root}&sort=price_asc&page_size=100",
+                        timeout=10,
+                    ) as response:
+                        payload = json.load(response)
+                    assert response.status == 200 and payload["data"]["count"] == 1000
+                    durations.append(time.monotonic() - started)
+                durations.sort()
+                print(
+                    f"PASS 1000-product MariaDB reads x20; p95={durations[18]:.4f}s, max={durations[-1]:.4f}s (local serial)"
+                )
+                cursor.execute(
+                    "SELECT id FROM catalog_category WHERE name='scale1k-category-0'"
+                )
+                scale_category = cursor.fetchone()[0]
+                cursor.execute(
+                    f"EXPLAIN SELECT id,title FROM catalog_product WHERE status='on_sale' AND category_id={scale_category} ORDER BY id DESC LIMIT 100"
+                )
+                print(f"MariaDB EXPLAIN scale query: {cursor.fetchall()}")
                 backup = work / "acceptance-backup.sql"
                 with backup.open("wb") as output:
                     subprocess.run(

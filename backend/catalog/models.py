@@ -5,6 +5,23 @@ from django.db import models
 
 class Category(models.Model):
     name = models.CharField(max_length=50, unique=True)
+    parent = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.PROTECT, related_name="children"
+    )
+    sort_order = models.IntegerField(default=0)
+    enabled = models.BooleanField(default=True)
+    version = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        indexes = [models.Index(fields=["parent", "enabled", "sort_order", "id"])]
+
+
+class CategoryEvent(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    action = models.CharField(max_length=20)
+    snapshot = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class MediaAsset(models.Model):

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getHome } from '@/api/cms'
+import { getCategoryTree } from '@/api/catalog'
 import ContentBlocks from '@/components/content/ContentBlocks.vue'
 import ProductGrid from '@/components/content/ProductGrid.vue'
 import './content.css'
@@ -11,6 +12,7 @@ const data = ref(null)
 const loading = ref(false)
 const error = ref('')
 const query = ref('')
+const categories = ref([])
 const hasContent = computed(
   () => data.value && ['banners', 'floors', 'announcements'].some((key) => data.value[key].length),
 )
@@ -26,10 +28,20 @@ async function load() {
     loading.value = false
   }
 }
+async function loadCategories() {
+  try {
+    categories.value = await getCategoryTree()
+  } catch {
+    categories.value = []
+  }
+}
 function search() {
   router.push({ path: '/products', query: query.value ? { q: query.value } : {} })
 }
-onMounted(load)
+onMounted(() => {
+  load()
+  loadCategories()
+})
 </script>
 
 <template>
@@ -44,6 +56,7 @@ onMounted(load)
         <button>搜索</button>
       </form>
     </section>
+    <nav class="home-categories" aria-label="商品分类"><router-link to="/products">全部商品</router-link><router-link v-for="row in categories" :key="row.id" :to="{ path: '/products', query: { category: row.id } }">{{ row.name }}</router-link></nav>
     <p v-if="error" role="alert" class="cms-error">{{ error }} <button @click="load">重新加载</button></p>
     <p v-else-if="loading" class="cms-loading">正在读取首页内容…</p>
     <template v-else-if="data">

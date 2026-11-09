@@ -425,6 +425,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/MergeResponse'
           description: ''
+  /api/v1/categories/tree/:
+    get:
+      operationId: catalog_category_tree
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryTreeResponse'
+          description: ''
   /api/v1/checkout/quote/:
     post:
       operationId: api_v1_checkout_quote_create
@@ -1471,6 +1487,79 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/categories/:
+    get:
+      operationId: operator_category_tree
+      tags:
+      - api
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryTreeResponse'
+          description: ''
+    post:
+      operationId: api_v1_ops_categories_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CategoryInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+          description: ''
+  /api/v1/ops/categories/{id}/:
+    patch:
+      operationId: api_v1_ops_categories_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryUpdateRequest'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
           description: ''
   /api/v1/ops/cms/:
     get:
@@ -3279,6 +3368,40 @@ paths:
   /api/v1/ops/products/:
     get:
       operationId: api_v1_ops_products_retrieve
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: integer
+      - in: query
+        name: max_price
+        schema:
+          type: string
+      - in: query
+        name: min_price
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+      - in: query
+        name: sort
+        schema:
+          type: string
+          enum:
+          - newest
+          - price_asc
+          - price_desc
+          - title
       tags:
       - api
       security:
@@ -4262,6 +4385,40 @@ paths:
   /api/v1/products/:
     get:
       operationId: api_v1_products_retrieve
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: integer
+      - in: query
+        name: max_price
+        schema:
+          type: string
+      - in: query
+        name: min_price
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+      - in: query
+        name: sort
+        schema:
+          type: string
+          enum:
+          - newest
+          - price_asc
+          - price_desc
+          - title
       tags:
       - api
       security:
@@ -5276,6 +5433,97 @@ components:
           format: date-time
         data:
           $ref: '#/components/schemas/CartData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    CategoryData:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        parent_id:
+          type: string
+          nullable: true
+        sort_order:
+          type: integer
+        enabled:
+          type: boolean
+        version:
+          type: integer
+        children:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - enabled
+      - id
+      - name
+      - parent_id
+      - sort_order
+      - version
+    CategoryInputRequest:
+      type: object
+      properties:
+        parent_id:
+          type: integer
+          minimum: 1
+          nullable: true
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        sort_order:
+          type: integer
+          maximum: 100000
+          minimum: -100000
+          default: 0
+        enabled:
+          type: boolean
+          default: true
+      required:
+      - name
+    CategoryResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/CategoryData'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    CategoryTreeResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryData'
       required:
       - code
       - data
@@ -6784,6 +7032,28 @@ components:
         is_default:
           type: boolean
           default: false
+        expected_version:
+          type: integer
+          minimum: 1
+    PatchedCategoryUpdateRequest:
+      type: object
+      properties:
+        parent_id:
+          type: integer
+          minimum: 1
+          nullable: true
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        sort_order:
+          type: integer
+          maximum: 100000
+          minimum: -100000
+          default: 0
+        enabled:
+          type: boolean
+          default: true
         expected_version:
           type: integer
           minimum: 1

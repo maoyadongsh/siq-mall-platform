@@ -71,6 +71,13 @@ onBeforeUnmount(() => {
           商品管理
         </router-link>
         <router-link
+          v-if="userStore.profile?.can_manage_catalog"
+          class="mall-layout__link"
+          to="/ops/categories"
+        >
+          分类管理
+        </router-link>
+        <router-link
           v-if="userStore.profile?.can_fulfill_orders"
           class="mall-layout__link"
           to="/ops/orders"

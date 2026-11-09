@@ -42,6 +42,12 @@ Web 已接入身份、地址、商品运营、购物车、订单履约、优惠�
 
 升级前备份并核对 `content.0001_initial`、`reviews.0002_reviewaction_event_id` 和 `notifications.0001_initial`。通知迁移会将启用前的历史订单事件标记为已消费，避免集中补发旧消息；新审核动作才有通知事件标识。回滚代码时先停用消息入口和扫描器，保留消息、序号、模板、订阅结果及消费回执；反向迁移会删除这些记录，不应作为常规代码回滚步骤。
 
+## 分类、筛选与规模数据
+
+授权商品运营在 `/ops/categories` 维护父子分类、排序和启停，分类不能成环；停用父分类会隐藏公开子树。买家在 `/products` 按关键词、分类后代、价格区间和白名单排序查询，筛选保留在URL。首页分类导航使用同一公开树。
+
+`catalog.0004_categoryevent_category_enabled_category_parent_and_more` 为既有分类补充根节点兼容字段，升级前备份并审核。仅在临时演示库显式设置 `MALL_ALLOW_SCALE_SEED=1` 后运行 `manage.py seed_catalog_scale --products 1000 --skus 1 --prefix scale1k`；同前缀重复执行会拒绝，避免重复写入。1000商品功能集与10万商品/30万SKU性能集分别登记，不能据种子生成成功宣称性能达标。
+
 ## CMS 内容发布与首页
 
 内容运营在 `/ops/cms` 新建 Banner、首页楼层、公告或单页，并在编辑器中维护结构化内容块、图片、推荐商品、展示端和起止时间。保存只生成草稿版本；授权预览不会向游客开放，发布后公开接口才读取对应版本，下线立即关闭公开入口。公开单页路径为 `/pages/{slug}`，公告路径为 `/announcements/{id}`。

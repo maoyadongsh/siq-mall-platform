@@ -285,3 +285,10 @@ products/{id}/reviews/ 公开在售商品已通过的评价，返回页码分页
 历史以签名 `(conversation_seq,id)` 游标区分 older/newer，返回升序消息、历史游标和轮询游标。买家与客服分别有只前进读水位，`counterpart_read_seq` 才用于“对方已读”，发送成功不产生已读或在线假象。关联订单只返回订单号、状态、金额和商品摘要，不返回地址快照。
 
 客服回复的唯一事件UUID由 `process_order_events` 消费，为买家生成一条 support 类站内通知；重复投递与重放均不重复创建消息或通知。首版Web使用5秒HTTP增量轮询，隐藏页面不发送轮询请求。
+
+
+### I04 分类树与商品查询补齐（2026-11-09）
+
+`categories/tree/` 返回启用的层级分类，停用父分类时子树不公开；`ops/categories/` 及 `ops/categories/{id}/` 要求 `catalog.manage_catalog`，创建与修改校验父子关系不成环、名称唯一和 `expected_version`，并保留分类审计。既有分类迁移为根节点，公开商品可售规则不变。
+
+`products/` 在原有 `q,page,page_size` 上新增 `category,min_price,max_price,sort`。分类包含启用后代；金额为非负十进制且上下限有序；排序仅允许 `newest,price_asc,price_desc,title`。下架商品仍不公开，分页信封和商品字段保持兼容。`seed_catalog_scale` 只允许在显式演示开关下生成指定规模数据，不能作为生产初始化命令。

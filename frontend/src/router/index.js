@@ -143,6 +143,11 @@ const router = createRouter({
           meta: { title: '商品详情' },
         },
         {
+          path: 'ops/categories',
+          component: () => import('@/views/catalog/CategoryManager.vue'),
+          meta: { title: '分类管理', requiresAuth: true, catalogPermission: true },
+        },
+        {
           path: 'ops/products/:id/edit',
           component: () => import('@/views/catalog/ProductEditor.vue'),
           props: true,

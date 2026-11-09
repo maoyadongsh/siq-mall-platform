@@ -321,3 +321,21 @@
     border: 1px solid var(--mall-border);
   }
 }
+
+.home-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0;
+}
+.home-categories a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 1px solid var(--mall-border);
+  border-radius: 22px;
+  color: var(--mall-color-primary);
+  background: #fff;
+  text-decoration: none;
+}
