@@ -2,7 +2,7 @@
 
 SIQ 优选商城是一个单商家实物电商演示项目。买家可以从商品详情选规格、领券下单、模拟付款，到签收后评价。运营人员在同一套业务数据上维护商品、发货、审核评价、发布内容和回复客服消息。PC 商城与移动 H5 共用 Vue 应用，买家微信小程序独立实现，三端由 Django 统一核价和校验权限。
 
-**当前交付基线为 `e5e2a2b`。** I01–I11 已形成可在 Windows 本地演示的业务闭环，独立验收发现的八项问题已修复。2026-11-15 的技术架构对齐改造（全量 TS、OpenAPI 3.1、客服 WebSocket、mysqlclient/django-filter）已纳入该基线，证据见[架构对齐任务书](docs/15-architecture-alignment-task-book.md)与[验收登记](docs/11-readiness-and-acceptance.md)§25。Ubuntu 24.04 部署、微信平台接入与真机、规定负载性能、人工签收各有独立的待验项。[逐项复验结果](docs/13-independent-acceptance.md)
+**当前交付基线为 `e5e6825`。** I01–I11 已形成可在 Windows 本地演示的业务闭环，独立验收发现的八项问题已修复。2026-11-15 的技术架构对齐改造（全量 TS、OpenAPI 3.1、客服 WebSocket、mysqlclient/django-filter）已纳入该基线，证据见[架构对齐任务书](docs/15-architecture-alignment-task-book.md)与[验收登记](docs/11-readiness-and-acceptance.md)§25。Ubuntu 24.04 部署、微信平台接入与真机、规定负载性能、人工签收各有独立的待验项。[逐项复验结果](docs/13-independent-acceptance.md)
 
 ## 从一笔订单看产品
 
@@ -109,7 +109,7 @@ node --test qa/acceptance/mini-boundaries.cjs
 .\backend\.venv\Scripts\python.exe qa/windows/smoke.py
 ```
 
-| 架构对齐基线 `e5e2a2b` | 已登记结果 |
+| 架构对齐基线 `e5e6825` | 已登记结果 |
 | --- | --- |
 | 后端与数据库 | 99 项通过，14 项 MariaDB 专项在 SQLite 跳过，行覆盖率 95.01%。Windows 临时 MariaDB 11.8 下 20 项专项与完整浏览器冒烟通过。 |
 | 客户端 | Web 的 20 项 Vitest、`vue-tsc`、lint、生产构建通过。小程序 4 项适配测试和 9 项页面测试通过。 |

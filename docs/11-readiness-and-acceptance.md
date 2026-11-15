@@ -1,6 +1,6 @@
 # 开发准备、决策记录与验收登记
 
-登记跨度 2026-11-06 至 2026-11-15。业务复验起点 `17f5b91`，架构对齐基线 `e5e2a2b`，人工审核待完成。
+登记跨度 2026-11-06 至 2026-11-15。业务复验起点 `17f5b91`，架构对齐基线 `e5e6825`，人工审核待完成。
 
 ## 1. 当前状态与开工顺序
 
@@ -590,7 +590,7 @@ A1–A8 已修复并通过自动复验。覆盖小程序订单恢复、报价乱
 | TA01-02 | `requirements.lock.txt` 与 `requirements-dev.lock.txt`（uv universal + 哈希） | `pip check` 通过 | 未在全新 Ubuntu 环境按锁文件安装验证 |
 | TA01-03 | 根 `.nvmrc` 固定 24.13.1；frontend/mini `engines` | 本机 Node 24.13.1 下 `npm ci`/build 通过 | 无 |
 | TA01-04 | `OAS_VERSION=3.1.0`，重生成 `docs/openapi.yaml`；前端生成 `src/types/api.d.ts` | `spectacular --validate --fail-on-warn` 通过；`vue-tsc` 通过 | 旧客户端兼容性未做外部回归 |
-| TA01-05 | `.github/workflows/ci.yml`：后端 check/pytest/ruff/black/OpenAPI漂移；前端 lint/typecheck/test/build；mini 测试 | 配置完成，本地等价命令通过 | 未在托管 CI 实际运行；MariaDB job 仍依赖自托管环境 |
+| TA01-05 | `.github/workflows/ci.yml`：后端 check/pytest/ruff/black/OpenAPI漂移；前端 lint/typecheck/test/build；mini 测试 | 托管 CI 已运行，backend/frontend/mini 三作业通过（run 43698095039）；修复了 Windows/Linux OpenAPI 前缀漂移 | MariaDB job 仍依赖自托管环境 |
 | TA02-01–05 | 25 个 JS/测试文件与 39 个 Vue 组件迁移到 TS；strict、禁止显式 any；新增 `typecheck` 与 `gen:api-types` | `vue-tsc --noEmit` 0 错误；lint；20 项 Vitest；build 通过；Windows/Chrome 全流程冒烟通过 | 人工走查与多浏览器矩阵待登记 |
 | TA03-01–06 | Channels/Daphne/Channel Layer；ws-ticket；`/ws/support/{id}/` 消费者；消息/关闭广播；Web 与小程序重连、心跳、轮询回退；Nginx `/ws/` 与 Daphne unit | 后端 4 项实时用例；Windows/Chrome 客服发送、重试、分配、回复、已读、收件箱全流程通过；mini 13 项测试 | 未做真机与弱网设备矩阵；Ubuntu Daphne 预发待验 |
 | TA04-01 | PyMySQL 换 mysqlclient 2.2.8 | Windows 临时 MariaDB 11.8：20 项 MariaDB 专项通过；全流程浏览器冒烟通过 | 生产/预发 MariaDB 系列与迁移仍需实机登记 |
