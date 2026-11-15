@@ -41,6 +41,56 @@ jobs:
           python manage.py spectacular --validate --fail-on-warn --file ../docs/openapi.yaml
           git diff --exit-code -- ../docs/openapi.yaml
 
+  mariadb:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11.8
+        env:
+          MARIADB_ROOT_PASSWORD: ci-root
+          MARIADB_DATABASE: mall_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_NAME: mall_ci
+      DB_USER: root
+      DB_PASSWORD: ci-root
+      DB_TEST_NAME: test_mall_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.lock.txt
+      - name: Install
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.lock.txt
+      - name: MariaDB integration tests
+        working-directory: backend
+        run: >
+          python -m pytest --no-cov -q
+          --ds=config.settings.mariadb_test
+          users/tests/test_address_races.py
+          catalog/tests/test_stock_races.py
+          cart/tests/test_race.py
+          orders/tests/test_races.py
+          promotions/tests/test_races.py
+          reviews/tests/test_races.py
+          notifications/tests/test_races.py
+          content/tests/test_races.py
+          support/tests/test_races.py
+          ../qa/acceptance/test_delivery_boundaries.py
+
   frontend:
     runs-on: ubuntu-latest
     steps:
