@@ -600,6 +600,8 @@ A1–A8 已修复并通过自动复验。覆盖小程序订单恢复、报价乱
 | TA05-01–04 | 01/06/08/10/11/14/README 同步；本登记节 | 文档链接核对；Windows 冒烟与隔离恢复通过 | Ubuntu 发布演练与人工签收未执行 |
 
 当前结论：**本地实现与自动复验通过**。Windows 临时 MariaDB 11.8 下 20 项专项与完整浏览器流程通过，1000 商品串行读取 P95 为 0.0790–0.0940 秒（本机串行短测）；不据此宣称 Ubuntu、规定负载、微信真机或人工验收通过。
+
+依赖审计（2026-11-15）：`npm audit --omit=dev` 为 0；全量 9 个 moderate 均位于 eslint/typescript-eslint 与 vue-tsc 的开发工具链（minimatch），生产依赖不受影响。修复需将 vue-tsc 升到 3.x 主版本，未在本轮强行升级；后端 pip-audit 尚未接入。
 | Windows 演练 | Chrome 交易、运营、通知、客服及备份恢复抽查完成；下一步按[预发手册](14-native-deployment.md)另验 Ubuntu、TLS、异机数据库和媒体恢复。 |
 
 参照 [13 的复测命令](13-independent-acceptance.md) 复验时，登记提交、环境、数据量和结果；同一测试跨引擎执行的次数按环境分列。
