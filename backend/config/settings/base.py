@@ -224,6 +224,8 @@ CSRF_TRUSTED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "")
 
 SPECTACULAR_SETTINGS = {
     "OAS_VERSION": "3.1.0",
+    # 固定前缀，避免 os.path.commonpath 在 Windows/Linux 下产生不同 operationId。
+    "SCHEMA_PATH_PREFIX": r"/api/v1",
     "ENUM_NAME_OVERRIDES": {
         "CouponScopeEnum": ["all", "products"],
         "CouponTypeEnum": ["fixed", "percentage"],

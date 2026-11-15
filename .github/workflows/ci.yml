@@ -35,6 +35,8 @@ jobs:
           python -m black --check .
       - name: OpenAPI drift
         working-directory: backend
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.dev
         run: |
           python manage.py spectacular --validate --fail-on-warn --file ../docs/openapi.yaml
           git diff --exit-code -- ../docs/openapi.yaml

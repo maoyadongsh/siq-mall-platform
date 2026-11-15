@@ -11,7 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_auth_csrf_retrieve"];
+        get: operations["auth_csrf_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -29,7 +29,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_auth_login_create"];
+        post: operations["auth_login_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -45,7 +45,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_auth_logout_create"];
+        post: operations["auth_logout_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -61,7 +61,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_auth_mini_login_create"];
+        post: operations["auth_mini_login_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -77,7 +77,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_auth_mini_logout_create"];
+        post: operations["auth_mini_logout_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -93,7 +93,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_auth_mini_refresh_create"];
+        post: operations["auth_mini_refresh_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -109,7 +109,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_auth_password_change_create"];
+        post: operations["auth_password_change_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -125,7 +125,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_auth_password_reset_create"];
+        post: operations["auth_password_reset_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -145,7 +145,7 @@ export interface paths {
          * 刷新 access token
          * @description POST /api/v1/auth/refresh/ —— 刷新 access，refresh 轮换并加入黑名单。
          */
-        post: operations["api_v1_auth_refresh_create"];
+        post: operations["auth_refresh_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -161,7 +161,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_auth_register_create"];
+        post: operations["auth_register_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -177,7 +177,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_auth_verifications_create"];
+        post: operations["auth_verifications_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -193,7 +193,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_auth_web_refresh_create"];
+        post: operations["auth_web_refresh_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -209,7 +209,7 @@ export interface paths {
         };
         get: operations["cart_items_list"];
         put?: never;
-        post: operations["api_v1_carts_items_create"];
+        post: operations["carts_items_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -226,10 +226,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete: operations["api_v1_carts_items_destroy"];
+        delete: operations["carts_items_destroy"];
         options?: never;
         head?: never;
-        patch: operations["api_v1_carts_items_partial_update"];
+        patch: operations["carts_items_partial_update"];
         trace?: never;
     };
     "/api/v1/carts/merge/": {
@@ -241,7 +241,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_carts_merge_create"];
+        post: operations["carts_merge_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -273,7 +273,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_checkout_quote_create"];
+        post: operations["checkout_quote_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -287,7 +287,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_cms_announcements_retrieve"];
+        get: operations["cms_announcements_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -303,7 +303,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_cms_home_retrieve"];
+        get: operations["cms_home_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -319,7 +319,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_cms_pages_retrieve"];
+        get: operations["cms_pages_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -337,7 +337,7 @@ export interface paths {
         };
         get: operations["buyer_conversation_list"];
         put?: never;
-        post: operations["api_v1_conversations_create"];
+        post: operations["conversations_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -369,7 +369,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_conversations_close_create"];
+        post: operations["conversations_close_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -383,9 +383,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_conversations_messages_retrieve"];
+        get: operations["conversations_messages_retrieve"];
         put?: never;
-        post: operations["api_v1_conversations_messages_create"];
+        post: operations["conversations_messages_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -401,7 +401,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_conversations_read_create"];
+        post: operations["conversations_read_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -417,7 +417,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_conversations_ws_ticket_create"];
+        post: operations["conversations_ws_ticket_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -431,7 +431,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_coupons_retrieve"];
+        get: operations["coupons_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -449,7 +449,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_coupons_claim_create"];
+        post: operations["coupons_claim_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -470,7 +470,7 @@ export interface paths {
          *     返回服务自身状态与数据库/Redis 连通性；任一依赖异常时 HTTP 503 + status=degraded，
          *     便于 systemd / Nginx / 监控探针直接按状态码判定。
          */
-        get: operations["api_v1_health_retrieve"];
+        get: operations["health_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -486,7 +486,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_notifications_retrieve"];
+        get: operations["notifications_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -504,7 +504,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_notifications_read_create"];
+        post: operations["notifications_read_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -520,7 +520,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_notifications_subscriptions_create"];
+        post: operations["notifications_subscriptions_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -534,7 +534,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_notifications_unread_count_retrieve"];
+        get: operations["notifications_unread_count_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -550,7 +550,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_operations_retrieve"];
+        get: operations["operations_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -566,7 +566,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_audits_retrieve"];
+        get: operations["ops_audits_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -584,7 +584,7 @@ export interface paths {
         };
         get: operations["operator_category_tree"];
         put?: never;
-        post: operations["api_v1_ops_categories_create"];
+        post: operations["ops_categories_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -604,7 +604,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["api_v1_ops_categories_partial_update"];
+        patch: operations["ops_categories_partial_update"];
         trace?: never;
     };
     "/api/v1/ops/cms/": {
@@ -652,7 +652,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["api_v1_ops_cms_draft_partial_update"];
+        patch: operations["ops_cms_draft_partial_update"];
         trace?: never;
     };
     "/api/v1/ops/cms/{id}/preview/": {
@@ -662,7 +662,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_cms_preview_retrieve"];
+        get: operations["ops_cms_preview_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -680,7 +680,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_cms_publish_create"];
+        post: operations["ops_cms_publish_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -696,7 +696,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_cms_unpublish_create"];
+        post: operations["ops_cms_unpublish_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -712,7 +712,7 @@ export interface paths {
         };
         get: operations["operator_conversation_list"];
         put?: never;
-        post: operations["api_v1_ops_conversations_create"];
+        post: operations["ops_conversations_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -744,7 +744,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_conversations_assign_create"];
+        post: operations["ops_conversations_assign_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -760,7 +760,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_conversations_close_create"];
+        post: operations["ops_conversations_close_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -774,9 +774,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_conversations_messages_retrieve"];
+        get: operations["ops_conversations_messages_retrieve"];
         put?: never;
-        post: operations["api_v1_ops_conversations_messages_create"];
+        post: operations["ops_conversations_messages_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -792,7 +792,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_conversations_read_create"];
+        post: operations["ops_conversations_read_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -808,7 +808,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_conversations_ws_ticket_create"];
+        post: operations["ops_conversations_ws_ticket_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -824,7 +824,7 @@ export interface paths {
         };
         get: operations["ops_coupon_list"];
         put?: never;
-        post: operations["api_v1_ops_coupons_create"];
+        post: operations["ops_coupons_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -838,13 +838,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_coupons_retrieve"];
+        get: operations["ops_coupons_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["api_v1_ops_coupons_partial_update"];
+        patch: operations["ops_coupons_partial_update"];
         trace?: never;
     };
     "/api/v1/ops/coupons/{id}/publish/": {
@@ -856,7 +856,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_coupons_publish_create"];
+        post: operations["ops_coupons_publish_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -872,7 +872,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_coupons_stop_claiming_create"];
+        post: operations["ops_coupons_stop_claiming_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -886,7 +886,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_dashboard_retrieve"];
+        get: operations["ops_dashboard_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -904,7 +904,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_media_create"];
+        post: operations["ops_media_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -940,7 +940,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["api_v1_ops_notification_templates_partial_update"];
+        patch: operations["ops_notification_templates_partial_update"];
         trace?: never;
     };
     "/api/v1/ops/notification-templates/{id}/activate/": {
@@ -952,7 +952,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_notification_templates_activate_create"];
+        post: operations["ops_notification_templates_activate_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -966,7 +966,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_order_activities_retrieve"];
+        get: operations["ops_order_activities_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -998,7 +998,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_orders_retrieve"];
+        get: operations["ops_orders_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1016,7 +1016,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_orders_ship_create"];
+        post: operations["ops_orders_ship_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1030,9 +1030,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_products_retrieve"];
+        get: operations["ops_products_retrieve"];
         put?: never;
-        post: operations["api_v1_ops_products_create"];
+        post: operations["ops_products_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1052,7 +1052,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["api_v1_ops_products_partial_update"];
+        patch: operations["ops_products_partial_update"];
         trace?: never;
     };
     "/api/v1/ops/products/{id}/publish/": {
@@ -1064,7 +1064,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_products_publish_create"];
+        post: operations["ops_products_publish_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1080,7 +1080,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_products_unpublish_create"];
+        post: operations["ops_products_unpublish_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1094,7 +1094,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_reviews_retrieve"];
+        get: operations["ops_reviews_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1112,7 +1112,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_reviews_moderate_create"];
+        post: operations["ops_reviews_moderate_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1126,7 +1126,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_role_options_retrieve"];
+        get: operations["ops_role_options_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1142,7 +1142,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_roles_retrieve"];
+        get: operations["ops_roles_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1164,7 +1164,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["api_v1_ops_skus_partial_update"];
+        patch: operations["ops_skus_partial_update"];
         trace?: never;
     };
     "/api/v1/ops/skus/{id}/stock-adjustments/": {
@@ -1174,9 +1174,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_skus_stock_adjustments_retrieve"];
+        get: operations["ops_skus_stock_adjustments_retrieve"];
         put?: never;
-        post: operations["api_v1_ops_skus_stock_adjustments_create"];
+        post: operations["ops_skus_stock_adjustments_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1190,7 +1190,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_ops_users_retrieve"];
+        get: operations["ops_users_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1208,7 +1208,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_ops_users_roles_create"];
+        post: operations["ops_users_roles_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1224,7 +1224,7 @@ export interface paths {
         };
         get: operations["buyer_order_list"];
         put?: never;
-        post: operations["api_v1_orders_create"];
+        post: operations["orders_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1238,7 +1238,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_orders_retrieve"];
+        get: operations["orders_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1256,7 +1256,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_orders_cancel_create"];
+        post: operations["orders_cancel_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1272,7 +1272,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_orders_receive_create"];
+        post: operations["orders_receive_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1286,7 +1286,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_orders_by_intent_retrieve"];
+        get: operations["orders_by_intent_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1304,7 +1304,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_payments_create"];
+        post: operations["payments_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1318,7 +1318,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_payments_retrieve"];
+        get: operations["payments_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1336,7 +1336,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_payments_simulate_create"];
+        post: operations["payments_simulate_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1350,7 +1350,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_products_retrieve"];
+        get: operations["products_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1382,7 +1382,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_products_reviews_retrieve"];
+        get: operations["products_reviews_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1398,7 +1398,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_regions_retrieve"];
+        get: operations["regions_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1416,7 +1416,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_reviews_create"];
+        post: operations["reviews_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1430,13 +1430,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_users_me_retrieve"];
+        get: operations["users_me_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["api_v1_users_me_partial_update"];
+        patch: operations["users_me_partial_update"];
         trace?: never;
     };
     "/api/v1/users/me/addresses/": {
@@ -1446,9 +1446,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_users_me_addresses_retrieve"];
+        get: operations["users_me_addresses_retrieve"];
         put?: never;
-        post: operations["api_v1_users_me_addresses_create"];
+        post: operations["users_me_addresses_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1465,10 +1465,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete: operations["api_v1_users_me_addresses_destroy"];
+        delete: operations["users_me_addresses_destroy"];
         options?: never;
         head?: never;
-        patch: operations["api_v1_users_me_addresses_partial_update"];
+        patch: operations["users_me_addresses_partial_update"];
         trace?: never;
     };
     "/api/v1/users/me/addresses/{address_id}/default/": {
@@ -1480,7 +1480,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_users_me_addresses_default_create"];
+        post: operations["users_me_addresses_default_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1494,7 +1494,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_users_me_coupons_retrieve"];
+        get: operations["users_me_coupons_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1512,7 +1512,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["api_v1_users_me_phone_create"];
+        post: operations["users_me_phone_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1526,7 +1526,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["api_v1_users_me_reviews_retrieve"];
+        get: operations["users_me_reviews_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3126,7 +3126,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    api_v1_auth_csrf_retrieve: {
+    auth_csrf_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -3145,7 +3145,7 @@ export interface operations {
             };
         };
     };
-    api_v1_auth_login_create: {
+    auth_login_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3186,7 +3186,7 @@ export interface operations {
             };
         };
     };
-    api_v1_auth_logout_create: {
+    auth_logout_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3211,7 +3211,7 @@ export interface operations {
             };
         };
     };
-    api_v1_auth_mini_login_create: {
+    auth_mini_login_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3236,7 +3236,7 @@ export interface operations {
             };
         };
     };
-    api_v1_auth_mini_logout_create: {
+    auth_mini_logout_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3255,7 +3255,7 @@ export interface operations {
             };
         };
     };
-    api_v1_auth_mini_refresh_create: {
+    auth_mini_refresh_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3280,7 +3280,7 @@ export interface operations {
             };
         };
     };
-    api_v1_auth_password_change_create: {
+    auth_password_change_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3305,7 +3305,7 @@ export interface operations {
             };
         };
     };
-    api_v1_auth_password_reset_create: {
+    auth_password_reset_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3346,7 +3346,7 @@ export interface operations {
             };
         };
     };
-    api_v1_auth_refresh_create: {
+    auth_refresh_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3387,7 +3387,7 @@ export interface operations {
             };
         };
     };
-    api_v1_auth_register_create: {
+    auth_register_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3428,7 +3428,7 @@ export interface operations {
             };
         };
     };
-    api_v1_auth_verifications_create: {
+    auth_verifications_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3461,7 +3461,7 @@ export interface operations {
             };
         };
     };
-    api_v1_auth_web_refresh_create: {
+    auth_web_refresh_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3515,7 +3515,7 @@ export interface operations {
             };
         };
     };
-    api_v1_carts_items_create: {
+    carts_items_create: {
         parameters: {
             query?: never;
             header: {
@@ -3542,7 +3542,7 @@ export interface operations {
             };
         };
     };
-    api_v1_carts_items_destroy: {
+    carts_items_destroy: {
         parameters: {
             query?: never;
             header?: never;
@@ -3563,7 +3563,7 @@ export interface operations {
             };
         };
     };
-    api_v1_carts_items_partial_update: {
+    carts_items_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -3590,7 +3590,7 @@ export interface operations {
             };
         };
     };
-    api_v1_carts_merge_create: {
+    carts_merge_create: {
         parameters: {
             query?: never;
             header: {
@@ -3636,7 +3636,7 @@ export interface operations {
             };
         };
     };
-    api_v1_checkout_quote_create: {
+    checkout_quote_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3661,7 +3661,7 @@ export interface operations {
             };
         };
     };
-    api_v1_cms_announcements_retrieve: {
+    cms_announcements_retrieve: {
         parameters: {
             query?: {
                 platform?: "mini" | "mobile" | "web";
@@ -3724,7 +3724,7 @@ export interface operations {
             };
         };
     };
-    api_v1_cms_home_retrieve: {
+    cms_home_retrieve: {
         parameters: {
             query?: {
                 platform?: "mini" | "mobile" | "web";
@@ -3785,7 +3785,7 @@ export interface operations {
             };
         };
     };
-    api_v1_cms_pages_retrieve: {
+    cms_pages_retrieve: {
         parameters: {
             query?: {
                 platform?: "mini" | "mobile" | "web";
@@ -3910,7 +3910,7 @@ export interface operations {
             };
         };
     };
-    api_v1_conversations_create: {
+    conversations_create: {
         parameters: {
             query?: never;
             header: {
@@ -4038,7 +4038,7 @@ export interface operations {
             };
         };
     };
-    api_v1_conversations_close_create: {
+    conversations_close_create: {
         parameters: {
             query?: never;
             header: {
@@ -4107,7 +4107,7 @@ export interface operations {
             };
         };
     };
-    api_v1_conversations_messages_retrieve: {
+    conversations_messages_retrieve: {
         parameters: {
             query?: {
                 cursor?: string;
@@ -4172,7 +4172,7 @@ export interface operations {
             };
         };
     };
-    api_v1_conversations_messages_create: {
+    conversations_messages_create: {
         parameters: {
             query?: never;
             header: {
@@ -4241,7 +4241,7 @@ export interface operations {
             };
         };
     };
-    api_v1_conversations_read_create: {
+    conversations_read_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -4308,7 +4308,7 @@ export interface operations {
             };
         };
     };
-    api_v1_conversations_ws_ticket_create: {
+    conversations_ws_ticket_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -4373,7 +4373,7 @@ export interface operations {
             };
         };
     };
-    api_v1_coupons_retrieve: {
+    coupons_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -4432,7 +4432,7 @@ export interface operations {
             };
         };
     };
-    api_v1_coupons_claim_create: {
+    coupons_claim_create: {
         parameters: {
             query?: never;
             header: {
@@ -4503,7 +4503,7 @@ export interface operations {
             };
         };
     };
-    api_v1_health_retrieve: {
+    health_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -4530,7 +4530,7 @@ export interface operations {
             };
         };
     };
-    api_v1_notifications_retrieve: {
+    notifications_retrieve: {
         parameters: {
             query?: {
                 cursor?: string;
@@ -4593,7 +4593,7 @@ export interface operations {
             };
         };
     };
-    api_v1_notifications_read_create: {
+    notifications_read_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -4658,7 +4658,7 @@ export interface operations {
             };
         };
     };
-    api_v1_notifications_subscriptions_create: {
+    notifications_subscriptions_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -4723,7 +4723,7 @@ export interface operations {
             };
         };
     };
-    api_v1_notifications_unread_count_retrieve: {
+    notifications_unread_count_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -4782,7 +4782,7 @@ export interface operations {
             };
         };
     };
-    api_v1_operations_retrieve: {
+    operations_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -4844,7 +4844,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_audits_retrieve: {
+    ops_audits_retrieve: {
         parameters: {
             query?: {
                 action?: string;
@@ -4890,7 +4890,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_categories_create: {
+    ops_categories_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -4915,7 +4915,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_categories_partial_update: {
+    ops_categories_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -5131,7 +5131,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_cms_draft_partial_update: {
+    ops_cms_draft_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -5198,7 +5198,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_cms_preview_retrieve: {
+    ops_cms_preview_retrieve: {
         parameters: {
             query: {
                 platform?: "mini" | "mobile" | "web";
@@ -5262,7 +5262,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_cms_publish_create: {
+    ops_cms_publish_create: {
         parameters: {
             query?: never;
             header: {
@@ -5331,7 +5331,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_cms_unpublish_create: {
+    ops_cms_unpublish_create: {
         parameters: {
             query?: never;
             header: {
@@ -5463,7 +5463,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_conversations_create: {
+    ops_conversations_create: {
         parameters: {
             query?: never;
             header: {
@@ -5591,7 +5591,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_conversations_assign_create: {
+    ops_conversations_assign_create: {
         parameters: {
             query?: never;
             header: {
@@ -5660,7 +5660,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_conversations_close_create: {
+    ops_conversations_close_create: {
         parameters: {
             query?: never;
             header: {
@@ -5729,7 +5729,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_conversations_messages_retrieve: {
+    ops_conversations_messages_retrieve: {
         parameters: {
             query?: {
                 cursor?: string;
@@ -5794,7 +5794,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_conversations_messages_create: {
+    ops_conversations_messages_create: {
         parameters: {
             query?: never;
             header: {
@@ -5863,7 +5863,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_conversations_read_create: {
+    ops_conversations_read_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -5930,7 +5930,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_conversations_ws_ticket_create: {
+    ops_conversations_ws_ticket_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -6054,7 +6054,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_coupons_create: {
+    ops_coupons_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -6119,7 +6119,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_coupons_retrieve: {
+    ops_coupons_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -6180,7 +6180,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_coupons_partial_update: {
+    ops_coupons_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -6247,7 +6247,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_coupons_publish_create: {
+    ops_coupons_publish_create: {
         parameters: {
             query?: never;
             header: {
@@ -6316,7 +6316,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_coupons_stop_claiming_create: {
+    ops_coupons_stop_claiming_create: {
         parameters: {
             query?: never;
             header: {
@@ -6385,7 +6385,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_dashboard_retrieve: {
+    ops_dashboard_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -6404,7 +6404,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_media_create: {
+    ops_media_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -6550,7 +6550,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_notification_templates_partial_update: {
+    ops_notification_templates_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -6617,7 +6617,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_notification_templates_activate_create: {
+    ops_notification_templates_activate_create: {
         parameters: {
             query?: never;
             header: {
@@ -6686,7 +6686,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_order_activities_retrieve: {
+    ops_order_activities_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -6818,7 +6818,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_orders_retrieve: {
+    ops_orders_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -6879,7 +6879,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_orders_ship_create: {
+    ops_orders_ship_create: {
         parameters: {
             query?: never;
             header: {
@@ -6948,7 +6948,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_products_retrieve: {
+    ops_products_retrieve: {
         parameters: {
             query?: {
                 category?: number;
@@ -6975,7 +6975,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_products_create: {
+    ops_products_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -7021,7 +7021,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_products_partial_update: {
+    ops_products_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -7048,7 +7048,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_products_publish_create: {
+    ops_products_publish_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -7075,7 +7075,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_products_unpublish_create: {
+    ops_products_unpublish_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -7102,7 +7102,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_reviews_retrieve: {
+    ops_reviews_retrieve: {
         parameters: {
             query?: {
                 page?: number;
@@ -7172,7 +7172,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_reviews_moderate_create: {
+    ops_reviews_moderate_create: {
         parameters: {
             query?: never;
             header: {
@@ -7241,7 +7241,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_role_options_retrieve: {
+    ops_role_options_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -7260,7 +7260,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_roles_retrieve: {
+    ops_roles_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -7287,7 +7287,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_skus_partial_update: {
+    ops_skus_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -7314,7 +7314,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_skus_stock_adjustments_retrieve: {
+    ops_skus_stock_adjustments_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -7335,7 +7335,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_skus_stock_adjustments_create: {
+    ops_skus_stock_adjustments_create: {
         parameters: {
             query?: never;
             header: {
@@ -7364,7 +7364,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_users_retrieve: {
+    ops_users_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -7383,7 +7383,7 @@ export interface operations {
             };
         };
     };
-    api_v1_ops_users_roles_create: {
+    ops_users_roles_create: {
         parameters: {
             query?: never;
             header: {
@@ -7485,7 +7485,7 @@ export interface operations {
             };
         };
     };
-    api_v1_orders_create: {
+    orders_create: {
         parameters: {
             query?: never;
             header: {
@@ -7552,7 +7552,7 @@ export interface operations {
             };
         };
     };
-    api_v1_orders_retrieve: {
+    orders_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -7613,7 +7613,7 @@ export interface operations {
             };
         };
     };
-    api_v1_orders_cancel_create: {
+    orders_cancel_create: {
         parameters: {
             query?: never;
             header: {
@@ -7682,7 +7682,7 @@ export interface operations {
             };
         };
     };
-    api_v1_orders_receive_create: {
+    orders_receive_create: {
         parameters: {
             query?: never;
             header: {
@@ -7745,7 +7745,7 @@ export interface operations {
             };
         };
     };
-    api_v1_orders_by_intent_retrieve: {
+    orders_by_intent_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -7806,7 +7806,7 @@ export interface operations {
             };
         };
     };
-    api_v1_payments_create: {
+    payments_create: {
         parameters: {
             query?: never;
             header: {
@@ -7873,7 +7873,7 @@ export interface operations {
             };
         };
     };
-    api_v1_payments_retrieve: {
+    payments_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -7934,7 +7934,7 @@ export interface operations {
             };
         };
     };
-    api_v1_payments_simulate_create: {
+    payments_simulate_create: {
         parameters: {
             query?: never;
             header: {
@@ -8003,7 +8003,7 @@ export interface operations {
             };
         };
     };
-    api_v1_products_retrieve: {
+    products_retrieve: {
         parameters: {
             query?: {
                 category?: number;
@@ -8051,7 +8051,7 @@ export interface operations {
             };
         };
     };
-    api_v1_products_reviews_retrieve: {
+    products_reviews_retrieve: {
         parameters: {
             query?: {
                 page?: number;
@@ -8115,7 +8115,7 @@ export interface operations {
             };
         };
     };
-    api_v1_regions_retrieve: {
+    regions_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -8134,7 +8134,7 @@ export interface operations {
             };
         };
     };
-    api_v1_reviews_create: {
+    reviews_create: {
         parameters: {
             query?: never;
             header: {
@@ -8201,7 +8201,7 @@ export interface operations {
             };
         };
     };
-    api_v1_users_me_retrieve: {
+    users_me_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -8220,7 +8220,7 @@ export interface operations {
             };
         };
     };
-    api_v1_users_me_partial_update: {
+    users_me_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -8245,7 +8245,7 @@ export interface operations {
             };
         };
     };
-    api_v1_users_me_addresses_retrieve: {
+    users_me_addresses_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -8264,7 +8264,7 @@ export interface operations {
             };
         };
     };
-    api_v1_users_me_addresses_create: {
+    users_me_addresses_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -8297,7 +8297,7 @@ export interface operations {
             };
         };
     };
-    api_v1_users_me_addresses_destroy: {
+    users_me_addresses_destroy: {
         parameters: {
             query?: never;
             header?: never;
@@ -8334,7 +8334,7 @@ export interface operations {
             };
         };
     };
-    api_v1_users_me_addresses_partial_update: {
+    users_me_addresses_partial_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -8377,7 +8377,7 @@ export interface operations {
             };
         };
     };
-    api_v1_users_me_addresses_default_create: {
+    users_me_addresses_default_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -8406,7 +8406,7 @@ export interface operations {
             };
         };
     };
-    api_v1_users_me_coupons_retrieve: {
+    users_me_coupons_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -8465,7 +8465,7 @@ export interface operations {
             };
         };
     };
-    api_v1_users_me_phone_create: {
+    users_me_phone_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -8498,7 +8498,7 @@ export interface operations {
             };
         };
     };
-    api_v1_users_me_reviews_retrieve: {
+    users_me_reviews_retrieve: {
         parameters: {
             query?: {
                 order_no?: string;
