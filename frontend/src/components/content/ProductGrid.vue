@@ -1,5 +1,12 @@
-<script setup>
-defineProps({ products: { type: Array, default: () => [] } })
+<script setup lang="ts">
+interface GridProduct {
+  id: string
+  title: string
+  cover_url?: string | null
+  min_price?: string | null
+}
+
+defineProps<{ products: GridProduct[] }>()
 </script>
 
 <template>

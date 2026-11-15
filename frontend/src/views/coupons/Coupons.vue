@@ -1,13 +1,22 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '@/utils/request'
 import { useUserStore } from '@/stores/user'
 import { offer, stateName, couponAction } from '@/api/coupons'
+import type { Coupon, Page } from '@/types/models'
+import { messageOf } from '@/utils/errors'
+
+interface CouponCard extends Coupon {
+  total: number
+  issued: number
+  per_user_limit: number
+}
+
 const props = defineProps({ wallet: Boolean })
 const user = useUserStore(),
   router = useRouter()
-const data = ref(null),
+const data = ref<Page<CouponCard> | null>(null),
   page = ref(1),
   filter = ref(''),
   loading = ref(false),
@@ -20,20 +29,23 @@ async function load(n = 1) {
   loading.value = true
   error.value = ''
   try {
-    const result = await request.get(props.wallet ? '/users/me/coupons/' : '/coupons/', {
-      params: { page: n, status: filter.value || undefined },
-    })
+    const result = await request.get<Page<CouponCard>>(
+      props.wallet ? '/users/me/coupons/' : '/coupons/',
+      {
+        params: { page: n, status: filter.value || undefined },
+      },
+    )
     if (seq === generation) {
       data.value = result
       page.value = n
     }
   } catch (e) {
-    if (seq === generation) error.value = e.message
+    if (seq === generation) error.value = messageOf(e)
   } finally {
     if (seq === generation) loading.value = false
   }
 }
-async function claim(c) {
+async function claim(c: CouponCard) {
   await user.restoreSession()
   if (!user.isLoggedIn) {
     router.push({ path: '/login', query: { redirect: '/coupons' } })
@@ -48,7 +60,7 @@ async function claim(c) {
     notice.value = '已领取「' + c.name + '」，可在我的优惠券查看'
     await load(1)
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     busy.value = false
   }

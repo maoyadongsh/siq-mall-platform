@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios'
+import { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { ensureCsrfToken, messageError, userStore } = vi.hoisted(() => ({
@@ -18,11 +18,15 @@ vi.mock('element-plus', () => ({ ElMessage: { error: messageError } }))
 
 import service from './request'
 
-function makeResponse(config, status, data) {
+function makeResponse(
+  config: InternalAxiosRequestConfig,
+  status: number,
+  data: unknown,
+): AxiosResponse {
   return { data, status, statusText: '', headers: {}, config }
 }
 
-function unauthorized(config) {
+function unauthorized(config: InternalAxiosRequestConfig): AxiosError {
   const response = makeResponse(config, 401, { code: 10002, message: '登录已过期' })
   return new AxiosError('Unauthorized', 'ERR_BAD_REQUEST', config, {}, response)
 }
@@ -38,8 +42,8 @@ describe('request 401 handling', () => {
   })
 
   it('shares one refresh across concurrent requests and replays them once', async () => {
-    const requests = []
-    let releaseRefresh
+    const requests: unknown[] = []
+    let releaseRefresh: (() => void) | undefined
     userStore.refreshAccessToken.mockImplementation(
       () =>
         new Promise((resolve) => {
@@ -62,7 +66,7 @@ describe('request 401 handling', () => {
       expect(requests).toHaveLength(2)
       expect(userStore.refreshAccessToken).toHaveBeenCalledTimes(1)
     })
-    releaseRefresh()
+    releaseRefresh?.()
 
     await expect(pending).resolves.toEqual([{ url: '/first' }, { url: '/second' }])
     expect(requests).toEqual([
@@ -74,7 +78,7 @@ describe('request 401 handling', () => {
   })
 
   it('clears the session and does not replay when refresh fails', async () => {
-    const requests = []
+    const requests: unknown[] = []
     userStore.refreshAccessToken.mockRejectedValue(new Error('refresh failed'))
     service.defaults.adapter = async (config) => {
       requests.push(config)
@@ -100,13 +104,16 @@ describe('request 401 handling', () => {
   it.each(['post', 'patch', 'delete'])(
     'does not refresh or replay a %s request',
     async (method) => {
-      const requests = []
+      const requests: unknown[] = []
       service.defaults.adapter = async (config) => {
         requests.push(config)
         throw unauthorized(config)
       }
 
-      await expect(service[method]('/write', {})).rejects.toThrow('登录已过期')
+      const call = (
+        service as unknown as Record<string, (url: string, data?: unknown) => Promise<unknown>>
+      )[method]
+      await expect(call('/write', {})).rejects.toThrow('登录已过期')
       expect(requests).toHaveLength(1)
       expect(userStore.refreshAccessToken).not.toHaveBeenCalled()
       expect(userStore.clear).not.toHaveBeenCalled()
@@ -114,7 +121,7 @@ describe('request 401 handling', () => {
   )
 
   it('does not replay again when the refreshed access is still rejected', async () => {
-    const requests = []
+    const requests: unknown[] = []
     userStore.refreshAccessToken.mockResolvedValue('still-invalid-access')
     service.defaults.adapter = async (config) => {
       requests.push(config)

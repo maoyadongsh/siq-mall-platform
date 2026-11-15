@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElCard } from 'element-plus'
@@ -12,7 +12,12 @@ const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
 
-async function submit(credentials) {
+interface LoginFormPayload {
+  identifier: string
+  password: string
+}
+
+async function submit(credentials: LoginFormPayload) {
   loading.value = true
   try {
     await userStore.login({ identifier: credentials.identifier, password: credentials.password })

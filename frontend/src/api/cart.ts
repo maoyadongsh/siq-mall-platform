@@ -1,16 +1,28 @@
+import type {
+  CartData,
+  CartItem,
+  GuestCart,
+  GuestCartLine,
+  Product,
+  QuoteData,
+  Sku,
+} from '@/types/models'
 import request from '@/utils/request'
 
 const guestKey = 'siq.guest-cart.v1'
-const blank = () => ({ items: [], batch: null, needsConfirmation: false })
-export function guestCart() {
+const blank = (): GuestCart => ({ items: [], batch: null, needsConfirmation: false })
+
+export function guestCart(): GuestCart {
   const raw = sessionStorage.getItem(guestKey)
-  return raw ? JSON.parse(raw) : blank()
+  return raw ? (JSON.parse(raw) as GuestCart) : blank()
 }
-function store(cart) {
+
+function store(cart: GuestCart): GuestCart {
   sessionStorage.setItem(guestKey, JSON.stringify(cart))
   return cart
 }
-export function addGuest(product, sku, quantity) {
+
+export function addGuest(product: Pick<Product, 'title'>, sku: Sku, quantity: number): GuestCart {
   const cart = guestCart()
   if (cart.batch) throw new Error('请先到购物车确认上次合并结果')
   const item = cart.items.find((i) => i.sku_id === sku.id)
@@ -28,7 +40,8 @@ export function addGuest(product, sku, quantity) {
     })
   return store(cart)
 }
-export function updateGuest(id, quantity) {
+
+export function updateGuest(id: string, quantity: number): GuestCart {
   const cart = guestCart()
   if (cart.batch) throw new Error('请先确认上次合并结果')
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99)
@@ -38,14 +51,19 @@ export function updateGuest(id, quantity) {
   return store(cart)
 }
 
-export function removeGuest(id) {
+export function removeGuest(id: string): GuestCart {
   const cart = guestCart()
   if (cart.batch) throw new Error('请先确认上次合并结果')
   cart.items = cart.items.filter((i) => i.sku_id !== id)
   return store(cart)
 }
 
-export async function mergeGuest(userId) {
+interface MergeResult {
+  adjustments: { sku_id: string; reason: string }[]
+  requires_confirmation: boolean
+}
+
+export async function mergeGuest(userId: string): Promise<GuestCart> {
   const cart = guestCart()
   if (!cart.items.length) return cart
   if (cart.batch && cart.batch.owner !== userId)
@@ -58,7 +76,7 @@ export async function mergeGuest(userId) {
     }
     store(cart)
   }
-  const data = await request.post(
+  const data = await request.post<MergeResult>(
     '/carts/merge/',
     { items: cart.batch.items },
     { headers: { 'Idempotency-Key': cart.batch.key } },
@@ -67,36 +85,51 @@ export async function mergeGuest(userId) {
   return store({
     items: cart.items
       .filter((i) => reasons.has(i.sku_id))
-      .map((i) => ({ ...i, reason: reasons.get(i.sku_id) })),
+      .map((i): GuestCartLine & { reason?: string } => ({ ...i, reason: reasons.get(i.sku_id) })),
     batch: null,
     needsConfirmation: data.requires_confirmation,
   })
 }
 
-export function pendingAdd(userId) {
-  return JSON.parse(sessionStorage.getItem('siq.cart.add.' + userId) || 'null')
+interface PendingAdd {
+  key: string
+  line: Record<string, unknown>
 }
-export async function addMember(userId, line) {
+
+export function pendingAdd(userId: string): PendingAdd | null {
+  return JSON.parse(sessionStorage.getItem('siq.cart.add.' + userId) || 'null') as PendingAdd | null
+}
+
+export async function addMember(userId: string, line: Record<string, unknown>): Promise<CartItem> {
   const storage = 'siq.cart.add.' + userId
   const op = pendingAdd(userId) || { key: crypto.randomUUID(), line }
   sessionStorage.setItem(storage, JSON.stringify(op))
   try {
-    const result = await request.post('/carts/items/', op.line, {
+    const result = await request.post<CartItem>('/carts/items/', op.line, {
       headers: { 'Idempotency-Key': op.key },
     })
     sessionStorage.removeItem(storage)
     return result
   } catch (e) {
-    if ([400, 404, 409].includes(e.response?.status)) sessionStorage.removeItem(storage)
+    const error = e as { response?: { status: number } }
+    if ([400, 404, 409].includes(error.response?.status ?? 0)) sessionStorage.removeItem(storage)
     throw e
   }
 }
-export const getCart = () => request.get('/carts/items/')
-export const patchItem = (item, changes) =>
+
+export const getCart = (): Promise<CartData> => request.get('/carts/items/')
+
+export const patchItem = (item: CartItem, changes: Record<string, unknown>): Promise<CartItem> =>
   request.patch('/carts/items/' + item.id + '/', { ...changes, expected_version: item.version })
-export const deleteItem = (item) =>
+
+export const deleteItem = (item: CartItem): Promise<null> =>
   request.delete('/carts/items/' + item.id + '/', { data: { expected_version: item.version } })
-export const quote = (address_id, items, user_coupon_id = null) =>
+
+export const quote = (
+  address_id: string,
+  items: { sku_id: string; quantity: number }[],
+  user_coupon_id: string | null = null,
+): Promise<QuoteData> =>
   request.post('/checkout/quote/', {
     address_id,
     user_coupon_id,

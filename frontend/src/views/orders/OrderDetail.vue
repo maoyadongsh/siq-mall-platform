@@ -1,8 +1,61 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { getOrder, pendingCommand, statusNames, submitCommand } from '@/api/orders'
+import type { OrderDetail } from '@/types/models'
+import { messageOf } from '@/utils/errors'
+
+type OrderItem = {
+  sku_id: string
+  title: string
+  label: string
+  unit_price: string
+  quantity: number
+}
+
+type OrderAddress = {
+  recipient: string
+  phone: string
+  province: string
+  city: string
+  district: string
+  detail: string
+}
+
+type OrderShipment = {
+  carrier: string
+  tracking_no: string
+}
+
+type OrderCoupon = {
+  name: string
+}
+
+type OrderEvent = {
+  type: string
+  at: string
+  reason?: string
+}
+
+type OrderView = Omit<
+  OrderDetail,
+  'items' | 'address_snapshot' | 'events' | 'shipment' | 'coupon_snapshot'
+> & {
+  items: OrderItem[]
+  address_snapshot: OrderAddress
+  events: OrderEvent[]
+  shipment: OrderShipment | null
+  coupon_snapshot: OrderCoupon | null
+}
+
+interface PendingAction {
+  key: string
+  path: string
+  data: Record<string, unknown>
+  action: string
+}
+
 const props = defineProps({ no: { type: String, required: true }, ops: Boolean })
-const order = ref(null),
+const order = ref<OrderView | null>(null),
   error = ref(''),
   busy = ref(false),
   loading = ref(false),
@@ -10,7 +63,7 @@ const order = ref(null),
   tracking = ref(''),
   confirm = ref(''),
   now = ref(Date.now())
-const unresolved = ref(null)
+const unresolved = ref<PendingAction | null>(null)
 function checkPending() {
   unresolved.value = null
   const actions = props.ops
@@ -24,8 +77,8 @@ function checkPending() {
     }
   }
 }
-let timer
-const events = {
+let timer: ReturnType<typeof setInterval> | undefined
+const events: Record<string, string> = {
   'order.created': '订单已创建',
   'order.paid': '模拟付款成功',
   'order.shipped': '订单已发货',
@@ -36,15 +89,15 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    order.value = await getOrder(props.no, props.ops)
+    order.value = (await getOrder(props.no, props.ops)) as OrderView
     checkPending()
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     loading.value = false
   }
 }
-async function command(action, path, data) {
+async function command(action: string, path: string, data: Record<string, unknown>) {
   if (busy.value) return
   busy.value = true
   error.value = ''
@@ -55,7 +108,7 @@ async function command(action, path, data) {
   } catch (e) {
     checkPending()
     await load()
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     busy.value = false
   }
@@ -69,19 +122,23 @@ function receive() {
   return command('order.receive', '/orders/' + props.no + '/receive/', {})
 }
 function ship() {
+  const current = order.value
+  if (!current) return
   return command('order.ship', '/ops/orders/' + props.no + '/ship/', {
     carrier: carrier.value,
     tracking_no: tracking.value,
-    expected_version: order.value.version,
+    expected_version: current.version,
   })
 }
 function startPay() {
   return command('payment.create', '/payments/', { order_no: props.no })
 }
-function simulate(outcome) {
+function simulate(outcome: 'success' | 'failed') {
+  const payment = order.value?.payment_summary
+  if (!payment) return
   return command(
     'payment.simulate',
-    '/payments/' + order.value.payment_summary.pay_no + '/simulate/',
+    '/payments/' + payment.pay_no + '/simulate/',
     { outcome },
   )
 }

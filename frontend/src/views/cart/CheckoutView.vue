@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { fetchAddresses } from '@/api/addresses'
 import { getCart, quote } from '@/api/cart'
@@ -6,43 +6,71 @@ import { getCart, quote } from '@/api/cart'
 import { useUserStore } from '@/stores/user'
 import { useRouter, useRoute } from 'vue-router'
 import { pendingCommand, submitCommand } from '@/api/orders'
+import type { Address, QuoteData } from '@/types/models'
+import { messageOf, statusOf } from '@/utils/errors'
+
+type CheckoutCoupon = {
+  id: string
+  name: string
+  discount_amount: string
+  reason?: string
+}
+
+type CheckoutQuote = Omit<
+  QuoteData,
+  'selected_coupon' | 'available_coupons' | 'unavailable_coupons'
+> & {
+  selected_coupon: CheckoutCoupon | null
+  available_coupons: CheckoutCoupon[]
+  unavailable_coupons: CheckoutCoupon[]
+}
+
+interface CreatedOrder {
+  order_no: string
+}
+
 const route = useRoute()
 const coupon = ref(typeof route.query.coupon === 'string' ? route.query.coupon : ''),
-  options = ref([]),
-  unavailable = ref([])
+  options = ref<CheckoutCoupon[]>([]),
+  unavailable = ref<CheckoutCoupon[]>([])
 const router = useRouter()
 const user = useUserStore()
 const submitting = ref(false)
 const recovery = ref(pendingCommand('order.create', 'checkout'))
 async function place() {
-  if (submitting.value || (!recovery.value && (!result.value || expired.value))) return
+  if (submitting.value) return
+  const current = result.value
+  const recoveryOp = recovery.value
+  if (!recoveryOp && (!current || expired.value)) return
   submitting.value = true
   error.value = ''
   try {
-    const data = recovery.value?.data || {
+    const data = recoveryOp?.data || {
       intent_id: crypto.randomUUID(),
-      quote_id: result.value.quote_id,
+      quote_id: current ? current.quote_id : '',
     }
-    const order = await submitCommand('order.create', 'checkout', '/orders/', data)
+    const order = await submitCommand<CreatedOrder>('order.create', 'checkout', '/orders/', data)
     await router.push('/orders/' + order.order_no)
   } catch (e) {
     recovery.value = pendingCommand('order.create', 'checkout')
     if (!recovery.value) result.value = null
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     submitting.value = false
   }
 }
-const addresses = ref([]),
+const addresses = ref<Address[]>([]),
   selected = ref(''),
-  result = ref(null),
+  result = ref<CheckoutQuote | null>(null),
   error = ref(''),
   loading = ref(false),
-  changes = ref([]),
+  changes = ref<string[]>([]),
   now = ref(Date.now())
 let generation = 0,
-  timer
-const expired = computed(() => result.value && Date.parse(result.value.expires_at) <= now.value)
+  timer: ReturnType<typeof setInterval> | undefined
+const expired = computed(() =>
+  result.value ? Date.parse(result.value.expires_at) <= now.value : false,
+)
 async function refresh() {
   const ticket = ++generation
   const previous = result.value
@@ -59,29 +87,34 @@ async function refresh() {
       selected.value = (rows.find((a) => a.is_default) || rows[0]).id
     const lines = cart.items.filter((i) => i.selected)
     if (!lines.length) throw new Error('请先在购物车选中商品')
-    let next
+    let next: QuoteData
     try {
       next = await quote(selected.value, lines, coupon.value || null)
     } catch (e) {
-      if (coupon.value && [404, 409].includes(e.response?.status) && ticket === generation) {
+      if (coupon.value && [404, 409].includes(statusOf(e) ?? 0) && ticket === generation) {
         const preview = await quote(selected.value, lines)
         if (ticket === generation) {
-          options.value = preview.available_coupons
-          unavailable.value = preview.unavailable_coupons
+          options.value = preview.available_coupons as CheckoutCoupon[]
+          unavailable.value = preview.unavailable_coupons as CheckoutCoupon[]
         }
       }
       throw e
     }
     if (ticket !== generation) return
-    options.value = next.available_coupons
-    unavailable.value = next.unavailable_coupons
-    const displayed = new Map(
-      (previous?.items || lines).map((i) => [i.sku_id, i.unit_price || i.current_price]),
+    options.value = next.available_coupons as CheckoutCoupon[]
+    unavailable.value = next.unavailable_coupons as CheckoutCoupon[]
+    const displayed = new Map<string, string>(
+      (previous?.items || lines).map((i): [string, string] => {
+        const price = 'current_price' in i ? i.current_price : i.unit_price
+        return [i.sku_id, price]
+      }),
     )
     if (!previous) {
-      const stored = sessionStorage.getItem('siq.quote.prices.' + user.profile.id)
+      const userId = user.profile?.id
+      const stored = userId ? sessionStorage.getItem('siq.quote.prices.' + userId) : null
       if (stored)
-        for (const [id, amount] of Object.entries(JSON.parse(stored))) displayed.set(id, amount)
+        for (const [id, amount] of Object.entries(JSON.parse(stored) as Record<string, string>))
+          displayed.set(id, amount)
     }
     changes.value = next.items
       .filter((i) => displayed.has(i.sku_id) && displayed.get(i.sku_id) !== i.unit_price)
@@ -89,10 +122,10 @@ async function refresh() {
     if (previous && previous.payable_amount !== next.payable_amount) {
       changes.value.push('预计应付：¥' + previous.payable_amount + ' → ¥' + next.payable_amount)
     }
-    result.value = next
+    result.value = next as CheckoutQuote
     now.value = Date.now()
   } catch (e) {
-    if (ticket === generation) error.value = e.message
+    if (ticket === generation) error.value = messageOf(e)
   } finally {
     if (ticket === generation) loading.value = false
   }

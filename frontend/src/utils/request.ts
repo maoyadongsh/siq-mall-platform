@@ -1,13 +1,32 @@
-import axios from 'axios'
+import axios, {
+  AxiosError,
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+} from 'axios'
 import { ElMessage } from 'element-plus'
 
 import { useUserStore } from '@/stores/user'
 import { ensureCsrfToken } from '@/utils/csrf'
 
+interface ApiBody<T = unknown> {
+  code: number
+  message?: string
+  data: T
+}
+
+export interface HttpClient {
+  defaults: AxiosInstance['defaults']
+  get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T>
+  post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T>
+  patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T>
+  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T>
+}
+
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 const service = axios.create({ baseURL, timeout: 15000, withCredentials: true })
 
-let refreshingPromise = null
+let refreshingPromise: Promise<string> | null = null
 
 service.interceptors.request.use(async (config) => {
   const userStore = useUserStore()
@@ -21,19 +40,22 @@ service.interceptors.request.use(async (config) => {
   return config
 })
 
+const unwrap = (response: AxiosResponse<ApiBody>): unknown => {
+  const body = response.data
+  if (body && body.code === 0) {
+    return body.data
+  }
+  const message = body?.message || '请求失败'
+  ElMessage.error(message)
+  return Promise.reject(Object.assign(new Error(message), { code: body?.code, body }))
+}
+
 service.interceptors.response.use(
-  (response) => {
-    const body = response.data
-    if (body && body.code === 0) {
-      return body.data
-    }
-    const message = body?.message || '请求失败'
-    ElMessage.error(message)
-    return Promise.reject(Object.assign(new Error(message), { code: body?.code, body }))
-  },
-  async (error) => {
-    const { response, config = {} } = error
+  unwrap as unknown as (response: AxiosResponse) => AxiosResponse,
+  async (error: AxiosError<{ code?: number; message?: string }>) => {
+    const response = error.response
     const body = response?.data
+    const config: AxiosRequestConfig = error.config || {}
 
     const method = (config.method || 'get').toLowerCase()
     const canReplay = ['get', 'head', 'options'].includes(method)
@@ -72,4 +94,4 @@ service.interceptors.response.use(
   },
 )
 
-export default service
+export default service as unknown as HttpClient

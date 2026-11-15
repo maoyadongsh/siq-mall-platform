@@ -1,5 +1,6 @@
 <view class="container">
   <view wx:if="{{error}}" class="error">{{error}}</view>
+  <view wx:if="{{socketState === 'waiting'}}" class="muted">实时连接中断，正在重连；消息会继续通过轮询接收。</view>
   <view wx:if="{{!conversation && !loading}}" class="card"><view>联系客服</view><view class="muted">会话仅本人和授权客服可见。</view><button class="primary" bindtap="create">开始新会话</button></view>
   <block wx:if="{{conversation}}"><view class="row"><view>会话 #{{conversation.id}} · {{conversation.status === 'open' ? '进行中' : '已关闭'}}</view><button wx:if="{{conversation.status === 'open'}}" class="secondary" bindtap="close">关闭</button></view>
     <view wx:if="{{!rows.length && !pending.length}}" class="muted">还没有消息，请描述问题。</view>

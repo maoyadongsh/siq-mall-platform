@@ -1,10 +1,42 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import request from '@/utils/request'
+import { messageOf, statusOf } from '@/utils/errors'
 import { useUserStore } from '@/stores/user'
+import type { Sku } from '@/types/models'
 
-const props = defineProps({ sku: { type: Object, required: true } })
-const emit = defineEmits(['changed'])
+interface StockAdjustment {
+  id: string
+  created_at: string
+  operator: string
+  reason: string
+  before: number
+  after: number
+  delta: number
+}
+
+interface StockPage {
+  count: number
+  total_pages: number
+  results: StockAdjustment[]
+}
+
+interface StockOperation {
+  key: string
+  data: {
+    delta: number
+    reason: string
+    expected_version?: number
+  }
+}
+
+function detailOf(e: unknown): string | undefined {
+  return (e as { response?: { data?: { errors?: { detail?: string }[] } } }).response?.data
+    ?.errors?.[0]?.detail
+}
+
+const props = defineProps<{ sku: Sku }>()
+const emit = defineEmits<{ changed: [sku: Sku] }>()
 const user = useUserStore()
 const label = ref(''),
   price = ref(''),
@@ -14,11 +46,13 @@ const label = ref(''),
 const busy = ref(false),
   error = ref(''),
   notice = ref(''),
-  history = ref(null),
+  history = ref<StockPage | null>(null),
   historyPage = ref(1)
-const key = 'siq.stock.' + user.profile.id + '.' + props.sku.id
+const key = 'siq.stock.' + user.profile!.id + '.' + props.sku.id
 const saved = sessionStorage.getItem(key)
-const pending = ref(saved ? JSON.parse(saved) : null)
+const pending = ref<StockOperation | null>(
+  saved ? (JSON.parse(saved) as StockOperation) : null,
+)
 watch(
   () => props.sku,
   (s) => {
@@ -33,15 +67,15 @@ function begin() {
   error.value = ''
   notice.value = ''
 }
-function failed(e) {
-  error.value = e.response?.data?.errors?.[0]?.detail || e.message
+function failed(e: unknown) {
+  error.value = detailOf(e) || messageOf(e)
 }
 
 async function edit() {
   if (busy.value) return
   begin()
   try {
-    const s = await request.patch(path, {
+    const s = await request.patch<Sku>(path, {
       label: label.value,
       price: price.value,
       reason: editReason.value,
@@ -59,7 +93,9 @@ async function edit() {
 
 async function records(page = 1) {
   try {
-    history.value = await request.get(path + 'stock-adjustments/', { params: { page } })
+    history.value = await request.get<StockPage>(path + 'stock-adjustments/', {
+      params: { page },
+    })
     historyPage.value = page
   } catch (e) {
     failed(e)
@@ -74,7 +110,7 @@ async function adjust() {
   begin()
   try {
     if (!pending.value) {
-      const op = {
+      const op: StockOperation = {
         key: crypto.randomUUID(),
         data: {
           delta: delta.value,
@@ -86,7 +122,7 @@ async function adjust() {
       pending.value = op
     }
     const op = pending.value
-    const row = await request.post(path + 'stock-adjustments/', op.data, {
+    const row = await request.post<StockAdjustment>(path + 'stock-adjustments/', op.data, {
       headers: { 'Idempotency-Key': op.key },
     })
     clearPending()
@@ -95,13 +131,13 @@ async function adjust() {
       emit('changed', {
         ...props.sku,
         available_stock: row.after,
-        version: op.data.expected_version + 1,
+        version: (op.data.expected_version ?? 0) + 1,
       })
     notice.value = '已登记库存流水 #' + row.id
     stockReason.value = ''
     await records()
   } catch (e) {
-    if ([400, 403, 404, 409].includes(e.response?.status)) clearPending()
+    if ([400, 403, 404, 409].includes(statusOf(e) ?? 0)) clearPending()
     failed(e)
   } finally {
     busy.value = false

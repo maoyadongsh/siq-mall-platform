@@ -1,14 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import './reviews.css'
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { publicReviews } from '@/api/reviews'
+import type { PublicReviewPage } from '@/types/models'
+import { messageOf, statusOf } from '@/utils/errors'
 const props = defineProps({ id: { type: String, required: true } })
-const data = ref(null),
+const data = ref<PublicReviewPage | null>(null),
   loading = ref(false),
   error = ref(''),
   lastPage = ref(1)
 let seq = 0,
-  timer,
+  timer: ReturnType<typeof setInterval> | undefined,
   inFlight = false
 async function load(page = 1, quiet = false) {
   const ticket = ++seq
@@ -21,8 +23,8 @@ async function load(page = 1, quiet = false) {
     if (ticket === seq) data.value = out
   } catch (e) {
     if (ticket !== seq) return
-    if (page > 1 && e.response?.status === 404) return load(1)
-    error.value = e.message
+    if (page > 1 && statusOf(e) === 404) return load(1)
+    error.value = messageOf(e)
   } finally {
     if (ticket === seq) {
       loading.value = false

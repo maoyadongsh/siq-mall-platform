@@ -1,9 +1,24 @@
-<script setup>
+<script setup lang="ts">
 import { reactive, ref } from 'vue'
 import request from '@/utils/request'
-const emit = defineEmits(['saved'])
-const sku = () => ({ label: '', price: '', available_stock: 0 })
-const form = reactive({ title: '', category: '', description: '', skus: [sku()] })
+import { messageOf } from '@/utils/errors'
+
+interface SkuDraft {
+  label: string
+  price: string
+  available_stock: number
+}
+
+interface ProductDraft {
+  title: string
+  category: string
+  description: string
+  skus: SkuDraft[]
+}
+
+const emit = defineEmits<{ saved: [] }>()
+const sku = (): SkuDraft => ({ label: '', price: '', available_stock: 0 })
+const form = reactive<ProductDraft>({ title: '', category: '', description: '', skus: [sku()] })
 const error = ref('')
 const pending = ref(false)
 async function save() {
@@ -13,7 +28,9 @@ async function save() {
     await request.post('/ops/products/', form)
     emit('saved')
   } catch (e) {
-    error.value = e.response?.data?.errors?.map((x) => x.detail).join('；') || e.message
+    const detail = (e as { response?: { data?: { errors?: { detail?: string }[] } } }).response?.data
+      ?.errors?.map((x) => x.detail).join('；')
+    error.value = detail || messageOf(e)
   } finally {
     pending.value = false
   }

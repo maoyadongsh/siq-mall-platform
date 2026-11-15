@@ -1,13 +1,19 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { getRoleOptions, getRoleUsers, updateUserRoles } from '@/api/operations'
 import { useUserStore } from '@/stores/user'
+import type { RoleOption, RoleUser } from '@/types/models'
+import { messageOf, statusOf } from '@/utils/errors'
+
+interface RoleOptionRow extends RoleOption {
+  permissions: string[]
+}
 
 const userStore = useUserStore()
-const users = ref([])
-const options = ref([])
-const selected = ref(null)
-const roleIds = ref([])
+const users = ref<RoleUser[]>([])
+const options = ref<RoleOptionRow[]>([])
+const selected = ref<RoleUser | null>(null)
+const roleIds = ref<number[]>([])
 const reason = ref('')
 const loading = ref(false)
 const busy = ref(false)
@@ -20,18 +26,19 @@ async function load() {
   try {
     const [userData, optionData] = await Promise.all([getRoleUsers(), getRoleOptions()])
     users.value = userData
-    options.value = optionData
+    options.value = optionData as RoleOptionRow[]
     if (selected.value) {
-      const current = users.value.find((row) => row.id === selected.value.id)
+      const currentId = selected.value.id
+      const current = users.value.find((row) => row.id === currentId)
       if (current) select(current)
     }
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     loading.value = false
   }
 }
-function select(row) {
+function select(row: RoleUser) {
   selected.value = row
   roleIds.value = row.roles.map((role) => Number(role.id))
   reason.value = ''
@@ -47,7 +54,7 @@ async function save() {
     await load()
     notice.value = '角色已更新，目标用户的既有会话已撤销。'
   } catch (e) {
-    error.value = e.response ? e.message : `${e.message}；结果待确认，请刷新或原键重试。`
+    error.value = statusOf(e) ? messageOf(e) : `${messageOf(e)}；结果待确认，请刷新或原键重试。`
   } finally {
     busy.value = false
   }
@@ -65,7 +72,7 @@ onMounted(load)
         <h2>{{ selected.username }}</h2><p>当前会话版本 {{ selected.expected_version }}</p>
         <fieldset><legend>业务角色</legend><label v-for="role in options" :key="role.id"><input v-model="roleIds" type="checkbox" :value="Number(role.id)"> {{ role.name }}<small>{{ role.permissions.join('、') || '无额外权限' }}</small></label></fieldset>
         <label>变更原因<textarea v-model="reason" maxlength="200" required /></label>
-        <button :disabled="busy || !reason.trim() || selected.id === userStore.profile.id">{{ selected.id === userStore.profile.id ? '不能修改自己的角色' : '保存角色变更' }}</button>
+        <button :disabled="busy || !reason.trim() || selected.id === userStore.profile?.id">{{ selected.id === userStore.profile?.id ? '不能修改自己的角色' : '保存角色变更' }}</button>
       </form>
       <p v-else>请选择用户。</p>
     </div>

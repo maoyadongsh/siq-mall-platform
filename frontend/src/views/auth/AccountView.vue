@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
@@ -18,6 +18,7 @@ import 'element-plus/es/components/input/style/css'
 
 import { logout, updateProfile } from '@/api/auth'
 import { useUserStore } from '@/stores/user'
+import { messageOf } from '@/utils/errors'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -36,7 +37,7 @@ async function saveProfile() {
     userStore.profile = data
     profileMessage.value = '昵称已保存'
   } catch (error) {
-    profileError.value = error?.message || '保存失败，请重试'
+    profileError.value = messageOf(error) || '保存失败，请重试'
   } finally {
     saving.value = false
   }

@@ -1,11 +1,11 @@
-<script setup>
+<script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { unreadNotifications } from '@/api/notifications'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 const unread = ref(0)
-let timer
+let timer: ReturnType<typeof setInterval> | undefined
 
 async function refreshUnread() {
   if (!userStore.isLoggedIn) {

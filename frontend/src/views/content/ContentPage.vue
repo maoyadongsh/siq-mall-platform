@@ -1,11 +1,13 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 import { getPublicContent } from '@/api/cms'
+import { messageOf, statusOf } from '@/utils/errors'
+import type { PublicContent } from '@/types/models'
 import ContentBlocks from '@/components/content/ContentBlocks.vue'
 import './content.css'
 
 const props = defineProps({ kind: { type: String, required: true }, identifier: { type: String, required: true } })
-const data = ref(null)
+const data = ref<PublicContent | null>(null)
 const loading = ref(false)
 const error = ref('')
 
@@ -16,7 +18,7 @@ async function load() {
   try {
     data.value = await getPublicContent(props.kind, props.identifier, window.innerWidth < 768 ? 'mobile' : 'web')
   } catch (e) {
-    error.value = e.response?.status === 404 ? '内容不存在、尚未发布或已下线。' : e.message
+    error.value = statusOf(e) === 404 ? '内容不存在、尚未发布或已下线。' : messageOf(e)
   } finally {
     loading.value = false
   }

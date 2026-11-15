@@ -1,8 +1,17 @@
+import type { Category } from '@/types/models'
 import request from '@/utils/request'
 
-export const getCategoryTree = (ops = false) =>
+export interface CategoryForm {
+  name: string
+  parent_id?: string | null
+  sort_order: number
+  enabled: boolean
+}
+
+export const getCategoryTree = (ops = false): Promise<Category[]> =>
   request.get(ops ? '/ops/categories/' : '/categories/tree/')
-export function saveCategory(form, row = null) {
+
+export function saveCategory(form: CategoryForm, row: Category | null = null): Promise<Category> {
   const data = {
     name: form.name,
     parent_id: form.parent_id || null,

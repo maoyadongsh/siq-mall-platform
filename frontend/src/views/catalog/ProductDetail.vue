@@ -1,16 +1,18 @@
-<script setup>
+<script setup lang="ts">
 import PublicReviews from '@/views/reviews/PublicReviews.vue'
 import { ref, watch } from 'vue'
 import request from '@/utils/request'
+import { messageOf, statusOf } from '@/utils/errors'
 import { useUserStore } from '@/stores/user'
 import { addGuest, addMember, pendingAdd } from '@/api/cart'
+import type { Product, Sku } from '@/types/models'
 const user = useUserStore()
 const quantity = ref(1),
   busy = ref(false),
   notice = ref(''),
   addError = ref('')
 async function add() {
-  if (busy.value || !selected.value) return
+  if (busy.value || !selected.value || !product.value) return
   busy.value = true
   notice.value = ''
   addError.value = ''
@@ -19,21 +21,21 @@ async function add() {
     if (!Number.isInteger(quantity.value) || quantity.value < 1 || quantity.value > 99)
       throw new Error('数量须为1至99的整数')
     if (user.isLoggedIn) {
-      const op = pendingAdd(user.profile.id)
+      const op = pendingAdd(user.profile!.id)
       if (op && (op.line.sku_id !== selected.value.id || op.line.quantity !== quantity.value))
         throw new Error('请先到购物车确认上次加购结果')
-      await addMember(user.profile.id, { sku_id: selected.value.id, quantity: quantity.value })
+      await addMember(user.profile!.id, { sku_id: selected.value.id, quantity: quantity.value })
     } else addGuest(product.value, selected.value, quantity.value)
     notice.value = '已加入购物车'
   } catch (e) {
-    addError.value = e.message
+    addError.value = messageOf(e)
   } finally {
     busy.value = false
   }
 }
 const props = defineProps({ id: { type: String, required: true } })
-const product = ref(null),
-  selected = ref(null),
+const product = ref<Product | null>(null),
+  selected = ref<Sku | null>(null),
   error = ref('')
 let generation = 0
 async function load() {
@@ -42,11 +44,11 @@ async function load() {
   selected.value = null
   error.value = ''
   try {
-    const data = await request.get('/products/' + props.id + '/')
+    const data = await request.get<Product>('/products/' + props.id + '/')
     if (ticket === generation) product.value = data
   } catch (e) {
     if (ticket === generation)
-      error.value = e.response?.status === 404 ? '商品已下架或不存在' : e.message
+      error.value = statusOf(e) === 404 ? '商品已下架或不存在' : messageOf(e)
   }
 }
 watch(() => props.id, load, { immediate: true })

@@ -1,30 +1,40 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import { getOrders, statusNames } from '@/api/orders'
+import type { OrderSummary, Page } from '@/types/models'
 import request from '@/utils/request'
-const activity = ref(null),
+import { messageOf } from '@/utils/errors'
+
+interface OrderActivity {
+  order_no: string
+  type: string
+  occurred_at: string
+}
+
+const activity = ref<OrderActivity[] | null>(null),
   feedError = ref('')
-const eventNames = {
+const eventNames: Record<string, string> = {
   'order.created': '下单',
   'order.paid': '模拟付款',
   'order.shipped': '发货',
   'order.completed': '收货',
   'order.canceled': '取消',
 }
-async function readFeed(event) {
-  if (!event.target.open) return
+async function readFeed(event: Event) {
+  const target = event.target as HTMLDetailsElement | null
+  if (!target?.open) return
   try {
     feedError.value = ''
-    activity.value = await request.get('/ops/order-activities/')
+    activity.value = await request.get<OrderActivity[]>('/ops/order-activities/')
   } catch (e) {
-    feedError.value = e.message
+    feedError.value = messageOf(e)
   }
 }
 const props = defineProps({ ops: Boolean })
 const status = ref(''),
   number = ref(''),
   page = ref(1),
-  data = ref(null),
+  data = ref<Page<OrderSummary> | null>(null),
   error = ref(''),
   busy = ref(false)
 let seq = 0
@@ -33,16 +43,16 @@ async function load(n = 1) {
   busy.value = true
   error.value = ''
   try {
-    const params = { page: n }
+    const params: Record<string, string | number> = { page: n }
     if (status.value) params.status = status.value
     if (number.value) params.order_no = number.value
-    const result = await getOrders(props.ops, params)
+    const result = await getOrders(Boolean(props.ops), params)
     if (id === seq) {
       data.value = result
       page.value = n
     }
   } catch (e) {
-    if (id === seq) error.value = e.message
+    if (id === seq) error.value = messageOf(e)
   } finally {
     if (id === seq) busy.value = false
   }

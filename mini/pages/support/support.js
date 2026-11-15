@@ -1,12 +1,30 @@
 const { request, uuid } = require('../../utils/api')
+
+function socketBase() {
+  const url = getApp().globalData.apiBaseUrl.replace(/^http/, 'ws')
+  const index = url.indexOf('/api/')
+  return index > -1 ? url.slice(0, index) : url
+}
+
 Page({
-  data: { conversation: null, rows: [], pending: [], draft: '', pollCursor: null, loading: true, error: '', busy: false },
-  onShow() {
-    this.load()
-    this.timer = setInterval(() => this.poll(), 5000)
+  data: {
+    conversation: null,
+    rows: [],
+    pending: [],
+    draft: '',
+    pollCursor: null,
+    loading: true,
+    error: '',
+    busy: false,
+    socketState: 'off',
   },
-  onHide() { clearInterval(this.timer) },
-  onUnload() { clearInterval(this.timer) },
+  onShow() {
+    this.closedByUs = false
+    this.load().then(() => this.startRealtime())
+    this.startPolling()
+  },
+  onHide() { this.stopRealtime(); clearInterval(this.timer) },
+  onUnload() { this.stopRealtime(); clearInterval(this.timer) },
   async create() {
     this.setData({ busy: true, error: '' })
     try {
@@ -16,6 +34,7 @@ Page({
       wx.removeStorageSync('siq.mini.support.create')
       this.setData({ conversation, rows: [], pending: [], pollCursor: null, busy: false })
       await this.loadMessages()
+      this.restartRealtime()
     } catch (error) { this.setData({ error: error.message, busy: false }) }
   },
   async load() {
@@ -49,6 +68,110 @@ Page({
         await this.markRead()
       }
     } catch (error) { return }
+  },
+  startPolling(ms = 5000) {
+    clearInterval(this.timer)
+    this.timer = setInterval(() => this.poll(), ms)
+  },
+  startRealtime() {
+    this.closedByUs = false
+    this.attempts = 0
+    return this.connectSocket()
+  },
+  restartRealtime() {
+    this.stopRealtime()
+    return this.startRealtime()
+  },
+  stopRealtime() {
+    this.closedByUs = true
+    clearTimeout(this.reconnectTimer)
+    clearInterval(this.heartbeatTimer)
+    if (this.socketTask) {
+      const task = this.socketTask
+      this.socketTask = null
+      task.close({ code: 1000 })
+    }
+    this.setData({ socketState: 'off' })
+  },
+  scheduleReconnect() {
+    if (this.closedByUs || !this.data.conversation || this.data.conversation.status !== 'open') return
+    if (this.attempts >= 5) return
+    const delay = Math.min(1000 * Math.pow(2, this.attempts), 30000)
+    this.attempts += 1
+    clearTimeout(this.reconnectTimer)
+    this.reconnectTimer = setTimeout(() => this.connectSocket(), delay)
+  },
+  startHeartbeat() {
+    clearInterval(this.heartbeatTimer)
+    this.lastSocketAt = Date.now()
+    this.heartbeatTimer = setInterval(() => {
+      if (Date.now() - this.lastSocketAt > this.heartbeatMs * 2) {
+        if (this.socketTask) this.socketTask.close({ code: 4000 })
+        return
+      }
+      if (this.socketTask) this.socketTask.send({ data: JSON.stringify({ type: 'ping' }) })
+    }, this.heartbeatMs)
+  },
+  async connectSocket() {
+    if (this.closedByUs || this.socketTask || this.data.socketState === 'connecting') return
+    if (!this.data.conversation || this.data.conversation.status !== 'open') return
+    this.setData({ socketState: 'connecting' })
+    try {
+      const ticket = await request({
+        path: '/conversations/ws-ticket/',
+        method: 'POST',
+        data: { conversation_id: Number(this.data.conversation.id) },
+      })
+      if (this.closedByUs) { this.setData({ socketState: 'off' }); return }
+      this.heartbeatMs = ticket.heartbeat_seconds * 1000
+      const task = wx.connectSocket({
+        url: `${socketBase()}${ticket.path}`,
+        protocols: [`support.ticket.${ticket.ticket}`],
+      })
+      this.socketTask = task
+      task.onOpen(() => {
+        if (this.socketTask !== task) return
+        this.attempts = 0
+        this.setData({ socketState: 'open' })
+        this.startHeartbeat()
+        this.startPolling()
+      })
+      task.onMessage((event) => {
+        if (this.socketTask !== task) return
+        this.lastSocketAt = Date.now()
+        let payload
+        try { payload = JSON.parse(event.data) } catch (error) { return }
+        this.handleSocketMessage(payload)
+      })
+      task.onError(() => { if (this.socketTask === task) task.close({ code: 4001 }) })
+      task.onClose(() => {
+        if (this.socketTask !== task) return
+        this.socketTask = null
+        clearInterval(this.heartbeatTimer)
+        if (this.closedByUs) return
+        this.setData({ socketState: 'waiting' })
+        this.startPolling()
+        this.scheduleReconnect()
+      })
+    } catch (error) {
+      this.setData({ socketState: 'off' })
+      this.scheduleReconnect()
+    }
+  },
+  handleSocketMessage(payload) {
+    if (payload.type === 'message' && payload.message) {
+      const row = payload.message
+      const rows = this.data.rows.some((existing) => existing.id === row.id)
+        ? this.data.rows
+        : this.data.rows.concat(row)
+      this.setData({ rows })
+      this.markRead().catch(() => undefined)
+      return
+    }
+    if (payload.type === 'closed') {
+      this.setData({ conversation: { ...this.data.conversation, status: 'closed' } })
+      this.stopRealtime()
+    }
   },
   async markRead() {
     const latest = this.data.rows[this.data.rows.length - 1]
@@ -87,6 +210,7 @@ Page({
       await request({ path: `/conversations/${row.id}/close/`, method: 'POST', data: { reason: '结束咨询' }, idempotencyKey: key })
       wx.removeStorageSync(`siq.mini.support.close.${row.id}`)
       this.setData({ conversation: { ...row, status: 'closed' } })
+      this.stopRealtime()
     } catch (error) { this.setData({ error: error.message }) }
   },
 })

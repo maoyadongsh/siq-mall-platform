@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import {
   cmsKinds,
@@ -9,15 +9,57 @@ import {
   saveDraft,
   uploadMedia,
 } from '@/api/cms'
+import { messageOf, statusOf } from '@/utils/errors'
+import type { Content, Revision } from '@/types/models'
 import ContentBlocks from '@/components/content/ContentBlocks.vue'
 import './content.css'
 
+type CmsBlock = {
+  type: string
+  text?: string
+  level?: number
+  html?: string
+  asset_id?: number | null
+  mobile_asset_id?: number | null
+  alt?: string
+  label?: string
+  url?: string
+  product_ids?: number[]
+}
+
+interface CmsMeta {
+  title: string
+  slug: string
+  start_at: string
+  end_at: string
+  sort_order: number
+  notify_inbox: boolean
+  platforms: string[]
+}
+
+interface PreviewData {
+  revision: Revision
+}
+
+function detailOf(e: unknown): string | undefined {
+  return (e as { response?: { data?: { errors?: { detail?: string }[] } } }).response?.data
+    ?.errors?.[0]?.detail
+}
+
 const props = defineProps({ id: { type: String, required: true } })
-const content = ref(null)
-const meta = ref({})
-const blocks = ref([])
+const content = ref<Content | null>(null)
+const meta = ref<CmsMeta>({
+  title: '',
+  slug: '',
+  start_at: '',
+  end_at: '',
+  sort_order: 0,
+  notify_inbox: false,
+  platforms: [],
+})
+const blocks = ref<CmsBlock[]>([])
 const selected = ref(0)
-const previewData = ref(null)
+const previewData = ref<PreviewData | null>(null)
 const previewRevision = ref(1)
 const platform = ref('web')
 const original = ref('')
@@ -27,18 +69,18 @@ const error = ref('')
 const notice = ref('')
 const reason = ref('')
 const currentBlock = computed(() => blocks.value[selected.value])
-const dirty = computed(() => content.value && snapshot() !== original.value)
-const blockLabels = { heading: '标题', text: '正文', rich_text: '受限富文本', image: '图片', link: '链接', product_list: '商品推荐' }
+const dirty = computed(() => Boolean(content.value) && snapshot() !== original.value)
+const blockLabels: Record<string, string> = { heading: '标题', text: '正文', rich_text: '受限富文本', image: '图片', link: '链接', product_list: '商品推荐' }
 
-function inputTime(value) {
+function inputTime(value: string | null | undefined): string {
   if (!value) return ''
   const date = new Date(value)
   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
 }
-function snapshot() {
+function snapshot(): string {
   return JSON.stringify({ meta: meta.value, blocks: blocks.value })
 }
-function apply(row) {
+function apply(row: Content) {
   content.value = row
   const revision = row.latest_revision
   meta.value = {
@@ -50,7 +92,7 @@ function apply(row) {
     notify_inbox: revision.notify_inbox,
     platforms: [...revision.platforms],
   }
-  blocks.value = JSON.parse(JSON.stringify(revision.blocks))
+  blocks.value = JSON.parse(JSON.stringify(revision.blocks)) as CmsBlock[]
   selected.value = Math.min(selected.value, Math.max(0, blocks.value.length - 1))
   previewRevision.value = revision.revision_no
   original.value = snapshot()
@@ -62,7 +104,7 @@ async function load() {
     apply(await getContent(props.id))
     await loadPreview()
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     loading.value = false
   }
@@ -71,8 +113,8 @@ async function loadPreview() {
   if (!content.value) return
   previewData.value = await previewContent(props.id, previewRevision.value, platform.value)
 }
-function add(type) {
-  const defaults = {
+function add(type: string) {
+  const defaults: Record<string, CmsBlock> = {
     heading: { type, text: '新标题', level: 2 },
     text: { type, text: '新正文' },
     rich_text: { type, html: '<p>新内容</p>' },
@@ -83,42 +125,48 @@ function add(type) {
   blocks.value.push(defaults[type])
   selected.value = blocks.value.length - 1
 }
-function move(delta) {
+function move(delta: number) {
   const target = selected.value + delta
   if (target < 0 || target >= blocks.value.length) return
   const [block] = blocks.value.splice(selected.value, 1)
   blocks.value.splice(target, 0, block)
   selected.value = target
 }
-function setProductIds(value) {
-  currentBlock.value.product_ids = value.split(/[，,\s]+/).filter(Boolean).map(Number)
+function setProductIds(value: string) {
+  const block = currentBlock.value
+  if (!block) return
+  block.product_ids = value.split(/[，,\s]+/).filter(Boolean).map(Number)
 }
-async function upload(event, mobile = false) {
-  const file = event.target.files?.[0]
+async function upload(event: Event, mobile = false) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
   if (!file) return
   busy.value = true
   error.value = ''
   try {
     const asset = await uploadMedia(file)
-    currentBlock.value[mobile ? 'mobile_asset_id' : 'asset_id'] = Number(asset.asset_id)
+    const block = currentBlock.value
+    if (block) block[mobile ? 'mobile_asset_id' : 'asset_id'] = Number(asset.asset_id)
     notice.value = '图片已完成内容校验并上传，保存草稿后生效。'
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     busy.value = false
-    event.target.value = ''
+    target.value = ''
   }
 }
 async function save() {
   if (busy.value) return
+  const current = content.value
+  if (!current) return
   busy.value = true
   error.value = ''
   notice.value = ''
   try {
     const row = await saveDraft(props.id, {
-      expected_version: content.value.version,
-      slug: content.value.slug,
+      expected_version: current.version,
       ...meta.value,
+      slug: current.slug,
       start_at: new Date(meta.value.start_at).toISOString(),
       end_at: meta.value.end_at ? new Date(meta.value.end_at).toISOString() : null,
       blocks: blocks.value,
@@ -127,24 +175,26 @@ async function save() {
     await loadPreview()
     notice.value = '草稿已保存为新版本，线上内容未改变。'
   } catch (e) {
-    error.value = e.response?.data?.errors?.[0]?.detail || e.message
+    error.value = detailOf(e) || messageOf(e)
   } finally {
     busy.value = false
   }
 }
-async function publish(action) {
+async function publish(action: string) {
   if (busy.value || dirty.value) return
+  const current = content.value
+  if (!current) return
   busy.value = true
   error.value = ''
   notice.value = ''
   try {
-    const row = await publishContent(content.value, action, reason.value)
+    const row = await publishContent(current, action, reason.value)
     apply(row)
     await loadPreview()
     notice.value = action === 'publish' ? '版本已发布，首页缓存已失效。' : '内容已下线，公开入口不再返回。'
     reason.value = ''
   } catch (e) {
-    error.value = e.response ? e.message : `${e.message}；结果待确认，请使用原提交标识重试或刷新核对。`
+    error.value = statusOf(e) !== undefined ? messageOf(e) : `${messageOf(e)}；结果待确认，请使用原提交标识重试或刷新核对。`
   } finally {
     busy.value = false
   }
@@ -169,7 +219,7 @@ onMounted(load)
           <label v-else-if="currentBlock.type === 'rich_text'">受限HTML<textarea v-model="currentBlock.html" rows="8" /></label>
           <template v-else-if="currentBlock.type === 'image'"><label>替代文本<input v-model="currentBlock.alt" maxlength="120"></label><label>主图上传<input type="file" accept="image/png,image/jpeg,image/webp" @change="upload($event)"></label><p>媒体ID：{{ currentBlock.asset_id || '未上传' }}</p><label>移动裁切图（可选）<input type="file" accept="image/png,image/jpeg,image/webp" @change="upload($event, true)"></label><p>移动媒体ID：{{ currentBlock.mobile_asset_id || '与主图相同' }}</p></template>
           <template v-else-if="currentBlock.type === 'link'"><label>链接文字<input v-model="currentBlock.label" maxlength="80"></label><label>链接地址<input v-model="currentBlock.url" placeholder="/products/1 或 https://…"></label></template>
-          <label v-else-if="currentBlock.type === 'product_list'">推荐商品ID<input :value="currentBlock.product_ids.join(',')" placeholder="1,2,3" @input="setProductIds($event.target.value)"></label>
+          <label v-else-if="currentBlock.type === 'product_list'">推荐商品ID<input :value="(currentBlock.product_ids ?? []).join(',')" placeholder="1,2,3" @input="setProductIds(($event.target as HTMLInputElement).value)"></label>
         </form>
       </aside>
       <section class="cms-preview-panel">

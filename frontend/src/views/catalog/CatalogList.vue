@@ -1,9 +1,24 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import request from '@/utils/request'
 import { getCategoryTree } from '@/api/catalog'
+import { messageOf } from '@/utils/errors'
+import type { Product } from '@/types/models'
 import DraftForm from './DraftForm.vue'
+
+interface CategoryNode {
+  id: string
+  name: string
+  children?: unknown[]
+}
+
+type ProductRow = Product & { status: NonNullable<Product['status']> }
+
+interface ProductListState {
+  results: ProductRow[]
+  total_pages: number
+}
 
 const props = defineProps({ manage: Boolean })
 const route = useRoute()
@@ -13,9 +28,9 @@ const category = ref('')
 const minPrice = ref('')
 const maxPrice = ref('')
 const sort = ref('newest')
-const categories = ref([])
+const categories = ref<CategoryNode[]>([])
 const page = ref(1)
-const result = ref({ results: [], total_pages: 0 })
+const result = ref<ProductListState>({ results: [], total_pages: 0 })
 const pending = ref(false)
 const actionPending = ref(false)
 const error = ref('')
@@ -24,10 +39,10 @@ let generation = 0
 
 async function loadCategories() {
   try {
-    const flatten = (rows, output = []) => {
+    const flatten = (rows: CategoryNode[], output: CategoryNode[] = []): CategoryNode[] => {
       rows.forEach((row) => {
         output.push(row)
-        flatten(row.children || [], output)
+        flatten((row.children ?? []) as CategoryNode[], output)
       })
       return output
     }
@@ -36,7 +51,7 @@ async function loadCategories() {
     categories.value = []
   }
 }
-function params() {
+function params(): Record<string, string | number | undefined> {
   return {
     q: query.value || undefined,
     category: category.value || undefined,
@@ -51,10 +66,10 @@ async function load() {
   pending.value = true
   error.value = ''
   try {
-    const data = await request.get(props.manage ? '/ops/products/' : '/products/', { params: params() })
+    const data = await request.get<ProductListState>(props.manage ? '/ops/products/' : '/products/', { params: params() })
     if (ticket === generation) result.value = data
   } catch (e) {
-    if (ticket === generation) error.value = e.message
+    if (ticket === generation) error.value = messageOf(e)
   } finally {
     if (ticket === generation) pending.value = false
   }
@@ -75,19 +90,19 @@ function clearFilters() {
   sort.value = 'newest'
   search()
 }
-async function change(product) {
+async function change(product: ProductRow) {
   actionPending.value = true
   const action = product.status === 'on_sale' ? 'unpublish' : 'publish'
   try {
     await request.post('/ops/products/' + product.id + '/' + action + '/', { expected_version: product.version })
     await load()
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     actionPending.value = false
   }
 }
-function turn(delta) {
+function turn(delta: number) {
   page.value += delta
   router.push({ path: route.path, query: params() })
 }

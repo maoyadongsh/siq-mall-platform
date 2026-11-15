@@ -1,36 +1,65 @@
-<script setup>
+<script setup lang="ts">
 import './reviews.css'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { getOrder } from '@/api/orders'
-import { mine, submitReview, reviewStatuses } from '@/api/reviews'
+import { mine, submitReview, reviewStatuses, type ReviewRecord } from '@/api/reviews'
+import { messageOf } from '@/utils/errors'
+
+interface OrderItem {
+  order_item_id: string
+  title: string
+  label: string
+}
+
+interface ReviewOrder {
+  status: string
+  items: OrderItem[]
+}
+
+interface ReviewForm {
+  rating: number
+  content: string
+}
+
 const props = defineProps({ no: { type: String, required: true } })
-const order = ref(null),
-  reviews = ref([]),
-  forms = reactive({}),
+const order = ref<ReviewOrder | null>(null),
+  reviews = ref<ReviewRecord[]>([]),
+  forms = reactive<Record<string, ReviewForm>>({}),
   error = ref(''),
   loading = ref(false),
   sending = ref(''),
   notice = ref('')
-const byItem = computed(() => Object.fromEntries(reviews.value.map((r) => [r.order_item_id, r])))
-const length = (s) => [...s.trim()].length
+const byItem = computed(() => {
+  const map: Record<string, ReviewRecord> = {}
+  for (const review of reviews.value) map[review.order_item_id] = review
+  return map
+})
+const length = (s: string) => [...s.trim()].length
+
+function detailOf(error: unknown): string {
+  const response = (error as { response?: { data?: { errors?: { detail?: string }[] } } }).response
+  return response?.data?.errors?.[0]?.detail || messageOf(error)
+}
+
 async function load() {
   error.value = ''
   loading.value = true
   try {
-    const [o, rows] = await Promise.all([
+    const [detail, rows] = await Promise.all([
       getOrder(props.no),
       mine({ order_no: props.no, page_size: 100 }),
     ])
-    order.value = o
+    const current = detail as unknown as ReviewOrder
+    order.value = current
     reviews.value = rows.results
-    for (const i of o.items) forms[i.order_item_id] ??= { rating: 0, content: '' }
+    for (const i of current.items) forms[i.order_item_id] ??= { rating: 0, content: '' }
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     loading.value = false
   }
 }
-async function send(i) {
+async function send(i: OrderItem) {
   const id = i.order_item_id,
     f = forms[id]
   if (sending.value || !f.rating || length(f.content) < 1 || length(f.content) > 500) return
@@ -42,7 +71,7 @@ async function send(i) {
     reviews.value = [...reviews.value.filter((x) => x.order_item_id !== id), r]
     notice.value = '评价已提交，等待审核'
   } catch (e) {
-    error.value = e.response?.data?.errors?.[0]?.detail || e.message
+    error.value = detailOf(e)
   } finally {
     sending.value = ''
   }

@@ -1,29 +1,50 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getHome } from '@/api/cms'
 import { getCategoryTree } from '@/api/catalog'
+import { messageOf } from '@/utils/errors'
+import type { Category, Product } from '@/types/models'
 import ContentBlocks from '@/components/content/ContentBlocks.vue'
 import ProductGrid from '@/components/content/ProductGrid.vue'
 import './content.css'
 
+interface HomeSection {
+  id: string
+  blocks: Record<string, unknown>[]
+}
+
+interface HomeAnnouncement {
+  id: string
+  title: string
+}
+
+interface HomeData {
+  banners: HomeSection[]
+  floors: HomeSection[]
+  announcements: HomeAnnouncement[]
+  fallback_products: Product[]
+}
+
 const router = useRouter()
-const data = ref(null)
+const data = ref<HomeData | null>(null)
 const loading = ref(false)
 const error = ref('')
 const query = ref('')
-const categories = ref([])
-const hasContent = computed(
-  () => data.value && ['banners', 'floors', 'announcements'].some((key) => data.value[key].length),
-)
+const categories = ref<Category[]>([])
+const hasContent = computed(() => {
+  const home = data.value
+  if (!home) return false
+  return [home.banners, home.floors, home.announcements].some((rows) => rows.length > 0)
+})
 
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    data.value = await getHome(window.innerWidth < 768 ? 'mobile' : 'web')
+    data.value = (await getHome(window.innerWidth < 768 ? 'mobile' : 'web')) as unknown as HomeData
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     loading.value = false
   }

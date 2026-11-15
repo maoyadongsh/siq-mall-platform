@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
@@ -31,10 +31,31 @@ import {
 } from '@/api/addresses'
 import request from '@/utils/request'
 import { useUserStore } from '@/stores/user'
+import type { Address } from '@/types/models'
+import { messageOf } from '@/utils/errors'
+
+interface AddressForm {
+  recipient: string
+  phone: string
+  province: string
+  city: string
+  district: string
+  region_code: string
+  detail: string
+  is_default: boolean
+}
+
+interface RegionTables {
+  province_list: Record<string, string>
+  city_list: Record<string, string>
+  county_list: Record<string, string>
+}
+
+type RegionTableKey = keyof RegionTables
 
 const router = useRouter()
 const userStore = useUserStore()
-const addresses = ref([])
+const addresses = ref<Address[]>([])
 const loading = ref(false)
 const saving = ref(false)
 const busyId = ref('')
@@ -43,7 +64,7 @@ const successMessage = ref('')
 const editingId = ref('')
 const formVersion = ref(1)
 const showForm = ref(false)
-const form = reactive({
+const form = reactive<AddressForm>({
   recipient: '',
   phone: '',
   province: '',
@@ -54,31 +75,42 @@ const form = reactive({
   is_default: false,
 })
 
-const regions = ref(null)
+const regions = ref<RegionTables | null>(null)
 const cities = computed(() => choices('city_list', 'province_list', form.province, 2))
 const counties = computed(() =>
   choices('county_list', 'city_list', form.city, 4).filter(
-    ([code]) => regions.value.province_list[code.slice(0, 2) + '0000'] === form.province,
+    ([code]) => regions.value?.province_list[code.slice(0, 2) + '0000'] === form.province,
   ),
 )
-function choices(table, parents, name, prefixLength) {
+function choices(
+  table: RegionTableKey,
+  parents: RegionTableKey,
+  name: string,
+  prefixLength: number,
+): [string, string][] {
   if (!regions.value || !name) return []
-  return Object.entries(regions.value[table]).filter(
-    ([code]) => regions.value[parents][code.slice(0, prefixLength).padEnd(6, '0')] === name,
+  const current = regions.value
+  return Object.entries(current[table]).filter(
+    ([code]) => current[parents][code.slice(0, prefixLength).padEnd(6, '0')] === name,
   )
 }
 async function loadRegions() {
   try {
-    regions.value = await request.get('/regions/')
+    regions.value = await request.get<RegionTables>('/regions/')
   } catch {
     errorMessage.value = '收货地区加载失败，请重试'
   }
 }
-const formValid = computed(() =>
-  ['recipient', 'phone', 'province', 'city', 'district', 'region_code', 'detail'].every((field) =>
-    form[field].trim(),
-  ),
-)
+const addressFields = [
+  'recipient',
+  'phone',
+  'province',
+  'city',
+  'district',
+  'region_code',
+  'detail',
+] as const
+const formValid = computed(() => addressFields.every((field) => form[field].trim()))
 
 function changeProvince() { form.city = ''; changeCity() }
 function changeCity() { form.district = ''; form.region_code = '' }
@@ -104,13 +136,13 @@ async function loadAddresses() {
   try {
     addresses.value = await fetchAddresses()
   } catch (error) {
-    errorMessage.value = error?.message || '地址加载失败'
+    errorMessage.value = messageOf(error) || '地址加载失败'
   } finally {
     loading.value = false
   }
 }
 
-function editAddress(address) {
+function editAddress(address: Address) {
   editingId.value = address.id
   formVersion.value = address.version
   Object.assign(form, {
@@ -136,7 +168,8 @@ async function saveAddress() {
   const payload = { ...form }
   try {
     if (editingId.value) {
-      await updateAddress(editingId.value, { ...payload, expected_version: formVersion.value })
+      const updatePayload = { ...payload, expected_version: formVersion.value }
+      await updateAddress(editingId.value, updatePayload)
       successMessage.value = '地址已更新'
     } else {
       await createAddress(payload)
@@ -145,13 +178,13 @@ async function saveAddress() {
     resetForm()
     await loadAddresses()
   } catch (error) {
-    errorMessage.value = error?.message || '保存失败，请检查输入后重试'
+    errorMessage.value = messageOf(error) || '保存失败，请检查输入后重试'
   } finally {
     saving.value = false
   }
 }
 
-async function removeAddress(address) {
+async function removeAddress(address: Address) {
   try {
     await ElMessageBox.confirm(`确认删除“${address.recipient}”的这条地址吗？`, '删除地址', {
       type: 'warning',
@@ -168,13 +201,13 @@ async function removeAddress(address) {
     successMessage.value = '地址已删除'
     await loadAddresses()
   } catch (error) {
-    errorMessage.value = error?.message || '删除失败，请刷新后重试'
+    errorMessage.value = messageOf(error) || '删除失败，请刷新后重试'
   } finally {
     busyId.value = ''
   }
 }
 
-async function makeDefault(address) {
+async function makeDefault(address: Address) {
   busyId.value = address.id
   errorMessage.value = ''
   try {
@@ -182,7 +215,7 @@ async function makeDefault(address) {
     successMessage.value = '默认地址已更新'
     await loadAddresses()
   } catch (error) {
-    errorMessage.value = error?.message || '默认地址设置失败'
+    errorMessage.value = messageOf(error) || '默认地址设置失败'
   } finally {
     busyId.value = ''
   }
@@ -257,7 +290,7 @@ onMounted(() => {
           </select></label>
           <label>区县<select
             v-model="form.region_code"
-            @change="form.district = regions.county_list[form.region_code] || ''"
+            @change="form.district = regions?.county_list[form.region_code] || ''"
           >
             <option value="">请选择区县</option>
             <option v-for="[code, name] in counties" :key="code" :value="code">{{ name }}</option>

@@ -1,5 +1,5 @@
-<script setup>
-import { onMounted, ref } from 'vue'
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   listNotifications,
@@ -8,13 +8,20 @@ import {
   targetPath,
   unreadNotifications,
 } from '@/api/notifications'
+import type { Notice } from '@/types/models'
+import { messageOf } from '@/utils/errors'
 import './messages.css'
 
+interface NoticeCounts {
+  total: number
+  by_type: Record<string, number>
+}
+
 const router = useRouter()
-const rows = ref([])
+const rows = ref<Notice[]>([])
 const type = ref('')
-const counts = ref({ total: 0, by_type: {} })
-const cursor = ref(null)
+const counts = ref<NoticeCounts>({ total: 0, by_type: {} })
+const cursor = ref<string | null>(null)
 const hasMore = ref(false)
 const watermark = ref('')
 const loading = ref(false)
@@ -22,6 +29,7 @@ const busy = ref(false)
 const error = ref('')
 const notice = ref('')
 let requestSeq = 0
+let countTimer: ReturnType<typeof setInterval> | undefined
 
 function changed() {
   window.dispatchEvent(new Event('siq:notifications-changed'))
@@ -49,13 +57,13 @@ async function load(append = false) {
     watermark.value = data.read_watermark
     await refreshCount()
   } catch (e) {
-    if (ticket === requestSeq) error.value = e.message
+    if (ticket === requestSeq) error.value = messageOf(e)
   } finally {
     if (ticket === requestSeq) loading.value = false
   }
 }
 
-async function selectType(value) {
+async function selectType(value: string) {
   if (busy.value || type.value === value) return
   type.value = value
   notice.value = ''
@@ -76,13 +84,13 @@ async function markAll() {
     changed()
     await load()
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     busy.value = false
   }
 }
 
-async function open(row) {
+async function open(row: Notice) {
   if (busy.value) return
   const path = targetPath(row)
   if (!path) {
@@ -100,13 +108,28 @@ async function open(row) {
     }
     await router.push(path)
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     busy.value = false
   }
 }
 
-onMounted(load)
+async function checkNew() {
+  if (document.visibilityState !== 'visible' || loading.value || busy.value) return
+  const before = counts.value.total
+  try {
+    await refreshCount()
+  } catch {
+    return
+  }
+  if (counts.value.total > before) await load()
+}
+
+onMounted(() => {
+  load()
+  countTimer = setInterval(checkNew, 5000)
+})
+onBeforeUnmount(() => clearInterval(countTimer))
 </script>
 
 <template>

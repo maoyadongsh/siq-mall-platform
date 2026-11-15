@@ -1,16 +1,51 @@
-<script setup>
-import { ref, reactive, onMounted } from 'vue'
+<script setup lang="ts">
+import { ref, reactive, onMounted, type PropType } from 'vue'
 import request from '@/utils/request'
-const props = defineProps({ source: { type: Object, default: null } })
+import type { Coupon, Page, Product } from '@/types/models'
+import { messageOf } from '@/utils/errors'
+
+interface CouponTemplate extends Coupon {
+  total: number
+  issued: number
+  reserved: number
+  used: number
+  per_user_limit: number
+  version: number
+  claim_start_at: string
+  claim_end_at: string
+}
+
+interface CouponForm {
+  name: string
+  type: string
+  threshold_amount: string
+  reduction_amount: string
+  rate: number
+  cap_amount: string
+  scope: string
+  product_ids: string[]
+  total: number
+  per_user_limit: number
+  start_at: string
+  end_at: string
+  claim_start_at: string
+  claim_end_at: string
+}
+
+type DateField = 'start_at' | 'end_at' | 'claim_start_at' | 'claim_end_at'
+
+const props = defineProps({
+  source: { type: Object as PropType<CouponTemplate | null>, default: null },
+})
 const emit = defineEmits(['saved', 'cancel'])
 const s = props.source
-const localDate = (v) => {
+const localDate = (v: string | number) => {
   const d = new Date(v)
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 19)
 }
 const from = localDate(Date.now() - 60000),
   end = localDate(Date.now() + 7 * 86400000)
-const form = reactive({
+const form = reactive<CouponForm>({
   name: s?.name || '',
   type: s?.type || 'fixed',
   threshold_amount: s?.threshold_amount || '129.00',
@@ -29,12 +64,20 @@ const form = reactive({
 const error = ref(''),
   busy = ref(false),
   query = ref(''),
-  products = ref(null)
+  products = ref<Page<Product>>({ count: 0, page: 1, page_size: 0, total_pages: 1, results: [] })
+
+function detailOf(error: unknown): string {
+  const response = (error as { response?: { data?: { errors?: { detail?: string }[] } } }).response
+  return response?.data?.errors?.map((item) => item.detail).join('；') || messageOf(error)
+}
+
 async function find(n = 1) {
   try {
-    products.value = await request.get('/products/', { params: { q: query.value, page: n } })
+    products.value = await request.get<Page<Product>>('/products/', {
+      params: { q: query.value, page: n },
+    })
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   }
 }
 async function save() {
@@ -42,21 +85,21 @@ async function save() {
   error.value = ''
   try {
     const { rate, ...out } = form
-    const payload = {
+    const payload: Record<string, unknown> = {
       ...out,
       product_ids: form.scope === 'all' ? [] : form.product_ids,
       reduction_amount: form.type === 'fixed' ? form.reduction_amount : null,
       discount_bps: form.type === 'percentage' ? Math.round(rate * 100) : null,
       cap_amount: form.type === 'percentage' ? form.cap_amount : null,
     }
-    for (const key of ['start_at', 'end_at', 'claim_start_at', 'claim_end_at'])
-      payload[key] = new Date(form[key]).toISOString()
+    const dateFields: DateField[] = ['start_at', 'end_at', 'claim_start_at', 'claim_end_at']
+    for (const key of dateFields) payload[key] = new Date(form[key]).toISOString()
     if (s)
       await request.patch('/ops/coupons/' + s.id + '/', { ...payload, expected_version: s.version })
     else await request.post('/ops/coupons/', payload)
     emit('saved')
   } catch (e) {
-    error.value = e.response?.data?.errors?.map((x) => x.detail).join('；') || e.message
+    error.value = detailOf(e)
   } finally {
     busy.value = false
   }

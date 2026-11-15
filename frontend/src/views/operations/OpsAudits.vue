@@ -1,8 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { getAudits } from '@/api/operations'
+import type { AuditRow, Page } from '@/types/models'
+import { messageOf } from '@/utils/errors'
 
-const data = ref(null)
+const data = ref<Page<AuditRow> | null>(null)
 const objectType = ref('')
 const objectId = ref('')
 const action = ref('')
@@ -20,7 +22,7 @@ async function load() {
       action: action.value || undefined,
     })
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     loading.value = false
   }

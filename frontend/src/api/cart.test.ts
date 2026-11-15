@@ -4,14 +4,16 @@ import { addGuest, guestCart, mergeGuest, removeGuest, updateGuest } from './car
 
 vi.mock('@/utils/request', () => ({ default: { post: vi.fn() } }))
 
+const post = vi.mocked(request.post)
+
 beforeEach(() => {
-  const data = new Map()
+  const data = new Map<string, string>()
   vi.stubGlobal('sessionStorage', {
-    getItem: (key) => data.get(key) ?? null,
-    setItem: (key, value) => data.set(key, value),
-    removeItem: (key) => data.delete(key),
+    getItem: (key: string) => data.get(key) ?? null,
+    setItem: (key: string, value: string) => data.set(key, value),
+    removeItem: (key: string) => data.delete(key),
   })
-  request.post.mockReset()
+  post.mockReset()
   addGuest({ title: '茶杯' }, { id: '7', label: '白', price: '99.00', available_stock: 10 }, 2)
 })
 afterEach(() => vi.unstubAllGlobals())
@@ -23,20 +25,20 @@ it('keeps the guest selection until a separate remove action', () => {
 })
 
 it('reuses the original merge after a lost response and binds it to the buyer', async () => {
-  request.post.mockRejectedValueOnce(new Error('timeout'))
+  post.mockRejectedValueOnce(new Error('timeout'))
   await expect(mergeGuest('buyer-a')).rejects.toThrow('timeout')
-  const first = request.post.mock.calls[0]
+  const first = post.mock.calls[0]
   expect(() => updateGuest('7', 3)).toThrow()
   await expect(mergeGuest('buyer-b')).rejects.toThrow()
-  expect(request.post).toHaveBeenCalledTimes(1)
-  request.post.mockResolvedValueOnce({ adjustments: [], requires_confirmation: false })
+  expect(post).toHaveBeenCalledTimes(1)
+  post.mockResolvedValueOnce({ adjustments: [], requires_confirmation: false })
   await mergeGuest('buyer-a')
-  expect(request.post.mock.calls[1]).toEqual(first)
+  expect(post.mock.calls[1]).toEqual(first)
   expect(guestCart().items).toEqual([])
 })
 
 it('retains the rejected quantity and the reason returned by the server', async () => {
-  request.post.mockResolvedValueOnce({
+  post.mockResolvedValueOnce({
     adjustments: [{ sku_id: '7', quantity: 2, reason: '库存不足' }],
     requires_confirmation: true,
   })

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, reactive } from 'vue'
 import { ElButton, ElCheckbox, ElForm, ElFormItem, ElInput } from 'element-plus'
 import 'element-plus/es/components/button/style/css'
@@ -7,11 +7,20 @@ import 'element-plus/es/components/form/style/css'
 import 'element-plus/es/components/form-item/style/css'
 import 'element-plus/es/components/input/style/css'
 
+interface AuthSubmitPayload {
+  identifier: string
+  username: string
+  password: string
+  accepted_terms_version: string
+}
+
 const props = defineProps({
   mode: { type: String, required: true },
   loading: { type: Boolean, default: false },
 })
-const emit = defineEmits(['submit'])
+const emit = defineEmits<{
+  (e: 'submit', payload: AuthSubmitPayload): void
+}>()
 const isRegister = computed(() => props.mode === 'register')
 const form = reactive({ identifier: '', password: '', accepted: false })
 

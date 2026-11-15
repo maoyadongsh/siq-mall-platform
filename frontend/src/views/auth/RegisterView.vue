@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElCard } from 'element-plus'
@@ -12,7 +12,13 @@ const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
 
-async function submit(payload) {
+interface RegisterFormPayload {
+  username: string
+  password: string
+  accepted_terms_version: string
+}
+
+async function submit(payload: RegisterFormPayload) {
   loading.value = true
   try {
     await userStore.register({

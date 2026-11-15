@@ -1,19 +1,21 @@
-<script setup>
+<script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { assignConversation, listConversations } from '@/api/support'
 import SupportChat from '@/components/support/SupportChat.vue'
 import { useUserStore } from '@/stores/user'
+import type { Conversation } from '@/types/models'
+import { messageOf, statusOf } from '@/utils/errors'
 
 const userStore = useUserStore()
 const scope = ref('mine')
-const rows = ref([])
+const rows = ref<Conversation[]>([])
 const selectedId = ref('')
-const agentId = ref(userStore.profile.id)
+const agentId = ref(userStore.profile?.id ?? '')
 const loading = ref(false)
 const busy = ref(false)
 const error = ref('')
 const notice = ref('')
-let timer
+let timer: ReturnType<typeof setInterval> | undefined
 
 async function loadQueue() {
   if (document.visibilityState !== 'visible') return
@@ -24,7 +26,7 @@ async function loadQueue() {
     rows.value = data.results
     if (!selectedId.value && rows.value.length) selectedId.value = rows.value[0].id
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     loading.value = false
   }
@@ -41,7 +43,7 @@ async function assign() {
     await loadQueue()
     notice.value = '会话已分配，可由接待客服回复。'
   } catch (e) {
-    error.value = e.response ? e.message : `${e.message}；分配结果待确认，请刷新或重试。`
+    error.value = statusOf(e) ? messageOf(e) : `${messageOf(e)}；分配结果待确认，请刷新或重试。`
   } finally {
     busy.value = false
   }
@@ -62,12 +64,12 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="ops-support">
-    <header><div><h1>客服工作台</h1><p>仅显示权限内会话；分配、未读和已读均来自服务端记录。</p></div><label>队列<select v-model="scope" @change="selectedId = ''; loadQueue()"><option value="mine">我的接待</option><template v-if="userStore.profile.can_assign_support"><option value="pending">待分配</option><option value="closed">已关闭</option><option value="all">全部授权会话</option></template></select></label></header>
+    <header><div><h1>客服工作台</h1><p>仅显示权限内会话；分配、未读和已读均来自服务端记录。</p></div><label>队列<select v-model="scope" @change="selectedId = ''; loadQueue()"><option value="mine">我的接待</option><template v-if="userStore.profile?.can_assign_support"><option value="pending">待分配</option><option value="closed">已关闭</option><option value="all">全部授权会话</option></template></select></label></header>
     <p v-if="error" role="alert" class="ops-support__error">{{ error }}</p><p v-if="notice" role="status" class="ops-support__success">{{ notice }}</p>
     <div class="ops-support__layout">
       <aside class="ops-support__queue"><h2>会话队列</h2><p v-if="loading">正在刷新…</p><p v-if="!rows.length">当前队列暂无会话。</p><button v-for="row in rows" :key="row.id" :aria-pressed="selectedId === row.id" @click="selectedId = row.id"><strong>#{{ row.id }} · {{ row.status === 'open' ? '进行中' : '已关闭' }}</strong><span>{{ row.buyer_display_name }} · 未读 {{ row.unread_count }}</span><small v-if="row.last_message">{{ row.last_message.body }}</small></button></aside>
       <main class="ops-support__main"><SupportChat v-if="selectedId" :key="selectedId" :conversation-id="selectedId" ops @changed="loadQueue" /><p v-else class="ops-support__empty">请选择需要处理的会话。</p></main>
-      <aside class="ops-support__assignment"><h2>分配与权限</h2><template v-if="userStore.profile.can_assign_support"><label>客服用户ID<input v-model="agentId" inputmode="numeric"></label><button :disabled="busy || !selectedId" @click="assign">分配给此客服</button></template><p v-else>你可以处理分配给自己的会话，不能查看或接管其他客服会话。</p><p>客服仅查看必要的订单摘要，不提供收货地址或任意改价、发货入口。</p></aside>
+      <aside class="ops-support__assignment"><h2>分配与权限</h2><template v-if="userStore.profile?.can_assign_support"><label>客服用户ID<input v-model="agentId" inputmode="numeric"></label><button :disabled="busy || !selectedId" @click="assign">分配给此客服</button></template><p v-else>你可以处理分配给自己的会话，不能查看或接管其他客服会话。</p><p>客服仅查看必要的订单摘要，不提供收货地址或任意改价、发货入口。</p></aside>
     </div>
   </div>
 </template>

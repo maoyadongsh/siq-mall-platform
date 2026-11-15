@@ -1,20 +1,31 @@
-<script setup>
+<script setup lang="ts">
 import './reviews.css'
 import { ref, watch } from 'vue'
 import { queue, mine, moderateReview, reviewStatuses } from '@/api/reviews'
+import type { Page, ReviewRow } from '@/types/models'
+import { messageOf } from '@/utils/errors'
+
+type ReviewAction = 'approve' | 'reject' | 'hide' | ''
+
 const props = defineProps({ ops: Boolean })
-const data = ref(null),
+const data = ref<Page<ReviewRow> | null>(null),
   status = ref(''),
   productId = ref(''),
   error = ref(''),
   loading = ref(false),
   busy = ref(false)
-const target = ref(null),
-  action = ref(''),
+const target = ref<ReviewRow | null>(null),
+  action = ref<ReviewAction>(''),
   reason = ref(''),
   notice = ref('')
-const verbs = { approve: '公开', reject: '拒绝', hide: '隐藏' }
+const verbs: Record<string, string> = { approve: '公开', reject: '拒绝', hide: '隐藏' }
 let seq = 0
+
+function detailOf(error: unknown): string {
+  const response = (error as { response?: { data?: { errors?: { detail?: string }[] } } }).response
+  return response?.data?.errors?.[0]?.detail || messageOf(error)
+}
+
 async function load(n = 1) {
   const ticket = ++seq
   loading.value = true
@@ -32,12 +43,12 @@ async function load(n = 1) {
       target.value = null
     }
   } catch (e) {
-    if (ticket === seq) error.value = e.message
+    if (ticket === seq) error.value = messageOf(e)
   } finally {
     if (ticket === seq) loading.value = false
   }
 }
-function prepare(r, a) {
+function prepare(r: ReviewRow, a: ReviewAction) {
   target.value = r
   action.value = a
   reason.value = ''
@@ -45,15 +56,16 @@ function prepare(r, a) {
   notice.value = ''
 }
 async function apply() {
-  if (busy.value) return
+  const row = target.value
+  if (busy.value || !row) return
   busy.value = true
   error.value = ''
   try {
-    await moderateReview(target.value, action.value, reason.value.trim())
+    await moderateReview(row, action.value, reason.value.trim())
     notice.value = '审核已保存'
     await load()
   } catch (e) {
-    error.value = e.response?.data?.errors?.[0]?.detail || e.message
+    error.value = detailOf(e)
   } finally {
     busy.value = false
   }

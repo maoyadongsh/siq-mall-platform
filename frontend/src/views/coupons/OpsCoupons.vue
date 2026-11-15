@@ -1,28 +1,42 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import request from '@/utils/request'
 import { couponAction, offer, stateName } from '@/api/coupons'
+import type { Coupon, Page } from '@/types/models'
+import { messageOf } from '@/utils/errors'
 import TemplateForm from './TemplateForm.vue'
-const data = ref(null),
-  source = ref(null),
+
+interface CouponTemplate extends Coupon {
+  total: number
+  issued: number
+  reserved: number
+  used: number
+  per_user_limit: number
+  version: number
+  claim_start_at: string
+  claim_end_at: string
+}
+
+const data = ref<Page<CouponTemplate> | null>(null),
+  source = ref<CouponTemplate | null>(null),
   editing = ref(false),
   busy = ref(false),
   error = ref(''),
   reason = ref(''),
-  target = ref(null)
+  target = ref<CouponTemplate | null>(null)
 async function load(n = 1) {
   try {
-    data.value = await request.get('/ops/coupons/', { params: { page: n } })
+    data.value = await request.get<Page<CouponTemplate>>('/ops/coupons/', { params: { page: n } })
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   }
 }
-function edit(c) {
+function edit(c: CouponTemplate | null) {
   target.value = null
   source.value = c
   editing.value = true
 }
-function prepare(c) {
+function prepare(c: CouponTemplate) {
   editing.value = false
   target.value = c
   reason.value = ''
@@ -30,18 +44,19 @@ function prepare(c) {
 }
 async function apply() {
   if (busy.value) return
+  const c = target.value
+  if (!c) return
   busy.value = true
   error.value = ''
-  const c = target.value
   try {
     await couponAction(c.id, c.status === 'draft' ? 'publish' : 'stop-claiming', {
       expected_version: c.version,
       reason: reason.value,
     })
     target.value = null
-    await load(data.value.page)
+    await load(data.value?.page ?? 1)
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     busy.value = false
   }

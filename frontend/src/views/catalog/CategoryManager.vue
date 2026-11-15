@@ -1,20 +1,39 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { getCategoryTree, saveCategory } from '@/api/catalog'
+import { messageOf } from '@/utils/errors'
+import type { Category } from '@/types/models'
 
-const rows = ref([])
+interface FlatCategory extends Category {
+  depth: number
+}
+
+interface CategoryFormState {
+  name: string
+  parent_id: string | null
+  sort_order: number
+  enabled: boolean
+}
+
+function detailOf(e: unknown): string | undefined {
+  return (e as { response?: { data?: { errors?: { detail?: string }[] } } }).response?.data
+    ?.errors?.[0]?.detail
+}
+
+const rows = ref<Category[]>([])
 const loading = ref(false)
 const busy = ref(false)
 const error = ref('')
 const notice = ref('')
-const editing = ref(null)
-const form = ref({ name: '', parent_id: null, sort_order: 0, enabled: true })
-const flat = computed(() => {
-  const output = []
-  const walk = (nodes, depth) => nodes.forEach((row) => {
-    output.push({ ...row, depth })
-    walk(row.children || [], depth + 1)
-  })
+const editing = ref<FlatCategory | null>(null)
+const form = ref<CategoryFormState>({ name: '', parent_id: null, sort_order: 0, enabled: true })
+const flat = computed<FlatCategory[]>(() => {
+  const output: FlatCategory[] = []
+  const walk = (nodes: Category[], depth: number) =>
+    nodes.forEach((row) => {
+      output.push({ ...row, depth })
+      walk((row.children ?? []) as Category[], depth + 1)
+    })
   walk(rows.value, 0)
   return output
 })
@@ -25,12 +44,12 @@ async function load() {
   try {
     rows.value = await getCategoryTree(true)
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     loading.value = false
   }
 }
-function edit(row) {
+function edit(row: FlatCategory) {
   editing.value = row
   form.value = {
     name: row.name,
@@ -52,7 +71,7 @@ async function save() {
     notice.value = '分类已保存，公开树会按启停与父子关系更新。'
     await load()
   } catch (e) {
-    error.value = e.response?.data?.errors?.[0]?.detail || e.message
+    error.value = detailOf(e) || messageOf(e)
   } finally {
     busy.value = false
   }

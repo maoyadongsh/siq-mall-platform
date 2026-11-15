@@ -1,12 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { createConversation, listConversations } from '@/api/support'
 import SupportChat from '@/components/support/SupportChat.vue'
+import type { Conversation } from '@/types/models'
+import { messageOf, statusOf } from '@/utils/errors'
 
 const props = defineProps({ id: { type: String, default: '' } })
 const router = useRouter()
-const rows = ref([])
+const rows = ref<Conversation[]>([])
 const loading = ref(false)
 const busy = ref(false)
 const error = ref('')
@@ -21,7 +23,7 @@ async function load() {
     const active = rows.value.find((row) => row.status === 'open')
     if (active) await router.replace(`/support/${active.id}`)
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     loading.value = false
   }
@@ -34,7 +36,7 @@ async function create() {
     const row = await createConversation()
     await router.push(`/support/${row.id}`)
   } catch (e) {
-    error.value = e.response ? e.message : `${e.message}；请核对是否已创建，不要更换提交标识。`
+    error.value = statusOf(e) ? messageOf(e) : `${messageOf(e)}；请核对是否已创建，不要更换提交标识。`
   } finally {
     busy.value = false
   }

@@ -1,11 +1,25 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { cmsKinds, createContent, listContents, publicationStates } from '@/api/cms'
+import { messageOf } from '@/utils/errors'
+import type { Content } from '@/types/models'
 import './content.css'
 
+interface CreateForm {
+  kind: string
+  title: string
+  slug: string
+  productIds: string
+}
+
+function detailOf(e: unknown): string | undefined {
+  return (e as { response?: { data?: { errors?: { detail?: string }[] } } }).response?.data
+    ?.errors?.[0]?.detail
+}
+
 const router = useRouter()
-const rows = ref([])
+const rows = ref<Content[]>([])
 const kind = ref('')
 const page = ref(1)
 const totalPages = ref(1)
@@ -13,7 +27,7 @@ const loading = ref(false)
 const busy = ref(false)
 const error = ref('')
 const creating = ref(false)
-const form = ref({ kind: 'banner', title: '', slug: '', productIds: '' })
+const form = ref<CreateForm>({ kind: 'banner', title: '', slug: '', productIds: '' })
 
 async function load() {
   loading.value = true
@@ -23,7 +37,7 @@ async function load() {
     rows.value = data.results
     totalPages.value = data.total_pages
   } catch (e) {
-    error.value = e.message
+    error.value = messageOf(e)
   } finally {
     loading.value = false
   }
@@ -37,7 +51,7 @@ async function create() {
   busy.value = true
   error.value = ''
   try {
-    const blocks = form.value.kind === 'floor'
+    const blocks: Record<string, unknown>[] = form.value.kind === 'floor'
       ? [{ type: 'product_list', product_ids: form.value.productIds.split(/[，,\s]+/).filter(Boolean).map(Number) }]
       : [{ type: 'text', text: '请在编辑器中完善内容。' }]
     const now = new Date()
@@ -54,7 +68,7 @@ async function create() {
     })
     await router.push(`/ops/cms/${result.id}/edit`)
   } catch (e) {
-    error.value = e.response?.data?.errors?.[0]?.detail || e.message
+    error.value = detailOf(e) || messageOf(e)
   } finally {
     busy.value = false
   }

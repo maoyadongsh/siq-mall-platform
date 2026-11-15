@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import {
   ElAlert,
@@ -20,12 +20,21 @@ import 'element-plus/es/components/table-column/style/css'
 import 'element-plus/es/components/tag/style/css'
 
 import { fetchHealth } from '@/api/health'
+import type { HealthData, Schemas } from '@/types/models'
+import { messageOf } from '@/utils/errors'
+
+interface DependencyRow {
+  name: string
+  status: string
+  latency: number
+  detail: string
+}
 
 const loading = ref(false)
-const health = ref(null)
+const health = ref<HealthData | null>(null)
 const errorMessage = ref('')
 const isNarrow = ref(false)
-let narrowMediaQuery
+let narrowMediaQuery: MediaQueryList | undefined
 
 const statusText = computed(() => {
   if (errorMessage.value) return '不可用'
@@ -39,9 +48,9 @@ const statusType = computed(() => {
   return health.value.status === 'ok' ? 'success' : 'warning'
 })
 
-const checks = computed(() => {
-  const raw = health.value?.checks || {}
-  return Object.entries(raw).map(([name, detail]) => ({
+const checks = computed<DependencyRow[]>(() => {
+  const raw: unknown = health.value?.checks ?? {}
+  return Object.entries(raw as Record<string, Schemas['Dependency']>).map(([name, detail]) => ({
     name: name === 'database' ? '数据库 MariaDB' : '缓存 Redis',
     status: detail.status,
     latency: detail.latency_ms,
@@ -49,7 +58,7 @@ const checks = computed(() => {
   }))
 })
 
-function handleViewportChange(event) {
+function handleViewportChange(event: MediaQueryListEvent) {
   isNarrow.value = event.matches
 }
 
@@ -60,7 +69,7 @@ async function loadHealth() {
     health.value = await fetchHealth()
   } catch (error) {
     health.value = null
-    errorMessage.value = error?.message || '无法连接后端服务'
+    errorMessage.value = error ? messageOf(error) : '无法连接后端服务'
   } finally {
     loading.value = false
   }
