@@ -1,6 +1,6 @@
 # 项目设计与开发交接
 
-基线 `17f5b91` · 2026-11-09。适用于首次接手项目的开发、测试与评审人员。
+首次建立 2026-11-09；架构对齐更新 2026-11-15。当前基线 `c323fbc`。适用于首次接手项目的开发、测试与评审人员。
 
 先按[根 README](../README.md)启动应用。了解设计决策时查本页，将功能编号映射到实际代码、联调契约和验收记录。支付和物流履约使用隔离演示数据。
 
@@ -15,11 +15,13 @@
 | [开发准备与验收登记](11-readiness-and-acceptance.md) | 开工前解决什么、开发后如何验收、哪些外部条件尚缺？ |
 | [迭代计划](02-iteration-plan.md) | 各阶段依赖、任务、部署验证和验收标准 |
 | [移动端专项](06-mobile-wechat-design.md) | H5与小程序平台差异、授权、生命周期、真机要求 |
+| [架构对齐任务书](15-architecture-alignment-task-book.md) | 本轮技术栈对齐的范围、决策、任务与验收标准是什么？ |
+| [独立复验](13-independent-acceptance.md) · [原生部署](14-native-deployment.md) | 已有证据边界、Ubuntu/Daphne 部署与回滚怎么做？ |
 | [项目AGENTS](../AGENTS.md) | 后续开发代理和协作者必须遵循的工程约定 |
 
-架构管技术原则，08管产品范围与体验，09管业务语义与字段，10管HTTP边界，02/11管实施与证据。修改规则时同步更新引用该规则的契约、任务和测试，不用“最新文件自动覆盖”掩盖矛盾。发生未解释的冲突应记录并解决后再实现相关部分。
+架构管技术原则，08管产品范围与体验，09管业务语义与字段，10管HTTP边界，02/11管实施与证据，15记录本轮改造的范围与决策。修改规则时同步更新引用该规则的契约、任务和测试，不用“最新文件自动覆盖”掩盖矛盾。发生未解释的冲突应记录并解决后再实现相关部分。
 
-`openapi.yaml`按当前实际路由生成并校验，现已覆盖I01–I11实际业务接口、运营审计和mini商城会话。10继续作为目标设计与实现注记，不能据目标文档单独认定API存在；实现以路由、序列化器、测试和OpenAPI共同核对。
+`openapi.yaml`按当前实际路由生成并校验（OpenAPI 3.1，95 个路径、113 个操作），已包含客服 `ws-ticket`；前端 `src/types/api.d.ts` 由同一契约生成，禁止手写重复响应类型。10 继续作为目标设计与实现注记，不能据目标文档单独认定API存在；实现以路由、序列化器、测试和OpenAPI共同核对。
 
 ## 2. 已采用的设计决策
 
@@ -33,6 +35,10 @@
 | 交易 | 后端试算、数据库事务、订单快照、幂等与Outbox | Redis或前端状态不能决定交易成功 |
 | 支付 | 仅隔离演示环境模拟；常规生产默认关闭 | 真实支付和退款不计入本轮完成度 |
 | 部署 | Windows 11开发；Ubuntu 24.04原生部署 | 无Docker/Kubernetes |
+| 前端 | 全量TypeScript（strict，禁止显式any），契约类型由OpenAPI生成 | 新增页面与接口必须通过`typecheck`；不退回JS |
+| 实时客服 | Channels + Daphne + Redis Channel Layer；一次性`ws-ticket`子协议鉴权 | 发送、已读、历史仍走HTTP；断线回退轮询，`SUPPORT_WS_ENABLED=0`可回滚 |
+| 数据访问 | mysqlclient 2.2；列表参数使用django-filter FilterSet | 驱动或过滤变更需重跑MariaDB并发与迁移用例 |
+| 媒体与静态 | Django STORAGES可切换云存储；Nginx服务静态与`/ws/` | Gunicorn处理HTTP，Daphne处理WebSocket；媒体迁移另立任务 |
 
 优惠券运营、CMS 发布、评价审核、消息中心与客服已接入各自业务接口。人工体验走查从真实路由进入；原型只用于追溯早期选择。
 
@@ -42,12 +48,33 @@
 
 [05验证报告](05-review-validation-2026-11-06.md)仅作为历史证据。I01可执行补验见11§8，I02 Web身份权限实现与验证见§10，后续业务证据见§12–22。I01–I11的可本地实现已累积完成，未删除既有用户模型或清库；Ubuntu、微信平台/真机、规定性能与人工验收仍待完成。
 
+当前基线 `c323fbc` 已纳入架构对齐改造：前端全量 TypeScript、OpenAPI 3.1 与生成类型、客服 WebSocket、mysqlclient/django-filter、MariaDB CI 作业。自动验证结果见[11 §25](11-readiness-and-acceptance.md)；GitHub Actions 四作业（backend/frontend/mini/mariadb）通过，但 Ubuntu、真实微信设备、规定负载与人工签收仍未完成，不能把自动结果当作上线许可。
+
 ## 4. 从现有实现接手
 
-1. **改页面**：先从 [Vue 路由](../frontend/src/router/index.ts) 或 [mini 页面清单](../mini/app.json) 找实际入口，再查 08 对应页面 ID 与 06 的生命周期要求。
-2. **改规则或接口**：从 [API 清单](openapi.yaml) 找方法与请求体，在对应 Django app 核对 serializer、service、模型约束。修改库存/金额/券规则时，同时验证下单、付款、取消与重放。
-3. **复验或发布**：以 [11 台账](11-readiness-and-acceptance.md) 对应任务为起点，核对 [13 独立复验](13-independent-acceptance.md)。Ubuntu 用 [原生部署手册](14-native-deployment.md)，微信工具和真机用 [mini 指南](../mini/README.md) 登记。
+1. **改页面**：先从 [Vue 路由](../frontend/src/router/index.ts) 或 [mini 页面清单](../mini/app.json) 找实际入口，再查 08 对应页面 ID 与 06 的生命周期要求。前端为 strict TypeScript，禁止显式 `any`；接口响应类型从 `src/types/api.d.ts` 引用，不要手写重复类型。
+2. **改规则或接口**：从 [API 清单](openapi.yaml) 找方法与请求体，在对应 Django app 核对 serializer、service、模型约束。修改库存/金额/券规则时，同时验证下单、付款、取消与重放；接口变更后重新生成 OpenAPI 与前端类型，并同步 10 与相关测试。
+3. **复验或发布**：以 [11 台账](11-readiness-and-acceptance.md) 对应任务为起点，核对 [13 独立复验](13-independent-acceptance.md)。Ubuntu 用 [原生部署手册](14-native-deployment.md)（Gunicorn + Daphne + Nginx `/ws/`），微信工具和真机用 [mini 指南](../mini/README.md) 登记。
 4. **剩余工作**：对接微信身份与真实订阅渠道，执行设备和 Ubuntu 验收，按规定数据规模与负载补测，最后由相应负责人签收。
+
+最小本地复验命令（仓库根目录）：
+
+```powershell
+Push-Location backend
+.\.venv\Scripts\python.exe manage.py check
+.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m black --check .
+Pop-Location
+npm --prefix frontend run typecheck
+npm --prefix frontend run lint
+npm --prefix frontend test
+npm --prefix frontend run build
+npm --prefix mini test
+node --test qa/acceptance/mini-boundaries.cjs
+```
+
+涉及 MariaDB 并发、事务或浏览器全流程时，再运行 `.\backend\.venv\Scripts\python.exe qa/windows/smoke.py`。该脚本使用临时 MariaDB 和本机 Chrome，不触碰现有业务库。
 
 人工审核记录：产品负责人____；设计负责人____；技术负责人____；测试负责人____；日期____；结论/修改项____。
 
@@ -68,5 +95,7 @@
 | F09消息 | B13、O07 | R14 | notifications、ops/notification-templates | T09-01–04、X06 | AT17、AT20、AT22 |
 | F10CMS | B01、B15、O06 | R15、R17 | cms、ops/cms | T10-01–04、X06 | AT18、AT21 |
 | F11客服 | B14、O08 | R16–17 | conversations、ops/conversations | T11-01–05、X07 | AT19–24 |
+
+F11 的实时推送通过一次性 `ws-ticket` 子协议连接 `/ws/support/{id}/`，发送、已读和历史仍走 HTTP；验收需覆盖断线重连、消息补拉与轮询回退。
 
 O01工作台汇总已有权限内待办，随相关模块逐步接入；没有对应模块时不展示虚构待办。O09审计基础从I02建立，业务模块按R17补齐各自事件，不等到最终迭代再补交易审计。
