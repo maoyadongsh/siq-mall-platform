@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: SIQ优选商城 API
   version: 1.1.0
@@ -1114,6 +1114,63 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SupportReadResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/conversations/ws-ticket/:
+    post:
+      operationId: api_v1_conversations_ws_ticket_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WsTicketInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WsTicketInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WsTicketInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WsTicketResponse'
           description: ''
         '400':
           content:
@@ -2588,6 +2645,63 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SupportReadResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/v1/ops/conversations/ws-ticket/:
+    post:
+      operationId: api_v1_ops_conversations_ws_ticket_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WsTicketInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WsTicketInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WsTicketInputRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WsTicketResponse'
           description: ''
         '400':
           content:
@@ -5418,7 +5532,10 @@ components:
         asset_id:
           type: string
         url:
-          type: string
+          type:
+          - string
+          - 'null'
+          readOnly: true
         status:
           type: string
           default: ready
@@ -5713,8 +5830,9 @@ components:
         name:
           type: string
         parent_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         sort_order:
           type: integer
         enabled:
@@ -5737,9 +5855,10 @@ components:
       type: object
       properties:
         parent_id:
-          type: integer
+          type:
+          - integer
+          - 'null'
           minimum: 1
-          nullable: true
         name:
           type: string
           minLength: 1
@@ -5830,8 +5949,9 @@ components:
         version:
           type: integer
         published_revision:
-          type: integer
-          nullable: true
+          type:
+          - integer
+          - 'null'
         latest_revision:
           $ref: '#/components/schemas/RevisionData'
         revisions:
@@ -5885,9 +6005,10 @@ components:
           type: string
           format: date-time
         end_at:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
       required:
       - blocks
       - kind
@@ -5972,29 +6093,32 @@ components:
           type: string
           format: date-time
         closed_at:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         close_reason:
           type: string
         assigned_agent_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         assigned_agent_display_name:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         last_message:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/MessageData'
-          nullable: true
+          - type: 'null'
         unread_count:
           type: integer
         counterpart_read_seq:
           type: string
         order_summary:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/SupportOrderSummary'
-          nullable: true
+          - type: 'null'
         can_reply:
           type: boolean
         can_close:
@@ -6095,14 +6219,17 @@ components:
         threshold_amount:
           type: string
         reduction_amount:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         discount_bps:
-          type: integer
-          nullable: true
+          type:
+          - integer
+          - 'null'
         cap_amount:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         scope:
           type: string
         product_ids:
@@ -6116,9 +6243,10 @@ components:
           type: string
           format: date-time
         order_no:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
         serial_no:
           type: string
           format: uuid
@@ -6248,7 +6376,9 @@ components:
           type: string
           format: date-time
         data:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
       required:
       - code
       - data
@@ -6313,20 +6443,23 @@ components:
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
         reduction_amount:
-          type: string
+          type:
+          - string
+          - 'null'
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-          nullable: true
         discount_bps:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 10000
           minimum: 1
-          nullable: true
         cap_amount:
-          type: string
+          type:
+          - string
+          - 'null'
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-          nullable: true
         scope:
           $ref: '#/components/schemas/CouponScopeEnum'
         product_ids:
@@ -6382,7 +6515,9 @@ components:
           type: string
           format: date-time
         data:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
       required:
       - code
       - data
@@ -6419,7 +6554,9 @@ components:
           type: string
           format: date-time
         data:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
         errors:
           type: array
           items:
@@ -6490,13 +6627,15 @@ components:
           items:
             $ref: '#/components/schemas/MessageData'
         next_cursor:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         has_more:
           type: boolean
         poll_cursor:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
       required:
       - has_more
       - next_cursor
@@ -6858,9 +6997,10 @@ components:
         is_read:
           type: boolean
         read_at:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
       required:
       - body
       - created_at
@@ -6880,8 +7020,9 @@ components:
           items:
             $ref: '#/components/schemas/Notice'
         next_cursor:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         has_more:
           type: boolean
         read_watermark:
@@ -7176,17 +7317,19 @@ components:
             type: object
             additionalProperties: {}
         payment_summary:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/PayData'
-          nullable: true
+          - type: 'null'
         shipment:
-          type: object
+          type:
+          - object
+          - 'null'
           additionalProperties: {}
-          nullable: true
         coupon_snapshot:
-          type: object
+          type:
+          - object
+          - 'null'
           additionalProperties: {}
-          nullable: true
       required:
       - address_snapshot
       - allowed_actions
@@ -7396,9 +7539,10 @@ components:
       type: object
       properties:
         parent_id:
-          type: integer
+          type:
+          - integer
+          - 'null'
           minimum: 1
-          nullable: true
         name:
           type: string
           minLength: 1
@@ -7428,20 +7572,23 @@ components:
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
         reduction_amount:
-          type: string
+          type:
+          - string
+          - 'null'
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-          nullable: true
         discount_bps:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 10000
           minimum: 1
-          nullable: true
         cap_amount:
-          type: string
+          type:
+          - string
+          - 'null'
           format: decimal
           pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-          nullable: true
         scope:
           $ref: '#/components/schemas/CouponScopeEnum'
         product_ids:
@@ -7493,9 +7640,10 @@ components:
           type: string
           maxLength: 5000
         cover_id:
-          type: integer
+          type:
+          - integer
+          - 'null'
           minimum: 1
-          nullable: true
     PatchedProfileUpdateRequest:
       type: object
       properties:
@@ -7538,9 +7686,10 @@ components:
           type: string
           format: date-time
         end_at:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
     PatchedTemplateVersionRequest:
       type: object
       properties:
@@ -7775,8 +7924,9 @@ components:
           type: string
           default: CNY
         cover_url:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           readOnly: true
       required:
       - category
@@ -8016,7 +8166,9 @@ components:
           type: object
           additionalProperties: {}
         selected_coupon:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
         available_coupons:
           type: array
           items:
@@ -8051,11 +8203,12 @@ components:
           minimum: 1
           format: int64
         user_coupon_id:
-          type: integer
+          type:
+          - integer
+          - 'null'
           maximum: 9223372036854775807
           minimum: 1
           format: int64
-          nullable: true
       required:
       - address_id
       - items
@@ -8110,8 +8263,9 @@ components:
         last_seq:
           type: string
         last_message_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         unread_count:
           type: integer
       required:
@@ -8316,9 +8470,10 @@ components:
           type: string
           format: date-time
         end_at:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         created_at:
           type: string
           format: date-time
@@ -8679,8 +8834,9 @@ components:
         count:
           type: integer
         average:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
       required:
       - average
       - count
@@ -8785,14 +8941,17 @@ components:
         threshold_amount:
           type: string
         reduction_amount:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         discount_bps:
-          type: integer
-          nullable: true
+          type:
+          - integer
+          - 'null'
         cap_amount:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         scope:
           type: string
         product_ids:
@@ -9107,6 +9266,50 @@ components:
           format: date-time
         data:
           $ref: '#/components/schemas/WalletPage'
+      required:
+      - code
+      - data
+      - message
+      - request_id
+      - timestamp
+    WsTicketData:
+      type: object
+      properties:
+        ticket:
+          type: string
+        expires_in:
+          type: integer
+        heartbeat_seconds:
+          type: integer
+        path:
+          type: string
+      required:
+      - expires_in
+      - heartbeat_seconds
+      - path
+      - ticket
+    WsTicketInputRequest:
+      type: object
+      properties:
+        conversation_id:
+          type: integer
+          minimum: 1
+      required:
+      - conversation_id
+    WsTicketResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/WsTicketData'
       required:
       - code
       - data

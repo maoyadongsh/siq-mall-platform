@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from common.pagination import StandardPagination
 from common.response import success
 from common.serializers import EnvelopeSerializer
+from common.storage import media_url
 from .maintenance import adjust_stock, edit_product, edit_sku, invalid, upload_image
 from .models import MediaAsset, Sku, StockAdjustment
 from .serializers import ProductOutput, ProductResponse, SkuOutput, VersionInput
@@ -104,8 +105,11 @@ class MediaInput(serializers.Serializer):
 
 class AssetOutput(serializers.ModelSerializer):
     asset_id = serializers.CharField(source="id")
-    url = serializers.CharField(source="file.url")
+    url = serializers.SerializerMethodField()
     status = serializers.CharField(default="ready")
+
+    def get_url(self, obj) -> str | None:
+        return media_url(obj.file.name)
 
     class Meta:
         model = MediaAsset

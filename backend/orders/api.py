@@ -9,6 +9,7 @@ from common.pagination import StandardPagination
 from common.response import success
 from common.serializers import EnvelopeSerializer, ErrorResponseSerializer
 from . import services as svc
+from .filters import OrderFilter
 from .models import Order, Payment, Operation, OrderActivity
 
 
@@ -159,16 +160,13 @@ class OrderList(APIView):
         rows = (
             Order.objects.all() if self.ops else Order.objects.filter(user=request.user)
         )
-        form = Filter(data=request.query_params)
-        form.is_valid(raise_exception=True)
-        for field, value in form.validated_data.items():
-            lookup = {
-                "created_before": "created_at__lte",
-                "created_after": "created_at__gte",
-            }.get(field, field)
-            rows = rows.filter(**{lookup: value})
+        filterset = OrderFilter(request.query_params, queryset=rows)
+        if not filterset.is_valid():
+            raise serializers.ValidationError(filterset.errors)
         pager = StandardPagination()
-        page = pager.paginate_queryset(rows.order_by("-created_at", "-id"), request)
+        page = pager.paginate_queryset(
+            filterset.qs.order_by("-created_at", "-id"), request
+        )
         return pager.get_paginated_response([svc.summary(o, self.ops) for o in page])
 
 

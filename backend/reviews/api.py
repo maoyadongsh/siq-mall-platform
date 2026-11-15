@@ -10,6 +10,7 @@ from common.response import success
 from common.serializers import EnvelopeSerializer, ErrorResponseSerializer
 from .models import Review
 from . import services
+from .filters import MineReviewFilter, OpsReviewFilter
 
 
 class SubmitInput(StrictInput):
@@ -163,14 +164,13 @@ class Mine(APIView):
         parameters=[MineFilter, *PAGING], responses=responses(BuyerListResponse)
     )
     def get(self, request):
-        form = MineFilter(data=request.query_params)
-        form.is_valid(raise_exception=True)
         rows = Review.objects.select_related("order_item__order").filter(
             user=request.user
         )
-        if order_no := form.validated_data.get("order_no"):
-            rows = rows.filter(order_item__order__order_no=order_no)
-        return paged(request, rows, services.buyer_data)
+        filterset = MineReviewFilter(request.query_params, queryset=rows)
+        if not filterset.is_valid():
+            raise serializers.ValidationError(filterset.errors)
+        return paged(request, filterset.qs, services.buyer_data)
 
 
 class Public(APIView):
@@ -194,12 +194,11 @@ class Queue(APIView):
         parameters=[OpsFilter, *PAGING], responses=responses(OpsListResponse)
     )
     def get(self, request):
-        form = OpsFilter(data=request.query_params)
-        form.is_valid(raise_exception=True)
-        rows = Review.objects.select_related("order_item__order").filter(
-            **form.validated_data
-        )
-        return paged(request, rows, services.ops_data)
+        rows = Review.objects.select_related("order_item__order")
+        filterset = OpsReviewFilter(request.query_params, queryset=rows)
+        if not filterset.is_valid():
+            raise serializers.ValidationError(filterset.errors)
+        return paged(request, filterset.qs, services.ops_data)
 
 
 class Moderate(APIView):

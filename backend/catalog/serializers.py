@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from common.serializers import EnvelopeSerializer
+from common.storage import media_url
 from .models import Product, Sku
 
 
@@ -39,7 +40,7 @@ class ProductOutput(serializers.ModelSerializer):
     cover_url = serializers.SerializerMethodField()
 
     def get_cover_url(self, obj) -> str | None:
-        return obj.cover.file.url if obj.cover_id else None
+        return media_url(obj.cover.file.name) if obj.cover_id else None
 
     currency = serializers.CharField(default="CNY")
 

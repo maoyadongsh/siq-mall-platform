@@ -1,5 +1,3 @@
-from decimal import Decimal, InvalidOperation
-
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import serializers
@@ -9,8 +7,8 @@ from rest_framework.views import APIView
 from common.pagination import StandardPagination
 from common.response import success
 
-from .category_services import descendants
-from .models import Category, Product
+from .filters import ProductFilter
+from .models import Product
 from .serializers import (
     DraftInput,
     ProductListResponse,
@@ -56,39 +54,15 @@ class PublicProducts(APIView):
         rows = products()
         if self.public:
             rows = rows.filter(status=Product.Status.ON_SALE)
-        if query := request.query_params.get("q"):
-            rows = rows.filter(title__icontains=query[:120])
-        if category_id := request.query_params.get("category"):
-            try:
-                category = get_object_or_404(
-                    Category, pk=int(category_id), enabled=True
-                )
-            except ValueError as exc:
-                raise serializers.ValidationError(
-                    {"category": "请输入有效分类"}
-                ) from exc
-            rows = rows.filter(category_id__in=descendants(category))
-        prices = {}
-        for field in ("min_price", "max_price"):
-            if value := request.query_params.get(field):
-                try:
-                    prices[field] = Decimal(value)
-                    if prices[field] < 0:
-                        raise InvalidOperation
-                except InvalidOperation as exc:
-                    raise serializers.ValidationError(
-                        {field: "请输入非负金额"}
-                    ) from exc
-                rows = rows.filter(
-                    **{
-                        f"min_price__{'gte' if field == 'min_price' else 'lte'}": prices[
-                            field
-                        ]
-                    }
-                )
-        if prices.get("min_price") is not None and prices.get("max_price") is not None:
-            if prices["min_price"] > prices["max_price"]:
-                raise serializers.ValidationError({"max_price": "价格上限不能小于下限"})
+        filterset = ProductFilter(request.query_params, queryset=rows)
+        if not filterset.is_valid():
+            raise serializers.ValidationError(filterset.errors)
+        cleaned = filterset.form.cleaned_data
+        minimum = cleaned.get("min_price")
+        maximum = cleaned.get("max_price")
+        if minimum is not None and maximum is not None and minimum > maximum:
+            raise serializers.ValidationError({"max_price": "价格上限不能小于下限"})
+        rows = filterset.qs
         sort = request.query_params.get("sort", "newest")
         ordering = {
             "newest": ["-id"],

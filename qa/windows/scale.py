@@ -12,7 +12,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-import pymysql
+import MySQLdb
 
 from smoke import free_port, wait_for_port
 
@@ -68,7 +68,7 @@ def run(work):
     api = None
     try:
         wait_for_port(db_port, db)
-        with pymysql.connect(host="127.0.0.1", port=db_port, user="root", password=password, autocommit=True) as conn:
+        with MySQLdb.connect(host="127.0.0.1", port=db_port, user="root", password=password, autocommit=True) as conn:
             with conn.cursor() as cursor:
                 cursor.execute("CREATE DATABASE siq_accept CHARACTER SET utf8mb4")
         def django(args):
@@ -82,7 +82,7 @@ def run(work):
             creationflags=subprocess.CREATE_NO_WINDOW,
         )
         wait_for_port(api_port, api)
-        with pymysql.connect(host="127.0.0.1", port=db_port, user="root", password=password, database="siq_accept") as conn:
+        with MySQLdb.connect(host="127.0.0.1", port=db_port, user="root", password=password, database="siq_accept") as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT id FROM catalog_category WHERE name='scale100k-category-0'")
                 category_id = cursor.fetchone()[0]

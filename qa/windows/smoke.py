@@ -11,7 +11,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-import pymysql
+import MySQLdb
 
 PROJECT = Path(__file__).resolve().parents[2]
 BACKEND = PROJECT / "backend"
@@ -93,7 +93,7 @@ def run_suite(work):
             work,
             db_port,
         )
-        with pymysql.connect(
+        with MySQLdb.connect(
             host="127.0.0.1",
             port=db_port,
             user="root",
@@ -168,7 +168,7 @@ def run_suite(work):
             timeout=240,
         )
         # Advance only the pending fixture's deadline inside this newly provisioned database.
-        with pymysql.connect(
+        with MySQLdb.connect(
             host="127.0.0.1",
             port=db_port,
             user="root",
@@ -273,7 +273,7 @@ def run_suite(work):
                         stdout=output,
                         check=True,
                     )
-                with pymysql.connect(
+                with MySQLdb.connect(
                     host="127.0.0.1",
                     port=db_port,
                     user="root",

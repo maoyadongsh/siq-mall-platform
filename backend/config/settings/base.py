@@ -53,6 +53,7 @@ DEBUG = False
 ALLOWED_HOSTS: list[str] = []
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -64,6 +65,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "drf_spectacular",
+    "django_filters",
     "common",
     "accounts.apps.AccountsConfig",
     "users.apps.UsersConfig",
@@ -119,9 +121,6 @@ if env("DB_ENGINE", "mysql") == "sqlite3":
         }
     }
 else:
-    import pymysql
-
-    pymysql.install_as_MySQLdb()
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.mysql",
@@ -153,6 +152,23 @@ CACHES = {
         },
         "KEY_PREFIX": "mall",
         "TIMEOUT": 300,
+    }
+}
+
+# ===== 实时客服 =====
+# 仅客服聊天使用 WebSocket；关闭后客户端回退到 HTTP 增量轮询。
+SUPPORT_WS_ENABLED = env_bool("SUPPORT_WS_ENABLED", True)
+SUPPORT_WS_TICKET_TTL = 60
+SUPPORT_WS_HEARTBEAT_SECONDS = 25
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                env("CHANNEL_REDIS_URL", env("REDIS_URL", "redis://127.0.0.1:6379/0"))
+            ],
+            "prefix": "mall:channel",
+        },
     }
 }
 
@@ -207,6 +223,7 @@ MALL_CSRF_COOKIE_NAME = "mall_csrf"
 CSRF_TRUSTED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "")
 
 SPECTACULAR_SETTINGS = {
+    "OAS_VERSION": "3.1.0",
     "ENUM_NAME_OVERRIDES": {
         "CouponScopeEnum": ["all", "products"],
         "CouponTypeEnum": ["fixed", "percentage"],
@@ -237,8 +254,20 @@ USE_TZ = True
 # ===== 静态与媒体 =====
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-MEDIA_URL = "/media/"
+MEDIA_URL = env("MALL_MEDIA_URL", "/media/")
 MEDIA_ROOT = Path(env("MALL_MEDIA_ROOT", str(BASE_DIR / "media")))
+
+# 媒体默认存本机；生产可通过 MALL_STORAGE_BACKEND 切换兼容 Django Storage 的云存储。
+STORAGES = {
+    "default": {
+        "BACKEND": env(
+            "MALL_STORAGE_BACKEND", "django.core.files.storage.FileSystemStorage"
+        ),
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

@@ -20,6 +20,12 @@ CACHES = {
     }
 }
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
+
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 DEMO_VERIFICATION_ENABLED = True
 SESSION_COOKIE_SECURE = False

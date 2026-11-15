@@ -11,6 +11,7 @@ from common.pagination import StandardPagination
 from common.response import success
 from common.serializers import EnvelopeSerializer, ErrorResponseSerializer
 
+from . import realtime
 from . import services as svc
 from .models import Conversation
 
@@ -148,6 +149,21 @@ class ReadData(serializers.Serializer):
 
 class SupportReadResponse(EnvelopeSerializer):
     data = ReadData()
+
+
+class WsTicketInput(StrictInput):
+    conversation_id = serializers.IntegerField(min_value=1)
+
+
+class WsTicketData(serializers.Serializer):
+    ticket = serializers.CharField()
+    expires_in = serializers.IntegerField()
+    heartbeat_seconds = serializers.IntegerField()
+    path = serializers.CharField()
+
+
+class WsTicketResponse(EnvelopeSerializer):
+    data = WsTicketData()
 
 
 class ConversationList(APIView):
@@ -335,3 +351,20 @@ class Assign(APIView):
                 request.user, pk, body(AssignInput, request), key(request)
             )
         )
+
+
+class WsTicket(APIView):
+    permission_classes = [IsAuthenticated]
+    ops = False
+
+    @extend_schema(request=WsTicketInput, responses=responses(WsTicketResponse))
+    def post(self, request):
+        data = body(WsTicketInput, request)
+        return success(
+            realtime.issue_ticket(request.user, data["conversation_id"], self.ops)
+        )
+
+
+class OpsWsTicket(WsTicket):
+    permission_classes = [CanReply]
+    ops = True

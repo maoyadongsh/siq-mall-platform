@@ -21,6 +21,8 @@ from promotions.models import Revision
 from reviews.models import Review, ReviewAction
 from support.models import Conversation, SupportCommand
 
+from .filters import AuditFilter
+
 
 class CanViewAudit(BasePermission):
     def has_permission(self, request, view):
@@ -271,6 +273,9 @@ class AuditList(APIView):
         ],
     )
     def get(self, request):
+        filterset = AuditFilter(request.query_params, queryset=Order.objects.none())
+        if not filterset.is_valid():
+            raise serializers.ValidationError(filterset.errors)
         rows = audit_keys(request.query_params)
         try:
             page_size = min(int(request.query_params.get("page_size", 20)), 100)

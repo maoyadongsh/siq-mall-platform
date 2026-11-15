@@ -210,6 +210,9 @@ def close_conversation(actor, pk, data, action_key):
         ActiveConversation.objects.filter(conversation=row).delete()
     result = conversation_data(row, actor)
     save_command(actor, "close", action_key, request_digest, row, result)
+    from . import realtime
+
+    transaction.on_commit(lambda: realtime.broadcast_closed(row.pk))
     return result
 
 
@@ -237,7 +240,13 @@ def send_message(actor, pk, data):
         client_message_id=data["client_message_id"],
         body=data["body"],
     )
-    return message_data(message), True
+    result = message_data(message)
+    from . import realtime
+
+    transaction.on_commit(
+        lambda: realtime.broadcast_message(row.pk, result, sender_id=actor.pk)
+    )
+    return result, True
 
 
 @transaction.atomic

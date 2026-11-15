@@ -1,0 +1,24 @@
+# Ubuntu 24.04 / Daphne systemd 单元（仅客服 WebSocket，不容器化）
+# 安装：cp mall-daphne.service /etc/systemd/system/ && systemctl daemon-reload && systemctl enable --now mall-daphne
+
+[Unit]
+Description=mall daphne websocket daemon
+After=network.target mariadb.service redis-server.service
+Requires=mariadb.service
+
+[Service]
+Type=simple
+User=mall
+Group=mall
+WorkingDirectory=/opt/mall/backend
+EnvironmentFile=/etc/mall/backend.env
+ExecStart=/opt/mall/backend/.venv/bin/daphne \
+    -b 127.0.0.1 \
+    -p 8002 \
+    --proxy-headers \
+    config.asgi:application
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
