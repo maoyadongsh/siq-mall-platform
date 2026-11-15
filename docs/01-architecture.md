@@ -35,18 +35,19 @@
 | --- | --- | --- |
 | 开发系统 | Windows 11 | Python venv；PowerShell；Redis 可用 WSL2 原生安装 |
 | 生产系统 | Ubuntu 24.04 LTS | 直接部署，禁止引入 Docker/Kubernetes |
-| 前端 | Vue 3.5、Vite 7、Router 4、Pinia 3、Axios、SCSS | 当前 JS；新业务逐步引入 TypeScript 和契约类型 |
+| 前端 | Vue 3.5、Vite 7、Router 4、Pinia 3、Axios、TypeScript 5.9、SCSS | 全量 TS（strict，禁止 any）；契约类型由 OpenAPI 生成 |
 | 微信小程序客户端 | 独立原生 JavaScript、WXML、WXSS | 不直接复用Vue DOM组件；共用后端业务契约，平台能力独立适配 |
 | UI | Element Plus 按需导入 | 后台优先；商城使用独立品牌组件 |
-| Node | 构建使用 Node 24，经锁文件验证 | Vite 7 最低要求 20.19+ 或 22.12+；不写笼统的 ≥20 |
-| 后端 | Python 3.12、Django 5.2 LTS、DRF 3.16 | HTTP API + services 事务层 + selectors 查询层 |
+| Node | 构建使用 Node 24.13.1，经 `.nvmrc` 与锁文件验证 | Vite 7 最低要求 20.19+ 或 22.12+；不使用已结束维护的 Node 20 |
+| 后端 | Python 3.12、Django 5.2 LTS、DRF 3.16、mysqlclient 2.2、django-filter 25 | HTTP API + services 事务层 + selectors 查询层；列表参数由 FilterSet 校验 |
 | 鉴权 | SimpleJWT | Bearer access、AuthSession 与 refresh 轮换；Web 和 mini 独立校验 |
 | 数据库 | MariaDB，MySQL 协议 | Windows 临时实例按 11.8 系列验证；发布前固定开发、预发与生产所用系列并审核差异 |
 | 缓存 | Redis 7、django-redis | 热点缓存、限流；不作为库存/券的唯一事实来源 |
-| 异步 | 数据库 Outbox + Django 管理命令 | Windows 使用持续扫描进程，Ubuntu 模板使用 systemd timer |
-| 部署 | Nginx + Gunicorn + systemd | Gunicorn 只监听 127.0.0.1:8001；TLS 在 Nginx 终止 |
+| 实时客服 | Channels 4.3、Daphne 4.2、Redis Channel Layer | 仅客服 WebSocket；HTTP 轮询作为回退，发送仍走 HTTP 幂等接口 |
+| 异步 | 数据库 Outbox + Django 管理命令 | Windows 使用持续扫描进程，Ubuntu 模板使用 systemd timer；未引入 Celery |
+| 部署 | Nginx + Gunicorn + Daphne + systemd | Gunicorn 监听 127.0.0.1:8001，Daphne 监听 127.0.0.1:8002；TLS 在 Nginx 终止 |
 
-MariaDB 与 MySQL 的协议兼容不等于 JSON、排序规则、条件索引、执行计划完全相同。若声明支持 MySQL，应增加 MySQL 8 的迁移与关键事务集成测试。PyMySQL 当前可用，但采用 MySQLdb 兼容入口，Django 更新必须验证驱动兼容性。
+MariaDB 与 MySQL 的协议兼容不等于 JSON、排序规则、条件索引、执行计划完全相同。若声明支持 MySQL，应增加 MySQL 8 的迁移与关键事务集成测试。当前驱动为 mysqlclient 2.2，Django 或驱动升级必须重新验证 MariaDB 集成用例。
 
 ```mermaid
 flowchart LR
@@ -71,6 +72,7 @@ flowchart LR
 | 试算到成交 | Quote 是有期限的报价；Order 保存金额和快照，数据库约束报价与订单一一对应。重试以账号、购买意图和命令幂等键恢复。 | [订单服务](../backend/orders/services.py) 与 [MariaDB 竞争用例](../backend/orders/tests/test_races.py) |
 | 列表最低价排序 | SKU 调价与商品最低价同步写入。读取路径可直接按商品字段排序，索引选择仍由数据库执行计划决定。 | [商品模型](../backend/catalog/models.py) 与 [10 万商品短测](../qa/windows/scale.py) |
 | 消息中心及运营审计 | 消息按收件人序号固定快照；跨域审计先在数据库筛选、联合排序，分页后取详情。两种列表分别服务持续到达的新消息和按条件回溯历史。 | [通知服务](../backend/notifications/services.py) 与 [审计视图](../backend/audit/api.py) |
+| 客服实时推送 | 一次性 `ws-ticket` 换取连接资格，以子协议 `support.ticket.<票据>` 连接 `/ws/support/{id}/`；服务端推送 `message`/`closed`，发送、已读与历史仍走 HTTP；断线按 `poll_cursor` 补拉 | [消费者](../backend/support/consumer.py) 与 [实时测试](../backend/support/tests/test_realtime.py) |
 
 ## 3. 身份、权限与会话
 
@@ -121,7 +123,7 @@ X-Request-Id 仅用于链路追踪，不作为业务幂等键。下单、领券�
 
 ### 4.4 异步可靠性
 
-订单写入与 Event 在同一数据库事务内提交。process_order_events 关闭过期待付款订单，将事件投影为履约动态，并单独消费订单、评价、公告和客服事件生成站内通知。消费者在写入结果的同一事务内保存回执，下一轮可补扫失败项。公告扫描仅选择当前已发布且处于生效窗口的版本，发送前锁定内容并复核。Windows 和 Ubuntu 模板都以约 5 秒为扫描周期。
+订单写入与 Event 在同一数据库事务内提交。process_order_events 关闭过期待付款订单，将事件投影为履约动态，并单独消费订单、评价、公告和客服事件生成站内通知。消费者在写入结果的同一事务内保存回执，下一轮可补扫失败项。公告扫描仅选择当前已发布且处于生效窗口的版本，发送前锁定内容并复核。Windows 和 Ubuntu 模板都以约 5 秒为扫描周期。交易事件继续以 Outbox 承担，不并行引入 Celery，避免两套投递重复消费。
 
 ## 5. 接口契约
 

@@ -31,10 +31,15 @@ I01 修复前记录的 Git HEAD 为 `0706c1a`，项目目录已重命名为`E:\s
 | ADR03 Web会话 | access内存15分钟，refresh HttpOnly轮换+CSRF；按session撤销 | Web已实现并有双标签证据；mini使用独立JSON refresh，协议不能交叉 |
 | ADR04 小程序客户端 | 采用独立原生WXML/WXSS；共用领域API/测试数据，不共享Vue DOM | 已选定并实现，见§22；不影响后端交易规则，平台账号/真机仍阻塞 |
 | ADR05 事务可靠性 | MariaDB事实源，幂等+永久intent唯一+Outbox；Redis仅辅助 | 本版设计基线；I06真实并发证明 |
-| ADR06 技术版本 | Windows11/Python3.12、Vue3/Vite7、Django5.2；Ubuntu24.04直接部署 | 沿用现有基线；生产DB系列与精确依赖锁在P03验证后固定 |
-| ADR07 前端类型 | 现有JS继续运行；新业务契约逐步引入TS，先准备工具链 | P04实施；不因设计阶段顺手全量重写 |
+| ADR06 技术版本 | Windows11/Python3.12、Vue3/Vite7、Django5.2；Ubuntu24.04直接部署 | 沿用现有基线；Node 24.13.1 由 `.nvmrc` 固定，生产DB系列与精确依赖锁在P03验证后固定 |
+| ADR07 前端类型 | 现有JS继续运行；新业务契约逐步引入TS，先准备工具链 | 已被ADR11替代：2026-11-15完成全量TS迁移 |
 | ADR08 首版配送/营销 | 单次整单配送、默认8元/129免运、单券；规则有版本和快照 | 设计默认，P01产品审核；改默认不重写历史订单 |
-| ADR09 内容与客服 | 跨端结构化内容块，清洗受限富文本；HTTP增量轮询客服 | 本版设计基线；有实测需求再评估WebSocket |
+| ADR09 内容与客服 | 跨端结构化内容块，清洗受限富文本；HTTP增量轮询客服 | 已被ADR10替代：客服实时通道改为WebSocket，HTTP轮询保留为回退 |
+| ADR10 实时客服 | Channels 4.2 + Daphne + Redis Channel Layer；一次性ws-ticket鉴权；服务端只推送，发送/已读/历史仍走HTTP；断线按poll_cursor补拉 | 2026-11-15实现；Ubuntu、弱网与真机证据待登记 |
+| ADR11 前端全量TypeScript | 源码、测试与Vue脚本统一TS，strict且禁止显式any；契约类型由OpenAPI生成 | 2026-11-15完成；后续新增业务必须保持typecheck与生成类型同步 |
+| ADR12 驱动与过滤 | mysqlclient 2.2替代PyMySQL；列表参数使用django-filter FilterSet，保留既有错误码与分页契约 | 2026-11-15切换；目标MariaDB集成回归与CI环境待补证 |
+| ADR13 媒体与静态 | 媒体通过Django STORAGES切换，默认本机；静态资源维持Nginx直接服务，不引入WhiteNoise | 2026-11-15定稿；云存储接入另立任务并做迁移演练 |
+| ADR14 OpenAPI版本 | 由drf-spectacular生成OpenAPI 3.1，客户端类型与文档同源 | 2026-11-15升级；旧客户端兼容性按生成差异清单复核 |
 
 小程序选型评估固定同一功能样本：登录换会话、地址拒绝回退、分享冷启动、键盘安全区、后台恢复、请求重试/幂等和订阅结果。按实际通过情况、调试成本、团队维护能力与构建体积记录原生和候选跨端框架；没有账号/真机不能填“通过”。官方规则、基础库与账号资质接入时核验，不以旧原型代替。
 
@@ -574,6 +579,27 @@ A1–A8 已修复并通过自动复验。覆盖小程序订单恢复、报价乱
 | 原有后端 | SQLite 95 项通过、14 项 MariaDB 专用跳过；行覆盖率 95.60%。 |
 | 数据库补充验收 | 6 项补充在 SQLite 与临时 MariaDB 分别通过；MariaDB 同次运行另含 14 项既有专项，共 20 项。 |
 | 客户端 | Web 19 项 Vitest、lint 与 build；mini 4 项适配与 9 项页面回归通过。 |
+
+## 25. 技术架构对齐改造登记（2026-11-15）
+
+依据[架构对齐改造任务书](15-architecture-alignment-task-book.md)，按 K1–K6 推荐值执行：保留 Outbox、不引入 Celery；前端全量 TS；保留 Node 24/Vite 7；迁移 mysqlclient；媒体只做存储抽象；OpenAPI 升到 3.1。以下记录自动验证结果，人工验收、Ubuntu、真实 MariaDB 与真机证据仍需补登记。
+
+| 任务 | 已完成的改动 | 自动验证 | 未完成 / 限制 |
+| --- | --- | --- | --- |
+| TA01-01 | 01/README/ADR 版本口径统一；Node 24.13.1、OpenAPI 3.1、mysqlclient、django-filter、Channels 写入架构表 | 文档核对 | 人工审核待登记 |
+| TA01-02 | `requirements.lock.txt` 与 `requirements-dev.lock.txt`（uv universal + 哈希） | `pip check` 通过 | 未在全新 Ubuntu 环境按锁文件安装验证 |
+| TA01-03 | 根 `.nvmrc` 固定 24.13.1；frontend/mini `engines` | 本机 Node 24.13.1 下 `npm ci`/build 通过 | 无 |
+| TA01-04 | `OAS_VERSION=3.1.0`，重生成 `docs/openapi.yaml`；前端生成 `src/types/api.d.ts` | `spectacular --validate --fail-on-warn` 通过；`vue-tsc` 通过 | 旧客户端兼容性未做外部回归 |
+| TA01-05 | `.github/workflows/ci.yml`：后端 check/pytest/ruff/black/OpenAPI漂移；前端 lint/typecheck/test/build；mini 测试 | 配置完成，本地等价命令通过 | 未在托管 CI 实际运行；MariaDB job 仍依赖自托管环境 |
+| TA02-01–05 | 25 个 JS/测试文件与 39 个 Vue 组件迁移到 TS；strict、禁止显式 any；新增 `typecheck` 与 `gen:api-types` | `vue-tsc --noEmit` 0 错误；lint；20 项 Vitest；build 通过；Windows/Chrome 全流程冒烟通过 | 人工走查与多浏览器矩阵待登记 |
+| TA03-01–06 | Channels/Daphne/Channel Layer；ws-ticket；`/ws/support/{id}/` 消费者；消息/关闭广播；Web 与小程序重连、心跳、轮询回退；Nginx `/ws/` 与 Daphne unit | 后端 4 项实时用例；Windows/Chrome 客服发送、重试、分配、回复、已读、收件箱全流程通过；mini 13 项测试 | 未做真机与弱网设备矩阵；Ubuntu Daphne 预发待验 |
+| TA04-01 | PyMySQL 换 mysqlclient 2.2.8 | Windows 临时 MariaDB 11.8：20 项 MariaDB 专项通过；全流程浏览器冒烟通过 | 生产/预发 MariaDB 系列与迁移仍需实机登记 |
+| TA04-02 | catalog/orders/reviews/audit 列表接入 FilterSet，保留错误契约 | 全量后端 99 passed / 14 skipped；覆盖率 95.01%；MariaDB 专项 20 项通过 | 无 |
+| TA04-03–04 | `STORAGES` 可按环境切换；媒体 URL 统一走 storage；静态资源继续由 Nginx 服务并记录 ADR13 | 媒体上传、商品列表与隔离备份恢复用例通过 | 未接入真实 S3/OSS，未做媒体迁移演练 |
+| TA04-05 | factory_boy 评估为可选，本轮不引入 | — | 如后续测试样板重复再单独立项 |
+| TA05-01–04 | 01/06/08/10/11/14/README 同步；本登记节 | 文档链接核对；Windows 冒烟与隔离恢复通过 | Ubuntu 发布演练与人工签收未执行 |
+
+当前结论：**本地实现与自动复验通过**。Windows 临时 MariaDB 11.8 下 20 项专项与完整浏览器流程通过，1000 商品串行读取 P95 为 0.0790–0.0940 秒（本机串行短测）；不据此宣称 Ubuntu、规定负载、微信真机或人工验收通过。
 | Windows 演练 | Chrome 交易、运营、通知、客服及备份恢复抽查完成；下一步按[预发手册](14-native-deployment.md)另验 Ubuntu、TLS、异机数据库和媒体恢复。 |
 
 参照 [13 的复测命令](13-independent-acceptance.md) 复验时，登记提交、环境、数据量和结果；同一测试跨引擎执行的次数按环境分列。

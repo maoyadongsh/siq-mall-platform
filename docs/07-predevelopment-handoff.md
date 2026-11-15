@@ -44,7 +44,7 @@
 
 ## 4. 从现有实现接手
 
-1. **改页面**：先从 [Vue 路由](../frontend/src/router/index.js) 或 [mini 页面清单](../mini/app.json) 找实际入口，再查 08 对应页面 ID 与 06 的生命周期要求。
+1. **改页面**：先从 [Vue 路由](../frontend/src/router/index.ts) 或 [mini 页面清单](../mini/app.json) 找实际入口，再查 08 对应页面 ID 与 06 的生命周期要求。
 2. **改规则或接口**：从 [API 清单](openapi.yaml) 找方法与请求体，在对应 Django app 核对 serializer、service、模型约束。修改库存/金额/券规则时，同时验证下单、付款、取消与重放。
 3. **复验或发布**：以 [11 台账](11-readiness-and-acceptance.md) 对应任务为起点，核对 [13 独立复验](13-independent-acceptance.md)。Ubuntu 用 [原生部署手册](14-native-deployment.md)，微信工具和真机用 [mini 指南](../mini/README.md) 登记。
 4. **剩余工作**：对接微信身份与真实订阅渠道，执行设备和 Ubuntu 验收，按规定数据规模与负载补测，最后由相应负责人签收。

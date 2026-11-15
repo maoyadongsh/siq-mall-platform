@@ -99,7 +99,7 @@ Content-Type: application/json
 - **券与评价**：领券校验有效窗口、余量、限领与幂等。已领券读领取时条款；评价按本人已完成订单项提交，同一订单项只能评价一次，公开评分取已通过审核的评价。
 - **站内消息**：列表的 `read_watermark`、用户和分类绑定。批量已读提交 `{"watermark":"<read_watermark>","type":"order"}`（对应订单分类）；按 ID 已读提交 `ids`。翻历史页沿用首次列表上界。订阅登记返回 `delivery_status=not_sent`。
 - **内容**：公开内容限定发布指针、展示端与有效时段；预览走运营授权接口。选择通知的公告在生效时由扫描器投递一次，撤回、过期或被替换的版本无投递。
-- **客服**：历史与增量读取区分 direction、cursor 和 limit。首次发送与重试使用同一 `client_message_id` 和正文，已读使用本会话的消息 ID，关闭后需新开会话。
+- **客服**：历史与增量读取区分 direction、cursor 和 limit。首次发送与重试使用同一 `client_message_id` 和正文，已读使用本会话的消息 ID，关闭后需新开会话。实时推送先以 `conversations/ws-ticket/`（运营为 `ops/conversations/ws-ticket/`）获取一次性票据，再以子协议 `support.ticket.<票据>` 连接 `/ws/support/{id}/`，票据不放入 URL；服务端只推送 `message` 与 `closed`，发送仍走 HTTP。断线重连按 `poll_cursor` 补拉，`SUPPORT_WS_ENABLED=0` 时回退轮询。
 
 | 路径（省略公共前缀） | 方法 | JSON 或表单写入模型 |
 | --- | --- | --- |
@@ -107,6 +107,7 @@ Content-Type: application/json
 | `cms/home/` | GET | — |
 | `cms/pages/{identifier}/` | GET | — |
 | `conversations/` | GET, POST | POST CreateInputRequest |
+| `conversations/ws-ticket/` | POST | POST WsTicketInputRequest |
 | `conversations/{id}/` | GET | — |
 | `conversations/{id}/close/` | POST | POST CloseInputRequest |
 | `conversations/{id}/messages/` | GET, POST | POST MessageInputRequest |
@@ -135,6 +136,7 @@ Content-Type: application/json
 | `ops/cms/{id}/publish/` | POST | POST PublishInputRequest |
 | `ops/cms/{id}/unpublish/` | POST | POST PublishInputRequest |
 | `ops/conversations/` | GET, POST | POST CreateInputRequest |
+| `ops/conversations/ws-ticket/` | POST | POST WsTicketInputRequest |
 | `ops/conversations/{id}/` | GET | — |
 | `ops/conversations/{id}/assign/` | POST | POST AssignInputRequest |
 | `ops/conversations/{id}/close/` | POST | POST CloseInputRequest |

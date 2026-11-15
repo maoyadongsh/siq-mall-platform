@@ -2,7 +2,7 @@
 
 SIQ 优选商城是一个单商家实物电商演示项目。买家可以从商品详情选规格、领券下单、模拟付款，到签收后评价。运营人员在同一套业务数据上维护商品、发货、审核评价、发布内容和回复客服消息。PC 商城与移动 H5 共用 Vue 应用，买家微信小程序独立实现，三端由 Django 统一核价和校验权限。
 
-**当前交付基线为 `17f5b91`。** I01–I11 已形成可在 Windows 本地演示的业务闭环，独立验收发现的八项问题已修复。Ubuntu 24.04 部署、微信平台接入与真机、规定负载性能、人工签收各有独立的待验项。[逐项复验结果](docs/13-independent-acceptance.md)
+**当前交付基线为 `17f5b91`。** I01–I11 已形成可在 Windows 本地演示的业务闭环，独立验收发现的八项问题已修复。2026-11-15 的技术架构对齐改造（全量 TS、OpenAPI 3.1、客服 WebSocket、mysqlclient/django-filter）已在工作区落地，证据见[架构对齐任务书](docs/15-architecture-alignment-task-book.md)与[验收登记](docs/11-readiness-and-acceptance.md)§25。Ubuntu 24.04 部署、微信平台接入与真机、规定负载性能、人工签收各有独立的待验项。[逐项复验结果](docs/13-independent-acceptance.md)
 
 ## 从一笔订单看产品
 
@@ -21,12 +21,13 @@ SIQ 优选商城是一个单商家实物电商演示项目。买家可以从商�
 
 | 层 | 本项目使用的技术 | 负责什么 |
 | --- | --- | --- |
-| Web | Vue 3.5、Vue Router 4、Pinia 3、Axios、Vite 7、SCSS、Element Plus | 响应式商城、路由与会话状态、统一请求、运营表格与表单。依赖按 npm 锁文件安装。[前端工程](frontend/package.json) |
-| 微信小程序 | 原生 JavaScript、WXML、WXSS、微信页面栈与本地存储 | 独立导航、分享、弱网恢复和商城会话。页面共用交易 API。[小程序指南](mini/README.md) |
-| HTTP 与身份 | Python 3.12、Django 5.2、DRF 3.16、SimpleJWT、drf-spectacular | 模块化单体、序列化与权限、JWT 和服务端会话撤销、OpenAPI 3 契约。[后端依赖](backend/requirements.txt) |
-| 数据与任务 | MariaDB / PyMySQL、Redis / django-redis、Django 管理命令 | MariaDB 保存业务事实、锁和事件回执；Redis 提供缓存及限流；扫描进程处理超时和事件。 |
-| 媒体与内容 | Pillow、nh3、版本化内容块 | 校验上传图片、清洗富文本。草稿、预览与公开版本分开读取。[内容服务](backend/content/services.py) |
-| 验证与部署 | pytest-django、pytest-cov、Vitest、Node Test、Playwright/Chrome、Nginx、Gunicorn、systemd | 从隔离单测到真实 MariaDB 竞争与浏览器交易，配有 Ubuntu 原生部署模板。[验证脚本](qa/windows/smoke.py) · [部署手册](docs/14-native-deployment.md) |
+| Web | Vue 3.5、Vue Router 4、Pinia 3、Axios、Vite 7、TypeScript 5.9、SCSS、Element Plus | 响应式商城、路由与会话状态、统一请求、运营表格与表单。全量 TS（strict，禁止 any）与 OpenAPI 生成类型；依赖按 npm 锁文件安装。[前端工程](frontend/package.json) |
+| 微信小程序 | 原生 JavaScript、WXML、WXSS、微信页面栈与本地存储 | 独立导航、分享、弱网恢复、客服实时连接与商城会话。页面共用交易 API。[小程序指南](mini/README.md) |
+| HTTP 与身份 | Python 3.12、Django 5.2、DRF 3.16、SimpleJWT、drf-spectacular、django-filter | 模块化单体、序列化与权限、JWT 和服务端会话撤销、OpenAPI 3.1 契约、列表过滤。[后端依赖](backend/requirements.txt) |
+| 实时客服 | Channels 4.3、Daphne 4.2、Redis Channel Layer | 一次性 ws-ticket 鉴权；服务端推送消息与关闭事件，发送仍走 HTTP，断线回退轮询。 |
+| 数据与任务 | MariaDB / mysqlclient、Redis / django-redis、Django 管理命令 | MariaDB 保存业务事实、锁和事件回执；Redis 提供缓存、限流与频道层；扫描进程处理超时和事件。 |
+| 媒体与内容 | Pillow、nh3、可切换的 Django Storage、版本化内容块 | 校验上传图片、清洗富文本。默认本地媒体，可通过 `MALL_STORAGE_BACKEND` 切换云存储；草稿、预览与公开版本分开读取。[内容服务](backend/content/services.py) |
+| 验证与部署 | pytest-django、pytest-cov、Vitest、Node Test、Playwright/Chrome、Nginx、Gunicorn、Daphne、systemd | 从隔离单测到真实 MariaDB 竞争与浏览器交易，配有 Ubuntu 原生部署模板。[验证脚本](qa/windows/smoke.py) · [部署手册](docs/14-native-deployment.md) |
 
 在一次结算中，三个客户端做相同的事：向同一个服务索取报价，然后提交已确认的报价。后台扫描与在线请求独立运行，用户关掉页面后，订单仍可超时关闭，已提交的事件仍可投递。
 
@@ -34,9 +35,12 @@ SIQ 优选商城是一个单商家实物电商演示项目。买家可以从商�
 flowchart LR
     Web["PC 商城 / 移动 H5 / 运营工作台"] --> API["Django REST API"]
     Mini["原生微信小程序"] --> API
+    Web -.-> WS["Daphne · 客服 WebSocket"]
+    Mini -.-> WS
+    WS --> Cache[("Redis 缓存 / 限流 / 频道层")]
     API --> Trade["核价、库存、券与订单事务"]
     Trade --> DB[("MariaDB 业务记录与事件")]
-    API --> Cache[("Redis 缓存与限流")]
+    API --> Cache
     DB --> Scan["process_order_events"]
     Scan --> DB
 ```
@@ -97,6 +101,7 @@ Push-Location backend
 .\.venv\Scripts\python.exe -m black --check .
 Pop-Location
 npm --prefix frontend run lint
+npm --prefix frontend run typecheck
 npm --prefix frontend test
 npm --prefix frontend run build
 npm --prefix mini test
@@ -104,11 +109,12 @@ node --test qa/acceptance/mini-boundaries.cjs
 .\backend\.venv\Scripts\python.exe qa/windows/smoke.py
 ```
 
-| 基线 `17f5b91` 的证据 | 已登记结果 |
+| 当前工作区（`17f5b91` + 架构对齐改造） | 已登记结果 |
 | --- | --- |
-| 后端与数据库 | 后端原有 95 项通过，14 项 MariaDB 专项在 SQLite 跳过，行覆盖率 95.60%。临时 MariaDB 执行 14 项专项及 6 项补充用例，共 20 项通过；这 6 项在 SQLite 也单独通过。 |
-| 客户端 | Web 的 19 项 Vitest、lint、生产构建通过。小程序原有 4 项适配测试和新增 9 项页面测试通过。 |
-| 端到端 | Windows/Chrome 交易、运营、消息、客服流程通过；隔离恢复后四张抽查表计数一致。1000 商品本机串行读取 20 次的 P95 为 0.0630 秒。 |
+| 后端与数据库 | 99 项通过，14 项 MariaDB 专项在 SQLite 跳过，行覆盖率 95.01%。Windows 临时 MariaDB 11.8 下 20 项专项与完整浏览器冒烟通过。 |
+| 客户端 | Web 的 20 项 Vitest、`vue-tsc`、lint、生产构建通过。小程序 4 项适配测试和 9 项页面测试通过。 |
+| 实时客服 | 后端 4 项 WebSocket 用例通过；Windows/Chrome 客服发送、重试、分配、回复、已读、收件箱全流程通过；真机与弱网设备矩阵待登记。 |
+| 端到端 | Windows/Chrome 交易、运营、消息、客服、角色审计流程通过；隔离恢复后表计数一致；1000 商品串行读取 P95 为 0.0790–0.0940 秒（本机串行短测）。 |
 
 精确复测命令与环境边界见[独立验收报告](docs/13-independent-acceptance.md)。生产目标是 Ubuntu 24.04 直接部署；发布前仍需实测 TLS、systemd、数据库与媒体异机恢复、规定负载、微信工具与真机，并取得人工验收记录。[部署与回滚手册](docs/14-native-deployment.md)
 
@@ -119,5 +125,6 @@ node --test qa/acceptance/mini-boundaries.cjs
 | 了解技术与产品设计 | [01 开发架构](docs/01-architecture.md) · [06 移动与微信设计](docs/06-mobile-wechat-design.md) · [08 页面与权限](docs/08-product-and-experience-spec.md) |
 | 实现功能或联调 | [07 开发交接](docs/07-predevelopment-handoff.md) · [09 规则与数据](docs/09-domain-and-data-spec.md) · [10 API 使用说明](docs/10-target-api-contract.md) · [OpenAPI](docs/openapi.yaml) · [协作约定](AGENTS.md) |
 | 按任务复验与签收 | [02 迭代计划](docs/02-iteration-plan.md) · [11 验收台账](docs/11-readiness-and-acceptance.md) · [12 总验收](docs/12-final-acceptance.md) · [13 独立复验](docs/13-independent-acceptance.md) |
+| 技术架构对齐改造 | [15 架构对齐任务书](docs/15-architecture-alignment-task-book.md) |
 | 查看演进过程 | [03 I01 原始登记](docs/03-iteration-01-acceptance.md) · [04 早期工程审查](docs/04-project-review.md) · [05 基础框架复验](docs/05-review-validation-2026-11-06.md) |
 | 本地运行及发布演练 | [小程序指南](mini/README.md) · [14 Ubuntu 原生部署](docs/14-native-deployment.md) |

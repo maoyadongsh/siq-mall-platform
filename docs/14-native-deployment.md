@@ -1,6 +1,6 @@
 # Ubuntu 24.04 原生部署与回滚
 
-目标拓扑为 Nginx 提供 Vue 构建产物、媒体与 HTTPS 入口，Gunicorn 运行 Django，systemd 管理应用及订单扫描任务。Windows 已验证迁移、扫描和隔离数据库恢复，Ubuntu 实机结果由发布负责人登记在[验收台账](11-readiness-and-acceptance.md)。
+目标拓扑为 Nginx 提供 Vue 构建产物、媒体与 HTTPS 入口，Gunicorn 运行 Django HTTP，Daphne 运行客服 WebSocket，systemd 管理应用及订单扫描任务。Windows 已验证迁移、扫描和隔离数据库恢复，Ubuntu 实机结果由发布负责人登记在[验收台账](11-readiness-and-acceptance.md)。
 
 ## 准备系统与应用
 
@@ -26,7 +26,7 @@ fi
 sudoedit /etc/mall/backend.env
 ```
 
-环境文件是 systemd EnvironmentFile 格式，替换全部占位符；DJANGO_SETTINGS_MODULE=config.settings.prod，DJANGO_ENV=production。不要同时保留含生产凭据的 backend/.env。systemd由root读取600配置，再以mall运行程序。
+环境文件是 systemd EnvironmentFile 格式，替换全部占位符；DJANGO_SETTINGS_MODULE=config.settings.prod，DJANGO_ENV=production。客服 WebSocket 需配置 `CHANNEL_REDIS_URL`（可与 REDIS_URL 相同）与 `SUPPORT_WS_ENABLED=1`；媒体默认本地存储，接入云存储时设置 `MALL_STORAGE_BACKEND`。不要同时保留含生产凭据的 backend/.env。systemd由root读取600配置，再以mall运行程序。
 
 迁移、静态收集和应用服务使用同一个环境文件，避免manage.py默认加载dev配置：
 
@@ -44,6 +44,7 @@ check --deploy 的告警逐条登记；SSL重定向由Nginx完成的应用层告
 
 ```bash
 sudo cp /opt/mall/deploy/mall-gunicorn.service.example /etc/systemd/system/mall-gunicorn.service
+sudo cp /opt/mall/deploy/mall-daphne.service.example /etc/systemd/system/mall-daphne.service
 if ! sudo test -e /etc/nginx/sites-available/mall.conf; then
   sudo cp /opt/mall/deploy/nginx.mall.conf.example /etc/nginx/sites-available/mall.conf
 fi
@@ -53,13 +54,13 @@ if [ ! -e /etc/nginx/sites-enabled/mall.conf ]; then
 fi
 sudo nginx -t
 sudo systemctl daemon-reload
-sudo systemctl enable --now mariadb redis-server mall-gunicorn
+sudo systemctl enable --now mariadb redis-server mall-gunicorn mall-daphne
 sudo systemctl reload nginx
 curl -f https://你的域名/api/v1/health/
-sudo journalctl -u mall-gunicorn -n 100 --no-pager
+sudo journalctl -u mall-gunicorn -u mall-daphne -n 100 --no-pager
 ```
 
-证书路径必须真实存在，否则nginx -t不会通过；证书签发、续期和防火墙按部署环境配置并记录。验证 /admin/、首页深链接、HTTP重定向和503降级；生产 schema/docs应404。
+证书路径必须真实存在，否则nginx -t不会通过；证书签发、续期和防火墙按部署环境配置并记录。验证 /admin/、首页深链接、HTTP重定向和503降级；生产 schema/docs应404。客服页需实际建立 `/ws/` 连接并收发一条消息；Nginx 必须保留 Upgrade/Connection 头与 75 秒读写超时。
 
 ## 启用扫描与验证业务恢复
 
@@ -83,8 +84,9 @@ journalctl -u mall-orders.service -n 30
 | 检查 | 记录的证据 |
 | --- | --- |
 | 入口 | HTTP 跳转 HTTPS，证书链与续期，首页及前端深链接，静态文件及已上传媒体可读，生产模式下开发文档入口返回 404。 |
-| 依赖与权限 | 健康探针正常为 HTTP 200，在隔离预发中模拟依赖中断时为 503。应用和扫描进程均使用同一配置、专用账号和版本。 |
+| 依赖与权限 | 健康探针正常为 HTTP 200，在隔离预发中模拟依赖中断时为 503。应用、Daphne 和扫描进程均使用同一配置、专用账号和版本。 |
+| 实时客服 | WebSocket 实际建立、双向心跳与消息推送可用；停止 Daphne 或设置 `SUPPORT_WS_ENABLED=0` 后，页面回退轮询且不丢消息、不重复气泡。 |
 | 数据恢复 | 同时备份 MariaDB 和持久媒体，在另一实例恢复。对照订单金额、库存、券状态、通知去重、媒体文件及权限，记录恢复点和耗时。 |
-| 版本回退 | 记录旧代码与对应 dist、迁移清单和待处理事件。先暂停新写入口和相关消费者，确认旧版本兼容当前表结构，再切换代码及静态资源、启动扫描并复查积压。 |
+| 版本回退 | 记录旧代码与对应 dist、迁移清单和待处理事件。先暂停新写入口和相关消费者，确认旧版本兼容当前表结构，再切换代码及静态资源、启动扫描并复查积压；可先关闭 WebSocket 开关并停止 Daphne 降级。 |
 
 保留订单、支付、券、客服和审计事实。历史迁移需要的数据回填及模块级注意事项见[总验收报告](12-final-acceptance.md)。Windows 上的四表计数抽查详见[独立验收](13-independent-acceptance.md)，异机恢复时间与媒体完整性仍需现场测量。

@@ -220,3 +220,5 @@ X01已决策采用独立原生小程序并完成源码；分端商城会话及�
 累积实现、逐任务状态、演示路径、迁移与回滚见[总验收报告](12-final-acceptance.md)。文档审查签字：架构审核人____，产品/体验审核人____，测试审核人____，日期____；作业系统上传由用户自行处理。
 
 I03 默认地址、I05–I07 小程序结算与支付、I09 通知、I10 定时公告、I11 客服及运营审计的 A1–A8 整改已通过自动复验。复验方法与各项结果见[独立验收记录](13-independent-acceptance.md)。
+
+2026-11-15 另执行技术架构对齐改造（TA01–TA05）：全量 TypeScript、OpenAPI 3.1、客服 WebSocket、mysqlclient/django-filter、媒体存储抽象与 CI 配置。任务范围见[架构对齐任务书](15-architecture-alignment-task-book.md)，自动验证登记见[11 §25](11-readiness-and-acceptance.md)。该改造不改变 I01–I11 的业务验收状态，Ubuntu、真实 MariaDB、微信真机与人工签收仍需分别登记。

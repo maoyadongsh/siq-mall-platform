@@ -27,9 +27,10 @@
 
 - 开发Windows 11、PowerShell；生产Ubuntu 24.04，Nginx + Gunicorn + systemd原生部署。不要添加Docker/Kubernetes或容器依赖。
 - 后端Python 3.12、Django 5.2、DRF、SimpleJWT、MariaDB/MySQL协议、Redis。MariaDB系列须在开发/预发明确验证；不能把协议兼容说成MySQL已测试。
-- Web为Vue3、Vite、Router、Pinia、Axios、SCSS，Element Plus按需导入。现有JS保持可用，新业务按工具链准备逐步引入TS，不顺手全量重写。
+- Web为Vue3、Vite、Router、Pinia、Axios、SCSS、Element Plus按需导入、TypeScript（strict，禁止显式any）。契约类型由`docs/openapi.yaml`生成；新增前端代码必须保持`npm run typecheck`通过。
 - 小程序按 X01 决策使用原生 JS/WXML/WXSS，页面、导航、生命周期和存储单独维护，共用 API 契约。
-- 异步投递使用数据库事件和 process_order_events。Windows 用 --watch，Ubuntu 提供 systemd timer/service。新增消费者须验证重复投递、事务回滚与重启补扫。
+- 异步投递使用数据库事件和 process_order_events。Windows 用 --watch，Ubuntu 提供 systemd timer/service。新增消费者须验证重复投递、事务回滚与重启补扫。交易事件不并行引入 Celery；若确需消息队列另立 ADR。
+- 客服实时推送使用 Channels + Daphne，服务端只推送；发送、已读与历史仍走 HTTP。WebSocket 使用一次性 ticket，不在 URL 中传 access token；关闭 `SUPPORT_WS_ENABLED` 必须能回退轮询。
 - 保留`auth.User`并扩展Profile，不直接改AUTH_USER_MODEL，不清库/删迁移以解决用户模型问题。
 
 ## 4. 实施方式与命名
@@ -87,6 +88,7 @@
 ```powershell
 npm ci
 npm run lint
+npm run typecheck
 npm test
 npm run build
 ```

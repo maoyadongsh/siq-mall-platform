@@ -139,7 +139,7 @@
 
 ## 7. 迁移与回滚
 
-本累积版本新增迁移：`accounts.0002`、`accounts.0003_roleaction`、`users.0001`、`catalog.0001–0005`、`cart.0001`、`orders.0001–0002`、`promotions.0001`、`reviews.0001–0002`、`content.0001–0003`、`notifications.0001`、`support.0001`、`audit.0001`。`content.0001` 与 `audit.0001` 的无表模型只承载权限，不保存业务数据。依赖新增 `nh3 0.3.7`，其余技术栈未改变。
+本累积版本新增迁移：`accounts.0002`、`accounts.0003_roleaction`、`users.0001`、`catalog.0001–0005`、`cart.0001`、`orders.0001–0002`、`promotions.0001`、`reviews.0001–0002`、`content.0001–0003`、`notifications.0001`、`support.0001`、`audit.0001`。`content.0001` 与 `audit.0001` 的无表模型只承载权限，不保存业务数据。2026-11-15 依赖新增 `nh3 0.3.7`、`channels 4.3`、`channels-redis 4.3`、`daphne 4.2`、`mysqlclient 2.2`、`django-filter 25`，并生成后端锁文件。
 
 升级前：审核迁移与依赖，备份数据库及媒体，确认临时/预发环境而非生产业务库；生产保持 `DEMO_PAYMENT_ENABLED=0`，Ubuntu使用同一环境文件执行 `check --deploy`、`migrate --noinput`、`collectstatic --noinput`，再启动Nginx/Gunicorn/systemd与5秒扫描timer。
 
@@ -158,6 +158,10 @@
 
 - 100000商品/300000SKU短测：优化前串行p95=5.7810s、20并发91个超时；最低价料化并索引后，串行p95=0.2500s/max=0.2650s，20并发p95=0.8440s/max=1.0780s、错误0。脚本另行检查了按 id 倒序的单分类 SQL，估算 20484 行；price_asc 计时查询的执行计划未单独采集，详见台账 §23。
 - 规定4核8GB、50万订单、20/50/100/200并发、预热5分钟/稳态15分钟、冷暖缓存、错误率、读写P95及LCP/INP/CLS尚未执行，不能据本机短测宣称性能达标。
-- 生产精确后端依赖锁、依赖审计、真实Redis容量/故障策略和长期监控未闭环。
+- 生产精确后端依赖锁、依赖审计、真实Redis容量/故障策略和长期监控未闭环（锁文件已生成，Ubuntu 干净安装与 CI 实跑未验证）。
+
+## 9. 技术架构对齐改造（2026-11-15）
+
+按[架构对齐任务书](15-architecture-alignment-task-book.md)执行 TA01–TA05：前端全量 TypeScript、OpenAPI 3.1 与生成类型、Channels/Daphne 客服 WebSocket、mysqlclient/django-filter、媒体存储抽象与 CI 配置。自动验证结果为后端 99 passed / 14 skipped、覆盖率 95.01%，Web 20 项 Vitest 与 typecheck/lint/build 通过，mini 4+9 项通过；Windows 临时 MariaDB 11.8 的 20 项专项、完整浏览器流程与隔离恢复通过，1000 商品串行读取 P95 为 0.0790–0.0940 秒（本机串行短测）。该改造不改变 I01–I11 与 X01–X07 的验收状态；Ubuntu、规定负载、微信真机与人工签收仍待登记，详见[11 §25](11-readiness-and-acceptance.md)。
 
 人工验收人：____；日期：____；结论/整改复验：____。
