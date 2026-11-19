@@ -1,8 +1,9 @@
 # I12 商城体验与可访问性收口 · 开发交接
 
 - 交接日期：2026-11-19
-- 当前状态：人工验收通过，待基线提交与标签
+- 当前状态：已闭环
 - 起始基线：`eb5d526`
+- 最终基线：`60cbe64`（`iter-i12`，已推送远端）
 - 迭代计划：[plan.md](plan.md)
 - 归档证据：[handoff 截图](screenshots/handoff.png)
 
@@ -104,4 +105,4 @@ npm --prefix frontend run build
 - plan、handoff、走查和修复已完成，详见[验收记录](acceptance.md)。
 - 前端 lint、typecheck、20 项 Vitest、生产构建及完整 Windows 隔离回归通过。
 - 人工验收人：项目用户（Trae 会话确认）；日期：2026-11-19；结论：通过。
-- `iter-i12`：尚未创建；现在进入提交、推送和标签留证步骤。
+- `iter-i12` 已指向 `60cbe64` 并推送远端；[标签截图](screenshots/tag.png)已归档，I12 闭环。

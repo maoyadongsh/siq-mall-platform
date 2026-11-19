@@ -2,9 +2,9 @@
 
 - 验收日期：2026-11-19
 - 起始基线：`eb5d526`
-- 当前状态：**人工验收通过，待基线提交与标签**
-- 最终提交：待提交
-- 基线标签：`iter-i12`，待基线提交后创建
+- 当前状态：**已闭环**
+- 最终提交：`60cbe64`（`feat: 完成 I12 商城体验与可访问性收口`）
+- 基线标签：`iter-i12`，已推送至 `origin`；[标签截图](screenshots/tag.png)
 - 计划与交接：[plan.md](plan.md) · [handoff.md](handoff.md)
 
 ## 1. 实际完成范围
@@ -52,6 +52,7 @@
 | [products-320.png](screenshots/products-320.png) | 最窄视口商品列表。 |
 | [product-390.png](screenshots/product-390.png) | 商品详情与规格选择后的移动操作区。 |
 | [auth-focus-390.png](screenshots/auth-focus-390.png) | 认证表单修复后的焦点与触控状态。 |
+| [tag.png](screenshots/tag.png) | GitHub Tags 页面显示 `iter-i12` 指向 `60cbe64`。 |
 
 ## 6. 公共验收清单
 
@@ -73,4 +74,4 @@
 - 验收结论：通过
 - 整改项：无
 
-**人工签收已通过；仍需完成最终提交、远端 `main` 推送、`iter-i12` 标签及标签截图归档后，I12 才闭环。**
+**I12 已闭环：实现、自动验证和人工验收完成；`60cbe64` 已进入远端 `main`，`iter-i12` 已推送，标签截图已归档。后续迭代需另行启动，本轮未同时开展 I13。**
