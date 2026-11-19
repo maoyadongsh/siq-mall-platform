@@ -50,6 +50,8 @@
 
 当前基线 `c323fbc` 已纳入架构对齐改造：前端全量 TypeScript、OpenAPI 3.1 与生成类型、客服 WebSocket、mysqlclient/django-filter、MariaDB CI 作业。自动验证结果见[11 §25](11-readiness-and-acceptance.md)；GitHub Actions 四作业（backend/frontend/mini/mariadb）通过，但 Ubuntu、真实微信设备、规定负载与人工签收仍未完成，不能把自动结果当作上线许可。
 
+2026-11-19 从 `eb5d526` 启动 I12 商城体验与可访问性收口，独立交接见[I12 handoff](iterations/I12/handoff.md)，计划与验收入口见[I12 plan](iterations/I12/plan.md)。本轮实现、自动验证和用户人工验收已完成，当前进入基线提交与标签留证步骤；闭环前不启动后续迭代。
+
 ## 4. 从现有实现接手
 
 1. **改页面**：先从 [Vue 路由](../frontend/src/router/index.ts) 或 [mini 页面清单](../mini/app.json) 找实际入口，再查 08 对应页面 ID 与 06 的生命周期要求。前端为 strict TypeScript，禁止显式 `any`；接口响应类型从 `src/types/api.d.ts` 引用，不要手写重复类型。

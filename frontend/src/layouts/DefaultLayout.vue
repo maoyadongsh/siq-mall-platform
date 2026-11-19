@@ -298,7 +298,7 @@ onBeforeUnmount(() => {
 .mall-layout__register {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 16px;
   border-radius: var(--mall-radius-pill);
   color: #fff;

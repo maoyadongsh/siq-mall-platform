@@ -81,7 +81,26 @@ function submit() {
   min-height: 44px;
 }
 
+.auth-form__submit:focus-visible {
+  outline: 3px solid var(--mall-focus);
+  outline-offset: 3px;
+}
+
+:deep(.el-input__wrapper) {
+  min-height: 44px;
+}
+
+:deep(.el-input__wrapper:focus-within) {
+  outline: 3px solid var(--mall-focus);
+  outline-offset: 2px;
+}
+
 :deep(.el-input__inner) {
+  min-height: 42px;
   font-size: 16px;
+}
+
+:deep(.el-checkbox) {
+  min-height: 44px;
 }
 </style>
