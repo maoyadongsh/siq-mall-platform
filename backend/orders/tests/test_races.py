@@ -132,3 +132,60 @@ def test_duplicate_submission_and_payment_timeout_compete():
         ("paid", 9, 1),
         ("canceled", 10, 0),
     ]
+
+
+def test_payment_success_and_manual_cancel_compete():
+    sku = resources()
+    entry = candidate(0, sku)
+    user = entry[0]
+    no = submit(entry)
+    payment = services.execute(
+        user,
+        "payment.create",
+        uuid4(),
+        {"order_no": no},
+        lambda: services.init_payment(user, {"order_no": no}),
+    )
+
+    def pay():
+        try:
+            services.execute(
+                user,
+                "payment.simulate",
+                uuid4(),
+                {},
+                lambda: services.simulate(
+                    user, payment["pay_no"], {"outcome": "success"}
+                ),
+            )
+        except BusinessError as exc:
+            assert exc.code == 40003
+
+    def cancel():
+        data = {"reason": "other"}
+        try:
+            services.execute(
+                user,
+                "order.cancel",
+                uuid4(),
+                data,
+                lambda: services.cancel(user, no, data),
+            )
+        except BusinessError as exc:
+            assert exc.code == 40003
+
+    race([pay, cancel])
+    sku.refresh_from_db()
+    order = Order.objects.get()
+    assert order.status in ["paid", "canceled"]
+    assert sku.reserved_stock == 0
+    assert StockMovement.objects.count() == 2
+    assert (
+        StockMovement.objects.filter(
+            kind="consume" if order.status == "paid" else "release"
+        ).count()
+        == 1
+    )
+    assert (sku.available_stock, Settlement.objects.count()) == (
+        (9, 1) if order.status == "paid" else (10, 0)
+    )

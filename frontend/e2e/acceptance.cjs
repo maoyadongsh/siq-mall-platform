@@ -189,8 +189,22 @@ const assert = require('node:assert/strict')
     await shop.getByRole('button', { name: '模拟付款失败' }).click()
     await shop.getByText('上次模拟付款失败', { exact: false }).waitFor()
     await shop.getByRole('button', { name: '进入模拟支付' }).click()
+    let paymentSuccessPosts = 0
+    shop.on('request', (request) => {
+      if (request.method() === 'POST' && /\/payments\/[^/]+\/simulate\/$/.test(new URL(request.url()).pathname)) paymentSuccessPosts++
+    })
+    await shop.route(
+      '**/payments/*/simulate/',
+      async (route) => {
+        assert.equal((await route.fetch()).status(), 200)
+        await route.abort('connectionreset')
+      },
+      { times: 1 },
+    )
     await shop.getByRole('button', { name: '模拟付款成功' }).click()
+    await shop.getByRole('button', { name: '核对上次操作结果' }).click()
     await shop.getByRole('heading', { name: '待发货', exact: true }).waitFor()
+    assert.equal(paymentSuccessPosts, 1)
     await page.goto(origin + '/ops/orders')
     await page.getByLabel('订单号', { exact: true }).fill(no)
     await page.getByRole('button', { name: '查询订单', exact: true }).click()
@@ -263,8 +277,22 @@ const assert = require('node:assert/strict')
     }
     await useCoupon()
     await shop.getByRole('button', { name: '取消订单', exact: true }).click()
+    let cancelPosts = 0
+    shop.on('request', (request) => {
+      if (request.method() === 'POST' && /\/orders\/[^/]+\/cancel\/$/.test(new URL(request.url()).pathname)) cancelPosts++
+    })
+    await shop.route(
+      '**/orders/*/cancel/',
+      async (route) => {
+        assert.equal((await route.fetch()).status(), 200)
+        await route.abort('connectionreset')
+      },
+      { times: 1 },
+    )
     await shop.getByRole('button', { name: '确认取消并释放库存' }).click()
+    await shop.getByRole('button', { name: '核对上次操作结果' }).click()
     await shop.getByRole('heading', { name: '已取消', exact: true }).waitFor()
+    assert.equal(cancelPosts, 1)
     await useCoupon()
     await shop.getByRole('button', { name: '进入模拟支付' }).click()
     await shop.getByRole('button', { name: '模拟付款成功' }).click()
@@ -425,7 +453,16 @@ const assert = require('node:assert/strict')
     await agent.locator('.ops-support header select').selectOption('pending')
     await agent.locator('.ops-support__queue button').first().waitFor()
     await agent.getByRole('button', { name: '分配给此客服' }).click()
-    await agent.getByText('会话已分配，可由接待客服回复。', { exact: true }).waitFor()
+    try {
+      await agent.getByText('会话已分配，可由接待客服回复。', { exact: true }).waitFor()
+    } catch (error) {
+      console.error('SUPPORT_ASSIGN_STATE ' + JSON.stringify({
+        alert: await agent.locator('[role=alert]').allTextContents(),
+        status: await agent.locator('[role=status]').allTextContents(),
+        queue: await agent.locator('.ops-support__queue').innerText(),
+      }))
+      throw error
+    }
     await agent.getByText('接待客服 accept_agent', { exact: false }).waitFor()
     await agent.getByRole('heading', { name: /客服会话 #/ }).waitFor()
     assert.equal(await agent.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)

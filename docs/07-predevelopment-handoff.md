@@ -52,6 +52,8 @@
 
 2026-11-19 从 `eb5d526` 启动并完成 I12 商城体验与可访问性收口，独立交接见[I12 handoff](iterations/I12/handoff.md)，计划与验收入口见[I12 plan](iterations/I12/plan.md)。最终基线 `60cbe64` 已进入远端 `main`，`iter-i12` 已推送且截图归档；本轮已闭环，未同时启动后续迭代。
 
+2026-11-19 在 I12 闭环后，从 `e8c81a0` 启动 I13 交易异常恢复与可靠性收口。独立档案见[I13 handoff](iterations/I13/handoff.md)与[I13 plan](iterations/I13/plan.md)。本轮实现、自动验证和用户人工验收已完成，当前进入基线提交与标签留证步骤。
+
 ## 4. 从现有实现接手
 
 1. **改页面**：先从 [Vue 路由](../frontend/src/router/index.ts) 或 [mini 页面清单](../mini/app.json) 找实际入口，再查 08 对应页面 ID 与 06 的生命周期要求。前端为 strict TypeScript，禁止显式 `any`；接口响应类型从 `src/types/api.d.ts` 引用，不要手写重复类型。
