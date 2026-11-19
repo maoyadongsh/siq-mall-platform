@@ -1,9 +1,10 @@
 # I13 交易异常恢复与可靠性收口 · 开发交接
 
 - 交接日期：2026-11-19
-- 当前状态：人工验收通过，待基线提交与标签
+- 当前状态：已闭环
 - 上一迭代基线：`iter-i12` → `60cbe64`，已闭环
 - 本轮起始提交：`e8c81a0`
+- 最终基线：`3f7d67f`（`iter-i13`，已推送远端）
 - 迭代计划：[plan.md](plan.md)
 - 归档证据：[handoff 截图](screenshots/handoff.png)
 
@@ -89,4 +90,4 @@ node --test qa/acceptance/mini-boundaries.cjs
 - plan、handoff、故障注入与新增回归已完成，详见[验收记录](acceptance.md)。
 - 后端 99 passed/15 skipped、95.01% 行覆盖率；MariaDB 21 项、Web 20 项、mini 4+9 项及完整隔离回归通过。
 - 人工验收人：项目用户（Trae 会话确认）；日期：2026-11-19；结论：通过。
-- `iter-i13`：尚未创建；现在进入提交、推送和标签留证步骤。
+- `iter-i13` 已指向 `3f7d67f` 并推送远端；[标签截图](screenshots/tag.png)同时记录 `iter-i12`，I13 闭环。
