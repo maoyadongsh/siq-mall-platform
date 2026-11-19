@@ -4,21 +4,145 @@
   box-sizing: border-box;
 }
 
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--mall-header-height) + 16px);
+}
+
 html,
 body {
   margin: 0;
   padding: 0;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  line-height: 1.6;
   color: var(--mall-text);
   background: var(--mall-bg);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.22;
+  letter-spacing: -0.025em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+[role='button'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']) {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
 }
 
 a {
   color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  color: var(--mall-color-primary);
+  background: var(--mall-color-primary-light);
+}
+
+:focus-visible {
+  outline: 3px solid var(--mall-focus);
+  outline-offset: 3px;
+}
+
+.siq-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.siq-state {
+  margin: 24px 0;
+  padding: 24px;
+  border: 1px solid var(--mall-border);
+  border-radius: var(--mall-radius-md);
+  color: var(--mall-text-secondary);
+  background: rgb(255 255 255 / 65%);
+  text-align: center;
+}
+
+.siq-state--error {
+  color: var(--mall-color-danger);
+  border-color: rgb(180 35 24 / 20%);
+  background: #fff7f5;
+}
+
+.siq-price,
+[data-price] {
+  font-variant-numeric: tabular-nums;
 }
 
 :root {
   --el-color-primary: var(--mall-color-primary);
+  --el-border-radius-base: var(--mall-radius-sm);
+  --el-text-color-primary: var(--mall-text);
+  --el-text-color-regular: var(--mall-text);
+  --el-border-color: var(--mall-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

@@ -1,13 +1,24 @@
 <view class="container">
-  <view wx:if="{{error}}" class="error">{{error}}</view>
-  <view wx:if="{{!logged}}" class="muted">当前为游客购物车，登录后按原提交标识合并。</view>
-  <view wx:if="{{!loading && !rows.length}}" class="card">购物车为空，去挑选商品吧。<navigator url="/pages/products/products" class="link">浏览商品</navigator></view>
-  <view wx:for="{{rows}}" wx:key="sku_id" class="card">
-    <view>{{item.title}} · {{item.label}}</view><view class="price">¥{{item.current_price}}</view>
+  <view class="page-heading">
+    <view class="eyebrow">YOUR SELECTION</view>
+    <view class="page-heading__title">购物车</view>
+    <view class="page-heading__description">核对商品与数量，结算时将再次确认价格、库存和优惠。</view>
+  </view>
+
+  <view wx:if="{{error}}" class="state state--error">{{error}}</view>
+  <view wx:if="{{!logged}}" class="notice">当前为游客购物车，登录后按原提交标识合并。</view>
+  <view wx:if="{{!loading && !rows.length}}" class="card empty">
+    <view class="empty__mark">S</view>
+    <view class="empty__title">购物车还是空的</view>
+    <view class="empty__description">从一件真正需要的日常好物开始。</view>
+    <navigator url="/pages/products/products" class="primary">去选购商品</navigator>
+  </view>
+
+  <view wx:for="{{rows}}" wx:key="sku_id" class="card cart-item">
+    <view class="cart-item__header row"><view><view class="cart-item__title">{{item.title}}</view><view class="cart-item__meta">{{item.label}}</view></view><text class="price">¥{{item.current_price}}</text></view>
     <view wx:if="{{item.reason}}" class="error">{{item.reason}}</view>
-    <input class="input" type="number" value="{{item.quantity}}" data-item="{{item}}" bindchange="update" />
-    <button class="danger" data-item="{{item}}" bindtap="remove">移除</button>
+    <view class="cart-item__actions"><input class="input" type="number" value="{{item.quantity}}" data-item="{{item}}" bindchange="update" aria-label="购买数量" /><button class="text-button" data-item="{{item}}" bindtap="remove">移除商品</button></view>
   </view>
   <button wx:if="{{rows.length}}" class="primary" bindtap="checkout">{{logged ? '去结算' : '登录并合并购物车'}}</button>
-  <view wx:if="{{loading}}" class="muted">正在读取购物车…</view>
+  <view wx:if="{{loading}}" class="state">正在读取购物车…</view>
 </view>

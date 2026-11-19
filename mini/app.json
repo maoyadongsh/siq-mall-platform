@@ -17,8 +17,8 @@
   ],
   "window": {
     "navigationBarTitleText": "SIQ优选商城",
-    "navigationBarBackgroundColor": "#174c43",
-    "navigationBarTextStyle": "white",
+    "navigationBarBackgroundColor": "#f7f6f2",
+    "navigationBarTextStyle": "black",
     "backgroundColor": "#f7f6f2"
   },
   "tabBar": {

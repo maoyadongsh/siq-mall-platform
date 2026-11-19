@@ -1,13 +1,31 @@
 <view class="container">
-  <input class="input" value="{{query}}" placeholder="搜索商品" bindinput="onQuery" bindconfirm="onSearch" />
-  <button class="primary" bindtap="onSearch">搜索</button>
-  <view class="row" style="margin:16rpx 0"><button class="secondary" data-value="newest" bindtap="onSort">最新</button><button class="secondary" data-value="price_asc" bindtap="onSort">价格升序</button><button class="secondary" data-value="price_desc" bindtap="onSort">价格降序</button></view>
-  <view wx:if="{{error}}" class="error">{{error}}<button bindtap="onSearch">重试</button></view>
-  <view wx:if="{{!loading && !rows.length}}" class="muted">没有找到相关商品，请调整搜索。</view>
-  <navigator wx:for="{{rows}}" wx:key="id" url="/pages/product/product?id={{item.id}}" class="card">
-    <image wx:if="{{item.cover_url}}" src="{{item.cover_url}}" mode="aspectFill" class="cover" style="height:320rpx" />
-    <view class="muted">{{item.category}}</view><view style="font-weight:600">{{item.title}}</view>
-    <view class="price">¥{{item.display_price}} 起</view>
-  </navigator>
-  <view wx:if="{{loading}}" class="muted">正在加载…</view>
+  <view class="page-heading">
+    <view class="eyebrow">CURATED FOR EVERYDAY</view>
+    <view class="page-heading__title">找到适合日常的那一件</view>
+    <view class="page-heading__description">按名称与价格慢慢筛选，不必急着做决定。</view>
+  </view>
+  <view class="search-box">
+    <input class="input" value="{{query}}" placeholder="搜索商品名称" bindinput="onQuery" confirm-type="search" bindconfirm="onSearch" />
+    <button class="primary" bindtap="onSearch">搜索</button>
+  </view>
+  <scroll-view scroll-x class="chip-scroll" enhanced show-scrollbar="{{false}}">
+    <button class="chip {{sort === 'newest' ? 'chip--active' : ''}}" data-value="newest" bindtap="onSort">最新</button>
+    <button class="chip {{sort === 'price_asc' ? 'chip--active' : ''}}" data-value="price_asc" bindtap="onSort">价格升序</button>
+    <button class="chip {{sort === 'price_desc' ? 'chip--active' : ''}}" data-value="price_desc" bindtap="onSort">价格降序</button>
+  </scroll-view>
+
+  <view wx:if="{{error}}" class="state state--error"><view>{{error}}</view><button class="secondary" bindtap="onSearch">重试</button></view>
+  <view wx:if="{{!loading && !rows.length && !error}}" class="card empty"><view class="empty__mark">S</view><view class="empty__title">没有找到相关商品</view><view class="empty__description">试试其他关键词或排序方式。</view></view>
+
+  <view class="product-list">
+    <navigator wx:for="{{rows}}" wx:key="id" url="/pages/product/product?id={{item.id}}" class="product-card">
+      <image wx:if="{{item.cover_url}}" src="{{item.cover_url}}" mode="aspectFill" class="product-card__cover" />
+      <view class="product-card__body">
+        <view class="product-card__category">{{item.category}}</view>
+        <view class="product-card__title">{{item.title}}</view>
+        <view class="product-card__footer"><text class="price"><text class="price__currency">¥</text>{{item.display_price}} 起</text><text class="product-card__action">查看规格 ↗</text></view>
+      </view>
+    </navigator>
+  </view>
+  <view wx:if="{{loading}}" class="state">{{rows.length ? '正在加载更多商品…' : '正在加载商品…'}}</view>
 </view>

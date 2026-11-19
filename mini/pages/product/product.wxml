@@ -1,11 +1,39 @@
-<view class="container" wx:if="{{product}}">
-  <image wx:if="{{product.cover_url}}" src="{{product.cover_url}}" mode="widthFix" class="cover" />
-  <view class="card"><view class="muted">{{product.category}}</view><view style="font-size:38rpx;font-weight:600">{{product.title}}</view><view class="muted">{{product.description}}</view></view>
-  <view class="card"><view>选择规格</view><button wx:for="{{product.skus}}" wx:key="id" data-id="{{item.id}}" bindtap="onSku" class="{{sku.id === item.id ? 'primary' : 'secondary'}}">{{item.label}} · ¥{{item.price}} · {{item.available_stock > 0 ? '有货' : '缺货'}}</button></view>
-  <view class="card"><view>数量</view><input class="input" type="number" value="{{quantity}}" bindinput="onQuantity" /></view>
-  <view wx:if="{{error}}" class="error">{{error}}</view><view wx:if="{{notice}}" class="success">{{notice}}</view>
-  <button class="primary" disabled="{{!sku.available_stock || busy}}" bindtap="add">{{busy ? '提交中…' : '加入购物车'}}</button>
-  <navigator class="secondary" url="/pages/support/support">联系客服</navigator>
-  <button class="secondary" open-type="share">分享商品</button>
+<view class="container container--with-action" wx:if="{{product}}">
+  <image wx:if="{{product.cover_url}}" src="{{product.cover_url}}" mode="widthFix" class="detail-cover" />
+  <view class="page-heading">
+    <view class="eyebrow">{{product.category}}</view>
+    <view class="detail-title">{{product.title}}</view>
+    <view class="muted">{{product.description}}</view>
+    <view class="detail-price"><text class="price__currency">¥</text>{{sku.price}}</view>
+    <view class="detail-stock {{!sku.available_stock ? 'detail-stock--unavailable' : ''}}">{{sku.available_stock > 0 ? '当前规格有货' : '当前规格暂时缺货'}}</view>
+  </view>
+
+  <view class="card">
+    <view class="eyebrow">SELECT OPTIONS</view>
+    <view class="section-heading__title">选择规格</view>
+    <view class="sku-list">
+      <button wx:for="{{product.skus}}" wx:key="id" data-id="{{item.id}}" bindtap="onSku" class="sku-option {{sku.id === item.id ? 'sku-option--active' : ''}}">
+        <text>{{item.label}}</text><text class="sku-option__meta">¥{{item.price}} · {{item.available_stock > 0 ? '有货' : '缺货'}}</text>
+      </button>
+    </view>
+  </view>
+
+  <view class="card quantity-field"><view><view class="section-heading__title">购买数量</view><view class="muted">每笔可选 1–99 件</view></view><input class="input" type="number" value="{{quantity}}" bindinput="onQuantity" /></view>
+  <view class="card"><view class="service-card__item-title">实时核对</view><view class="muted">库存与价格以提交时服务端结果为准，订单与消息可随时查询。</view></view>
+
+  <view wx:if="{{error}}" class="state state--error">{{error}}</view>
+  <view wx:if="{{notice}}" class="notice">{{notice}} <navigator url="/pages/cart/cart" open-type="switchTab" class="link">去购物车查看</navigator></view>
+  <view class="button-row">
+    <navigator class="secondary" url="/pages/support/support">联系客服</navigator>
+    <button class="secondary" open-type="share">分享商品</button>
+  </view>
+
+  <view class="bottom-bar">
+    <view class="bottom-bar__info"><text class="bottom-bar__label">已选 {{sku.label}}</text><text class="bottom-bar__value">¥{{sku.price}}</text></view>
+    <button class="primary" disabled="{{!sku.available_stock || busy}}" bindtap="add">{{busy ? '正在加入…' : '加入购物车'}}</button>
+  </view>
 </view>
-<view wx:else class="container"><view wx:if="{{loading}}">正在读取商品…</view><view wx:else class="error">{{error}}<navigator url="/pages/index/index">返回首页</navigator></view></view>
+<view wx:else class="container">
+  <view wx:if="{{loading}}" class="state">正在读取商品…</view>
+  <view wx:else class="state state--error"><view>{{error}}</view><navigator class="secondary" url="/pages/index/index" open-type="switchTab">返回首页</navigator></view>
+</view>

@@ -1,1 +1,17 @@
-<view class="container"><view wx:if="{{error}}" class="error">{{error}}</view><view wx:if="{{!loading && !rows.length}}" class="card">暂无订单，去挑选商品吧。</view><navigator wx:for="{{rows}}" wx:key="order_no" url="/pages/order-detail/order-detail?no={{item.order_no}}" class="card"><view>{{item.order_no}}</view><view class="row"><text>{{item.status}}</text><text class="price">¥{{item.payable_amount}}</text></view><view class="muted">{{item.created_at}}</view></navigator><view wx:if="{{loading}}">正在恢复订单…</view></view>
+<view class="container">
+  <view class="page-heading">
+    <view class="eyebrow">YOUR ORDERS</view>
+    <view class="page-heading__title">我的订单</view>
+    <view class="page-heading__description">每一次选择与每一步进度，都清楚保留在这里。</view>
+  </view>
+  <view wx:if="{{error}}" class="state state--error">{{error}}</view>
+  <view wx:if="{{!loading && !rows.length}}" class="card empty"><view class="empty__mark">S</view><view class="empty__title">暂无订单</view><view class="empty__description">去挑选一件真正需要的商品吧。</view><navigator url="/pages/products/products" class="primary">浏览商品</navigator></view>
+  <view class="product-list">
+    <navigator wx:for="{{rows}}" wx:key="order_no" url="/pages/order-detail/order-detail?no={{item.order_no}}" class="card order-card">
+      <view class="order-card__top"><text class="status status--{{item.status}}">{{item.status}}</text><text class="order-card__time">{{item.created_at}}</text></view>
+      <view class="order-card__number">订单号 {{item.order_no}}</view>
+      <view class="order-card__bottom"><text class="price"><text class="price__currency">¥</text>{{item.payable_amount}}</text><text class="order-card__link">查看订单 →</text></view>
+    </navigator>
+  </view>
+  <view wx:if="{{loading}}" class="state">正在恢复订单…</view>
+</view>

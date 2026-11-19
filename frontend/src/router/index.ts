@@ -1,30 +1,98 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import OpsLayout from '@/layouts/OpsLayout.vue'
 import { useUserStore } from '@/stores/user'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
-      path: '/',
-      component: DefaultLayout,
+      path: '/ops',
+      component: OpsLayout,
       children: [
         {
-          path: 'ops',
+          path: '',
           component: () => import('@/views/operations/OpsDashboard.vue'),
           meta: { title: '运营工作台', requiresAuth: true },
         },
         {
-          path: 'ops/access',
+          path: 'access',
           component: () => import('@/views/operations/OpsAccess.vue'),
           meta: { title: '用户与角色', requiresAuth: true, rolesPermission: true },
         },
         {
-          path: 'ops/audits',
+          path: 'audits',
           component: () => import('@/views/operations/OpsAudits.vue'),
           meta: { title: '运营审计', requiresAuth: true, auditPermission: true },
         },
+        {
+          path: 'support',
+          component: () => import('@/views/support/OpsSupport.vue'),
+          meta: { title: '客服工作台', requiresAuth: true, supportPermission: true },
+        },
+        {
+          path: 'cms',
+          component: () => import('@/views/content/OpsCmsList.vue'),
+          meta: { title: '内容管理', requiresAuth: true, contentPermission: true },
+        },
+        {
+          path: 'cms/:id/edit',
+          component: () => import('@/views/content/OpsCmsEditor.vue'),
+          props: true,
+          meta: { title: '内容编辑与发布', requiresAuth: true, contentPermission: true },
+        },
+        {
+          path: 'notification-templates',
+          component: () => import('@/views/notifications/OpsTemplates.vue'),
+          meta: { title: '通知模板', requiresAuth: true, contentPermission: true },
+        },
+        {
+          path: 'reviews',
+          component: () => import('@/views/reviews/ReviewList.vue'),
+          props: { ops: true },
+          meta: { title: '评价审核', requiresAuth: true, moderation: true },
+        },
+        {
+          path: 'coupons',
+          component: () => import('@/views/coupons/OpsCoupons.vue'),
+          meta: { title: '优惠券管理', requiresAuth: true, promotionPermission: true },
+        },
+        {
+          path: 'orders',
+          component: () => import('@/views/orders/OrderList.vue'),
+          props: { ops: true },
+          meta: { title: '订单履约', requiresAuth: true, fulfill: true },
+        },
+        {
+          path: 'orders/:no',
+          component: () => import('@/views/orders/OrderDetail.vue'),
+          props: (route) => ({ no: route.params.no, ops: true }),
+          meta: { title: '订单履约详情', requiresAuth: true, fulfill: true },
+        },
+        {
+          path: 'categories',
+          component: () => import('@/views/catalog/CategoryManager.vue'),
+          meta: { title: '分类管理', requiresAuth: true, catalogPermission: true },
+        },
+        {
+          path: 'products/:id/edit',
+          component: () => import('@/views/catalog/ProductEditor.vue'),
+          props: true,
+          meta: { title: '维护商品', requiresAuth: true, catalogPermission: true },
+        },
+        {
+          path: 'products',
+          component: () => import('@/views/catalog/CatalogList.vue'),
+          props: { manage: true },
+          meta: { title: '商品管理', requiresAuth: true, catalogPermission: true },
+        },
+      ],
+    },
+    {
+      path: '/',
+      component: DefaultLayout,
+      children: [
         {
           path: 'support',
           component: () => import('@/views/support/SupportView.vue'),
@@ -34,23 +102,7 @@ const router = createRouter({
           path: 'support/:id',
           component: () => import('@/views/support/SupportView.vue'),
           props: true,
-          meta: { title: '客服会话', requiresAuth: true },
-        },
-        {
-          path: 'ops/support',
-          component: () => import('@/views/support/OpsSupport.vue'),
-          meta: { title: '客服工作台', requiresAuth: true, supportPermission: true },
-        },
-        {
-          path: 'ops/cms',
-          component: () => import('@/views/content/OpsCmsList.vue'),
-          meta: { title: '内容管理', requiresAuth: true, contentPermission: true },
-        },
-        {
-          path: 'ops/cms/:id/edit',
-          component: () => import('@/views/content/OpsCmsEditor.vue'),
-          props: true,
-          meta: { title: '内容编辑与发布', requiresAuth: true, contentPermission: true },
+          meta: { title: '客服会话', requiresAuth: true, mobileNav: false },
         },
         {
           path: 'pages/:identifier',
@@ -70,26 +122,15 @@ const router = createRouter({
           meta: { title: '消息中心', requiresAuth: true },
         },
         {
-          path: 'ops/notification-templates',
-          component: () => import('@/views/notifications/OpsTemplates.vue'),
-          meta: { title: '通知模板', requiresAuth: true, contentPermission: true },
-        },
-        {
           path: 'orders/:no/review',
           component: () => import('@/views/reviews/OrderReview.vue'),
           props: true,
-          meta: { title: '评价订单商品', requiresAuth: true },
+          meta: { title: '评价订单商品', requiresAuth: true, mobileNav: false },
         },
         {
           path: 'account/reviews',
           component: () => import('@/views/reviews/ReviewList.vue'),
           meta: { title: '我的评价', requiresAuth: true },
-        },
-        {
-          path: 'ops/reviews',
-          component: () => import('@/views/reviews/ReviewList.vue'),
-          props: { ops: true },
-          meta: { title: '评价审核', requiresAuth: true, moderation: true },
         },
         {
           path: 'coupons',
@@ -103,11 +144,6 @@ const router = createRouter({
           meta: { title: '我的优惠券', requiresAuth: true },
         },
         {
-          path: 'ops/coupons',
-          component: () => import('@/views/coupons/OpsCoupons.vue'),
-          meta: { title: '优惠券管理', requiresAuth: true, promotionPermission: true },
-        },
-        {
           path: 'orders',
           component: () => import('@/views/orders/OrderList.vue'),
           meta: { title: '我的订单', requiresAuth: true },
@@ -116,19 +152,7 @@ const router = createRouter({
           path: 'orders/:no',
           component: () => import('@/views/orders/OrderDetail.vue'),
           props: true,
-          meta: { title: '订单详情', requiresAuth: true },
-        },
-        {
-          path: 'ops/orders',
-          component: () => import('@/views/orders/OrderList.vue'),
-          props: { ops: true },
-          meta: { title: '订单履约', requiresAuth: true, fulfill: true },
-        },
-        {
-          path: 'ops/orders/:no',
-          component: () => import('@/views/orders/OrderDetail.vue'),
-          props: (r) => ({ no: r.params.no, ops: true }),
-          meta: { title: '订单履约详情', requiresAuth: true, fulfill: true },
+          meta: { title: '订单详情', requiresAuth: true, mobileNav: false },
         },
         {
           path: 'cart',
@@ -138,7 +162,7 @@ const router = createRouter({
         {
           path: 'checkout',
           component: () => import('@/views/cart/CheckoutView.vue'),
-          meta: { title: '结算预览', requiresAuth: true },
+          meta: { title: '结算预览', requiresAuth: true, mobileNav: false },
         },
         {
           path: '',
@@ -155,24 +179,7 @@ const router = createRouter({
           path: 'products/:id',
           component: () => import('@/views/catalog/ProductDetail.vue'),
           props: true,
-          meta: { title: '商品详情' },
-        },
-        {
-          path: 'ops/categories',
-          component: () => import('@/views/catalog/CategoryManager.vue'),
-          meta: { title: '分类管理', requiresAuth: true, catalogPermission: true },
-        },
-        {
-          path: 'ops/products/:id/edit',
-          component: () => import('@/views/catalog/ProductEditor.vue'),
-          props: true,
-          meta: { title: '维护商品', requiresAuth: true, catalogPermission: true },
-        },
-        {
-          path: 'ops/products',
-          component: () => import('@/views/catalog/CatalogList.vue'),
-          props: { manage: true },
-          meta: { title: '商品管理', requiresAuth: true, catalogPermission: true },
+          meta: { title: '商品详情', mobileNav: false },
         },
         {
           path: 'status',
@@ -183,13 +190,13 @@ const router = createRouter({
           path: 'login',
           name: 'login',
           component: () => import('@/views/auth/LoginView.vue'),
-          meta: { title: '登录' },
+          meta: { title: '登录', mobileNav: false },
         },
         {
           path: 'register',
           name: 'register',
           component: () => import('@/views/auth/RegisterView.vue'),
-          meta: { title: '注册' },
+          meta: { title: '注册', mobileNav: false },
         },
         {
           path: 'account/addresses',

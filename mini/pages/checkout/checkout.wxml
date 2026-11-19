@@ -1,8 +1,39 @@
-<view class="container">
-  <view wx:if="{{error}}" class="error">{{error}}</view><view wx:if="{{notice}}" class="muted">{{notice}}</view>
-  <view wx:if="{{!recovering}}" class="card"><view class="row"><text>收货地址</text><navigator class="link" url="/pages/addresses/addresses">管理地址</navigator></view><picker wx:if="{{addresses.length}}" range="{{addresses}}" range-key="detail" value="{{addressIndex}}" bindchange="onAddress" class="picker">{{addresses[addressIndex].recipient}} · {{addresses[addressIndex].detail}}</picker><navigator wx:else url="/pages/addresses/addresses" class="link">请先添加收货地址</navigator></view>
-  <picker wx:if="{{!recovering && couponOptions.length > 1}}" range="{{couponOptions}}" range-key="name" value="{{couponIndex}}" bindchange="onCoupon" class="picker">选择优惠券：{{couponOptions[couponIndex].name}}</picker>
-  <view wx:if="{{quote}}" class="card"><view>商品金额 ¥{{quote.goods_amount}}</view><view>配送费 ¥{{quote.freight_amount}}</view><view>优惠 ¥{{quote.discount_amount}}</view><view class="price">应付 ¥{{quote.payable_amount}}</view><view class="muted">报价有效至 {{quote.expires_at}}，提交时后端会再次核价。</view></view>
-  <button class="primary" disabled="{{(!quote && !recovering) || busy}}" bindtap="submit">{{recovering ? '找回上次提交的订单' : '确认金额并提交订单'}}</button>
-  <view wx:if="{{loading}}">正在准备结算…</view>
+<view class="container container--with-action">
+  <view class="page-heading">
+    <view class="eyebrow">SECURE CHECKOUT</view>
+    <view class="page-heading__title">结算预览</view>
+    <view class="page-heading__description">核对收货信息与实时报价，再确认提交订单。</view>
+  </view>
+
+  <view wx:if="{{error}}" class="state state--error">{{error}}</view>
+  <view wx:if="{{notice}}" class="notice">{{notice}}</view>
+  <view wx:if="{{recovering}}" class="notice">上次提交结果待确认，请优先找回原订单，避免重复创建。</view>
+
+  <view wx:if="{{!recovering}}" class="card">
+    <view class="row"><view><view class="eyebrow">DELIVERY</view><view class="section-heading__title">收货地址</view></view><navigator class="link" url="/pages/addresses/addresses">管理地址</navigator></view>
+    <picker wx:if="{{addresses.length}}" range="{{addresses}}" range-key="detail" value="{{addressIndex}}" bindchange="onAddress" class="picker">{{addresses[addressIndex].recipient}} · {{addresses[addressIndex].detail}}</picker>
+    <navigator wx:else url="/pages/addresses/addresses" class="secondary">请先添加收货地址</navigator>
+  </view>
+
+  <view wx:if="{{!recovering && couponOptions.length > 1}}" class="card">
+    <view class="eyebrow">COUPON</view>
+    <view class="section-heading__title">结算优惠</view>
+    <picker range="{{couponOptions}}" range-key="name" value="{{couponIndex}}" bindchange="onCoupon" class="picker">选择优惠券：{{couponOptions[couponIndex].name}}</picker>
+  </view>
+
+  <view wx:if="{{quote}}" class="card summary">
+    <view class="eyebrow">PRICE SUMMARY</view>
+    <view class="section-heading__title">金额明细</view>
+    <view class="summary__row"><text class="muted">商品金额</text><text>¥{{quote.goods_amount}}</text></view>
+    <view class="summary__row"><text class="muted">配送费</text><text>¥{{quote.freight_amount}}</text></view>
+    <view class="summary__row"><text class="muted">优惠</text><text>−¥{{quote.discount_amount}}</text></view>
+    <view class="summary__row summary__row--total"><text>预计应付</text><text class="summary__total">¥{{quote.payable_amount}}</text></view>
+    <view class="muted">报价有效至 {{quote.expires_at}}，提交时后端会再次核价。</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state">正在准备结算…</view>
+  <view class="bottom-bar">
+    <view class="bottom-bar__info"><text class="bottom-bar__label">{{recovering ? '原订单结果待确认' : '预计应付'}}</text><text class="bottom-bar__value">{{quote ? '¥' + quote.payable_amount : '请先完成结算试算'}}</text></view>
+    <button class="primary" disabled="{{(!quote && !recovering) || busy}}" bindtap="submit">{{recovering ? '找回上次订单' : busy ? '正在提交…' : '确认并提交'}}</button>
+  </view>
 </view>

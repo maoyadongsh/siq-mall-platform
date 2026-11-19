@@ -1,20 +1,71 @@
 <view class="container">
-  <view class="card" style="background:#174c43;color:#fff">
-    <view style="font-size:40rpx;font-weight:600">认真选好每一件日常用品</view>
-    <view style="margin:16rpx 0">真实商品与统一交易规则，当前为演示商城。</view>
-    <input class="input" placeholder="搜索商品" bindinput="onQuery" confirm-type="search" bindconfirm="onSearch" />
-    <button class="secondary" bindtap="onSearch">搜索</button>
+  <view class="hero">
+    <view class="hero__eyebrow">SIQ · CURATED ESSENTIALS</view>
+    <view class="hero__title">把日常，<br />选得更好一点。</view>
+    <view class="hero__description">认真选好每一件日常用品，价格、库存与订单状态始终清楚可见。</view>
+    <view class="search-box">
+      <input class="input" placeholder="搜索你需要的日常好物" bindinput="onQuery" confirm-type="search" bindconfirm="onSearch" />
+      <button class="primary" bindtap="onSearch">搜索</button>
+    </view>
+    <view class="hero__note">
+      <view class="hero__note-title">好物，不必复杂。</view>
+      <view class="hero__note-description">真实商品 · 清晰价格 · 可查询订单</view>
+    </view>
   </view>
-  <scroll-view scroll-x style="white-space:nowrap" class="row">
-    <navigator url="/pages/products/products" class="secondary" style="display:inline-block;padding:16rpx">全部商品</navigator>
-    <navigator wx:for="{{categories}}" wx:key="id" url="/pages/products/products?category={{item.id}}" class="secondary" style="display:inline-block;padding:16rpx">{{item.name}}</navigator>
+
+  <view class="section-heading">
+    <view><view class="eyebrow">EXPLORE</view><view class="section-heading__title">从日常所需开始</view></view>
+    <navigator url="/pages/products/products" class="section-heading__link">全部商品 →</navigator>
+  </view>
+  <scroll-view scroll-x class="chip-scroll" enhanced show-scrollbar="{{false}}">
+    <navigator url="/pages/products/products" class="chip">全部商品</navigator>
+    <navigator wx:for="{{categories}}" wx:key="id" url="/pages/products/products?category={{item.id}}" class="chip">{{item.name}}</navigator>
   </scroll-view>
-  <view wx:if="{{loading}}">正在读取首页…</view>
-  <view wx:elif="{{error}}" class="error">{{error}}<button bindtap="load">重试</button></view>
+
+  <view wx:if="{{loading}}" class="state">正在为你准备首页内容…</view>
+  <view wx:elif="{{error}}" class="state state--error"><view>{{error}}</view><button class="secondary" bindtap="load">重新加载</button></view>
   <block wx:elif="{{data}}">
-    <view wx:for="{{data.banners}}" wx:key="id" class="card"><view wx:for="{{item.blocks}}" wx:key="index"><rich-text wx:if="{{item.type==='rich_text'}}" nodes="{{item.html}}" /><text wx:elif="{{item.type==='text'}}">{{item.text}}</text><image wx:elif="{{item.type==='image'}}" src="{{item.url}}" mode="widthFix" class="cover" /></view></view>
-    <view wx:if="{{data.announcements.length}}" class="card"><view style="font-weight:600">商城公告</view><navigator wx:for="{{data.announcements}}" wx:key="id" url="/pages/content/content?kind=announcement&id={{item.id}}" class="link" style="display:block;margin-top:16rpx">{{item.title}}</navigator></view>
-    <view wx:for="{{data.floors}}" wx:key="id" class="card"><view wx:for="{{item.blocks}}" wx:key="index"><view wx:if="{{item.type==='heading'}}" style="font-weight:600">{{item.text}}</view><view wx:if="{{item.type==='product_list'}}"><navigator wx:for="{{item.products}}" wx:for-item="product" wx:key="id" url="/pages/product/product?id={{product.id}}" class="row"><text>{{product.title}}</text><text class="price">{{product.min_price}}</text></navigator></view></view></view>
-    <view wx:if="{{!data.banners.length && !data.floors.length && !data.announcements.length}}" class="card"><view style="font-weight:600">当前可售商品</view><view class="muted">暂无已发布首页内容，仍可选购真实商品。</view><navigator wx:for="{{data.fallback_products}}" wx:key="id" url="/pages/product/product?id={{item.id}}" class="row"><text>{{item.title}}</text><text class="price">¥{{item.min_price}}</text></navigator></view>
+    <view wx:for="{{data.banners}}" wx:key="id" class="card">
+      <view wx:for="{{item.blocks}}" wx:key="index">
+        <rich-text wx:if="{{item.type==='rich_text'}}" nodes="{{item.html}}" />
+        <text wx:elif="{{item.type==='text'}}">{{item.text}}</text>
+        <image wx:elif="{{item.type==='image'}}" src="{{item.url}}" mode="widthFix" class="cover" />
+      </view>
+    </view>
+
+    <view wx:if="{{data.announcements.length}}" class="section-heading"><view><view class="eyebrow">NOTICE</view><view class="section-heading__title">商城公告</view></view></view>
+    <view wx:if="{{data.announcements.length}}" class="card announcement-list">
+      <navigator wx:for="{{data.announcements}}" wx:key="id" url="/pages/content/content?kind=announcement&id={{item.id}}" class="announcement-item"><text>{{item.title}}</text><text>↗</text></navigator>
+    </view>
+
+    <view wx:for="{{data.floors}}" wx:key="id" class="card">
+      <view wx:for="{{item.blocks}}" wx:key="index">
+        <view wx:if="{{item.type==='heading'}}" class="section-heading__title">{{item.text}}</view>
+        <view wx:if="{{item.type==='product_list'}}" class="product-list">
+          <navigator wx:for="{{item.products}}" wx:for-item="product" wx:key="id" url="/pages/product/product?id={{product.id}}" class="product-card">
+            <image wx:if="{{product.cover_url}}" src="{{product.cover_url}}" mode="aspectFill" class="product-card__cover" />
+            <view class="product-card__body"><view class="product-card__title">{{product.title}}</view><view class="product-card__footer"><text class="price"><text class="price__currency">¥</text>{{product.min_price}} 起</text><text class="product-card__action">查看规格 ↗</text></view></view>
+          </navigator>
+        </view>
+      </view>
+    </view>
+
+    <block wx:if="{{!data.banners.length && !data.floors.length && !data.announcements.length}}">
+      <view class="section-heading"><view><view class="eyebrow">AVAILABLE NOW</view><view class="section-heading__title">当前可售商品</view></view></view>
+      <view class="product-list">
+        <navigator wx:for="{{data.fallback_products}}" wx:key="id" url="/pages/product/product?id={{item.id}}" class="product-card">
+          <image wx:if="{{item.cover_url}}" src="{{item.cover_url}}" mode="aspectFill" class="product-card__cover" />
+          <view class="product-card__body"><view class="product-card__title">{{item.title}}</view><view class="product-card__footer"><text class="price"><text class="price__currency">¥</text>{{item.min_price}} 起</text><text class="product-card__action">查看规格 ↗</text></view></view>
+        </navigator>
+      </view>
+      <view wx:if="{{!data.fallback_products.length}}" class="card empty"><view class="empty__mark">S</view><view class="empty__title">好物正在准备中</view><view class="empty__description">暂无已发布内容或可售商品，请稍后再来。</view></view>
+    </block>
+
+    <view class="service-card">
+      <view class="eyebrow">SHOP WITH CLARITY</view>
+      <view class="service-card__title">清楚地选，安心地买。</view>
+      <view class="service-card__item"><view class="service-card__item-title">实时核对</view><view class="service-card__item-description">库存、价格与优惠券以服务端实时结果为准。</view></view>
+      <view class="service-card__item"><view class="service-card__item-title">消息可查</view><view class="service-card__item-description">订单与系统消息集中保留，不依赖额外订阅。</view></view>
+    </view>
   </block>
 </view>
